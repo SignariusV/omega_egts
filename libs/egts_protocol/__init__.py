@@ -1,0 +1,1 @@
+"""EGTS Protocol base module."""
