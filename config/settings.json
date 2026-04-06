@@ -1,0 +1,25 @@
+{
+  "gost_version": "2015",
+  "tcp_port": 3001,
+  "tcp_host": "0.0.0.0",
+  "cmw500": {
+    "ip": "192.168.1.100",
+    "timeout": 5,
+    "retries": 3,
+    "sms_send_timeout": 10,
+    "status_poll_interval": 2
+  },
+  "timeouts": {
+    "TL_RESPONSE_TO": 5,
+    "TL_RESEND_ATTEMPTS": 3,
+    "TL_RECONNECT_TO": 30,
+    "EGTS_SL_NOT_AUTH_TO": 6
+  },
+  "logging": {
+    "level": "INFO",
+    "dir": "./logs",
+    "rotation": "daily",
+    "max_size_mb": 100,
+    "retention_days": 30
+  }
+}

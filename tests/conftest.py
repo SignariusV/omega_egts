@@ -22,6 +22,20 @@ def tmp_log_dir(tmp_path: Path) -> Path:
     return log_dir
 
 
+# Config file fixture
+@pytest.fixture
+def sample_config_file(project_root: Path) -> Path:
+    """Return the path to the default settings.json."""
+    return project_root / "config" / "settings.json"
+
+
+# Credentials file fixture
+@pytest.fixture
+def sample_credentials_file(project_root: Path) -> Path:
+    """Return the path to the credentials.json template."""
+    return project_root / "config" / "credentials.json"
+
+
 # Mock event bus fixture
 @pytest.fixture
 def mock_event_bus() -> AsyncMock:
@@ -35,7 +49,7 @@ def mock_event_bus() -> AsyncMock:
 
 # Sample config fixture
 @pytest.fixture
-def sample_config_dict() -> dict:
+def sample_config_dict() -> dict[str, object]:
     """Return a sample configuration dictionary."""
     return {
         "gost_version": "2015",
@@ -64,6 +78,30 @@ def sample_config_dict() -> dict:
     }
 
 
+# Sample credentials fixture
+@pytest.fixture
+def sample_credentials() -> list[dict[str, str]]:
+    """Return sample credentials data."""
+    return [
+        {
+            "imei": "351234567890123",
+            "imsi": "250011234567890",
+            "term_code": "TEST001",
+            "auth_key": "test-key-001",
+            "device_id": "USV-001",
+            "description": "Test device 1",
+        },
+        {
+            "imei": "351234567890124",
+            "imsi": "250011234567891",
+            "term_code": "TEST002",
+            "auth_key": "test-key-002",
+            "device_id": "USV-002",
+            "description": "Test device 2",
+        },
+    ]
+
+
 # Sample EGTS packet fixture (minimal valid structure placeholder)
 @pytest.fixture
 def sample_raw_packet() -> bytes:
@@ -74,7 +112,7 @@ def sample_raw_packet() -> bytes:
 
 # Mock asyncio stream reader/writer
 @pytest.fixture
-def mock_stream_pair():
+def mock_stream_pair() -> tuple[AsyncMock, MagicMock]:
     """Return mock (reader, writer) pair for TCP connection tests."""
     reader = AsyncMock()
     writer = AsyncMock()
@@ -88,7 +126,7 @@ def mock_stream_pair():
 
 # Mock connection
 @pytest.fixture
-def mock_connection(mock_stream_pair):
+def mock_connection(mock_stream_pair: tuple[AsyncMock, MagicMock]) -> MagicMock:
     """Return a mock UsvConnection-like object."""
     reader, writer = mock_stream_pair
     conn = MagicMock()
