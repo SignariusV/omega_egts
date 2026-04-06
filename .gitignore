@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Config (секреты)
+config/credentials.json
+.env
+
+# Test coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ruff
+.ruff_cache/
+
+# Generated
+scenarios/*.hex
+export/
+
+# VISA
+visa.conf
+visa32.dll
+visax64.dll
