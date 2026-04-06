@@ -9,7 +9,7 @@
 ### Этап 1: CLI MVP (в разработке)
 - [x] EventBus — async шина с ordered/parallel handlers (итерация 1.1)
 - [x] Config — nested dataclass'ы, JSON загрузка, CLI merge, валидация (итерация 1.2)
-- [ ] Core Engine (координатор компонентов)
+- [x] CoreEngine — координатор компонентов (итерация 1.3)
 - [ ] FSM авторизации (TERM_IDENTITY → AUTH_PARAMS → AUTH_INFO → RESULT_CODE)
 - [ ] asyncio TCP-сервер для приёма EGTS-пакетов
 - [ ] Поддержка ГОСТ 33465-2015 (транспортный уровень)

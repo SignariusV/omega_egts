@@ -63,7 +63,6 @@
 class CoreEngine:
     async def start(self) -> None
     async def stop(self) -> None
-    async def run_scenario(self, scenario_id: str) -> None
 ```
 
 **Жизненный цикл:**
@@ -73,6 +72,38 @@ class CoreEngine:
 4. Подписка LogManager на `packet.received`, `connection.changed`, `scenario.step`
 5. Запуск TCP-сервера
 6. Ожидание подключений
+
+---
+
+### CoreEngine
+
+**Файл:** `core/engine.py` | **Статус:** ✅ Реализован (итерация 1.3)
+
+Главный координатор системы. Управляет жизненным циклом: инициализация, запуск, остановка.
+
+```python
+@dataclass
+class CoreEngine:
+    config: Config
+    bus: EventBus
+    _running: bool
+
+    async def start(self) -> None  # Инициализация компонентов, emit("server.started")
+    async def stop(self) -> None   # Остановка компонентов, emit("server.stopped")
+```
+
+**Использование:**
+```python
+engine = CoreEngine(config=config, bus=bus)
+await engine.start()  # Запуск
+await engine.stop()   # Остановка
+```
+
+**Особенности:**
+- `start()` — idempotent (повторный вызов игнорируется)
+- `stop()` без `start()` — не падает
+- Компоненты инициализируются через конструкторы (ручной DI)
+- События: `server.started` (port), `server.stopped` (reason)
 
 ---
 

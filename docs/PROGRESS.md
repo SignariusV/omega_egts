@@ -7,7 +7,7 @@
 ## 📊 Общий прогресс
 
 ```
-████████░░░░░░░░░░░░░░░░░░░░░░░░░░ 11% (4/36 задач)
+██████████░░░░░░░░░░░░░░░░░░░░░░░░ 17% (6/36 задач)
 ```
 
 ---
@@ -21,7 +21,7 @@
                            │
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                       CoreEngine  ░░░░░░░░░░ 0%                  │
+│                       CoreEngine  ██████░░░░░░ 50%               │
 │  ┌───────────────────────────────────────────────────────────┐  │
 │  │                      EventBus  ██████████ 100%             │  │
 │  │  on() · off() · emit() · ordered · parallel                │  │
@@ -63,7 +63,7 @@
 ```
 1.1 EventBus (async, ordered/parallel)   ██████████ 100% ✅
 1.2 Config (JSON + CLI, nested)          ██████████ 100% ✅
-1.3 CoreEngine (координатор)              ░░░░░░░░░░   0% ⏳
+1.3 CoreEngine (координатор)              ██████████ 100% ✅
 ```
 
 ### Итерация 2: EGTS Protocol Library
@@ -154,6 +154,8 @@
 | `tests/core/test_event_bus.py` | 14 тестов, 100% coverage | ✅ Готово |
 | `core/config.py` | Config (nested, JSON, CLI merge, валидация, __str__) | ✅ Готово |
 | `tests/core/test_config.py` | 28 тестов, 91% coverage | ✅ Готово |
+| `core/engine.py` | CoreEngine (start/stop, lifecycle) | ✅ Готово |
+| `tests/core/test_engine.py` | 6 тестов, 100% coverage | ✅ Готово |
 | `config/settings.json` | Настройки по умолчанию | ✅ Готово |
 | `config/credentials.json` | Шаблон учётных данных | ✅ Готово |
 | `tests/conftest.py` | Фикстуры для тестов | ✅ Готово |
