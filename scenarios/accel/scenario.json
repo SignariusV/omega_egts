@@ -1,6 +1,60 @@
 {
-  "name": "Профиль ускорения",
+  "name": "Передача профиля ускорения",
   "version": "2015",
-  "timeout": 30,
-  "steps": []
+  "timeout": 60,
+  "description": "Платформа запрашивает профиль ускорения через SMS, УСВ передаёт данные по TCP/IP",
+  "channels": ["tcp", "sms"],
+  "steps": [
+    {
+      "name": "SMS-запрос профиля ускорения",
+      "type": "send",
+      "channel": "sms",
+      "direction": "from_platform",
+      "packet_type": "EGTS_ACCEL_DATA",
+      "packet_file": "packets/platform/accel_data_request.hex",
+      "timeout": 10,
+      "description": "Платформа запрашивает профиль ускорения через SMS"
+    },
+    {
+      "name": "Подтверждение SMS-запроса",
+      "type": "expect",
+      "channel": "sms",
+      "direction": "from_usv",
+      "packet_type": "CT_COMCONF",
+      "timeout": 10,
+      "checks": {
+        "subrecord_type": "CT_COMCONF"
+      },
+      "description": "УСВ подтверждает приём SMS-запроса"
+    },
+    {
+      "name": "Данные профиля ускорения",
+      "type": "expect",
+      "channel": "tcp",
+      "direction": "from_usv",
+      "packet_type": "EGTS_SR_ACCEL_DATA",
+      "timeout": 30,
+      "capture": {
+        "accel_points_count": "data.points_count"
+      },
+      "checks": {
+        "service": 2,
+        "subrecord_type": "EGTS_SR_ACCEL_DATA"
+      },
+      "description": "УСВ передаёт профиль ускорения (3 244 байт)"
+    },
+    {
+      "name": "Подтверждение профиля ускорения",
+      "type": "send",
+      "channel": "tcp",
+      "direction": "from_platform",
+      "packet_type": "EGTS_SR_RECORD_RESPONSE",
+      "packet_file": "packets/platform/record_response_accel.hex",
+      "timeout": 5,
+      "checks": {
+        "rst": 0
+      },
+      "description": "Платформа подтверждает приём профиля ускорения"
+    }
+  ]
 }

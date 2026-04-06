@@ -1,6 +1,47 @@
 {
-  "name": "Команды и параметры",
+  "name": "Команды конфигурирования",
   "version": "2015",
   "timeout": 30,
-  "steps": []
+  "description": "Платформа отправляет команды конфигурирования на УСВ через EGTS_COMMANDS_SERVICE",
+  "channels": ["tcp"],
+  "steps": [
+    {
+      "name": "Команда конфигурирования",
+      "type": "send",
+      "channel": "tcp",
+      "direction": "from_platform",
+      "packet_type": "EGTS_SR_COMMAND_DATA",
+      "packet_file": "packets/platform/command_data.hex",
+      "timeout": 10,
+      "checks": {
+        "service": 4,
+        "subrecord_type": "EGTS_SR_COMMAND_DATA"
+      },
+      "description": "Платформа отправляет команду конфигурирования (72 байт)"
+    },
+    {
+      "name": "Ответ транспортного уровня",
+      "type": "expect",
+      "channel": "tcp",
+      "direction": "from_usv",
+      "packet_type": "EGTS_PT_RESPONSE",
+      "timeout": 5,
+      "checks": {
+        "packet_type": "EGTS_PT_RESPONSE"
+      },
+      "description": "УСВ отвечает на транспортном уровне (29 байт)"
+    },
+    {
+      "name": "Подтверждение выполнения команды",
+      "type": "expect",
+      "channel": "tcp",
+      "direction": "from_usv",
+      "packet_type": "CT_COMCONF",
+      "timeout": 10,
+      "checks": {
+        "subrecord_type": "CT_COMCONF"
+      },
+      "description": "УСВ подтверждает выполнение команды (49 байт)"
+    }
+  ]
 }

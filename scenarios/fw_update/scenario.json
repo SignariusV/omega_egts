@@ -1,6 +1,67 @@
 {
   "name": "Обновление ПО",
   "version": "2015",
-  "timeout": 30,
-  "steps": []
+  "timeout": 120,
+  "description": "Платформа передаёт прошивку на УСВ частями через EGTS_FIRMWARE_SERVICE",
+  "channels": ["tcp"],
+  "steps": [
+    {
+      "name": "Часть 1 прошивки",
+      "type": "send",
+      "channel": "tcp",
+      "direction": "from_platform",
+      "packet_type": "EGTS_SR_SERVICE_PART_DATA",
+      "packet_file": "packets/platform/service_part_data_1.hex",
+      "timeout": 30,
+      "checks": {
+        "service": 9,
+        "subrecord_type": "EGTS_SR_SERVICE_PART_DATA",
+        "part_number": 1,
+        "expected_parts": 2
+      },
+      "description": "Платформа передаёт первую часть прошивки (51 236 байт)"
+    },
+    {
+      "name": "Подтверждение части 1 (IN_PROGRESS)",
+      "type": "expect",
+      "channel": "tcp",
+      "direction": "from_usv",
+      "packet_type": "EGTS_SR_RECORD_RESPONSE",
+      "timeout": 10,
+      "checks": {
+        "subrecord_type": "EGTS_SR_RECORD_RESPONSE",
+        "rst": 1
+      },
+      "description": "УСВ подтверждает приём части 1 (EGTS_PC_IN_PROGRESS)"
+    },
+    {
+      "name": "Часть 2 прошивки",
+      "type": "send",
+      "channel": "tcp",
+      "direction": "from_platform",
+      "packet_type": "EGTS_SR_SERVICE_PART_DATA",
+      "packet_file": "packets/platform/service_part_data_2.hex",
+      "timeout": 30,
+      "checks": {
+        "service": 9,
+        "subrecord_type": "EGTS_SR_SERVICE_PART_DATA",
+        "part_number": 2,
+        "expected_parts": 2
+      },
+      "description": "Платформа передаёт вторую часть прошивки (29 312 байт)"
+    },
+    {
+      "name": "Подтверждение части 2 (OK)",
+      "type": "expect",
+      "channel": "tcp",
+      "direction": "from_usv",
+      "packet_type": "EGTS_SR_RECORD_RESPONSE",
+      "timeout": 10,
+      "checks": {
+        "subrecord_type": "EGTS_SR_RECORD_RESPONSE",
+        "rst": 0
+      },
+      "description": "УСВ подтверждает приём последней части (EGTS_PC_OK)"
+    }
+  ]
 }
