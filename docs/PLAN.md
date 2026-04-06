@@ -143,29 +143,35 @@ pytest tests/ -v  # Должен показать 0 тестов, но без о
 
 **Что делать:**
 1. **Тесты** (`tests/core/test_config.py`):
-   - Config.from_file() загружает JSON
-   - CLI args переопределяют значения из файла
+   - Config.from_file() загружает JSON с вложенной структурой
+   - CLI args переопределяют значения из файла (поддержка dot-notation: `"cmw500.timeout": 10`)
    - Значения по умолчанию при отсутствии файла
-   - Валидация обязательных полей
+   - Валидация: порт 1–65535, таймауты > 0, retries >= 0
    - Frozen dataclass (неизменяемость)
+   - Вложенные dataclass'ы: CmwConfig, TimeoutsConfig, LogConfig
 
 2. **Реализовать** `core/config.py`:
-   - `@dataclass(frozen=True) Config`
-   - `from_file()` classmethod
-   - `merge_with_cli()` метод
-   - Все параметры из ТЗ Раздел 6.1
+   - `@dataclass(frozen=True) CmwConfig` — настройки CMW-500
+   - `@dataclass(frozen=True) TimeoutsConfig` — таймауты протокола
+   - `@dataclass(frozen=True) LogConfig` — настройки логирования
+   - `@dataclass(frozen=True) Config` — корневой конфиг с вложенными секциями
+   - `from_file()` — загрузка JSON (структура 1:1 с settings.json)
+   - `merge_with_cli()` — overlay CLI через dot-notation (`"cmw500.timeout": 10`)
+   - `__post_init__` — валидация
 
 3. **Проверки:**
    ```bash
    ruff check core/config.py && mypy core/config.py && pytest tests/core/test_config.py -v
    ```
 
-4. **Коммит:** `feat: implement Config with JSON loading and CLI override`
+4. **Коммит:** `feat: implement Config with nested dataclasses, JSON loading and CLI override`
 
 **Критерии выполнения:**
 - ✅ Все тесты проходят
 - ✅ ruff + mypy чистые
 - ✅ Приоритет настроек соблюдается
+
+**Статус:** ✅ **ВЫПОЛНЕНО** | Коммит: pending | Ветка: `iteration-1/core-engine` | 28 тестов, 91% coverage
 
 ---
 
