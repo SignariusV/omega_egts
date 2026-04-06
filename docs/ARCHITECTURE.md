@@ -7,7 +7,7 @@
 ## Принципы
 
 1. **Единое ядро** — CLI/GUI тонкие обёртки поверх `core/`
-2. **EventBus** — единственная шина коммуникации между компонентами (3 типа событий)
+2. **EventBus** — единственная шина коммуникации между компонентами (10 событий по ТЗ v7.0, ordered + parallel handlers)
 3. **Разделение ответственности** — парсинг ≠ валидация ≠ бизнес-логика ≠ логирование ≠ интерфейс
 4. **FSM тестируется изолированно** — без сети, CMW-500, EGTS-пакетов
 5. **Автономность** — ядро работает без сценария: принимает пакеты, отправляет RESPONSE, ведёт FSM, логирует
@@ -63,7 +63,6 @@
 class CoreEngine:
     async def start(self) -> None
     async def stop(self) -> None
-    async def run_scenario(self, scenario_id: str) -> None
 ```
 
 **Жизненный цикл:**
@@ -76,31 +75,80 @@ class CoreEngine:
 
 ---
 
+### CoreEngine
+
+**Файл:** `core/engine.py` | **Статус:** ✅ Реализован (итерация 1.3)
+
+Главный координатор системы. Управляет жизненным циклом: инициализация, запуск, остановка.
+
+```python
+@dataclass
+class CoreEngine:
+    config: Config
+    bus: EventBus
+    _running: bool
+
+    async def start(self) -> None  # Инициализация компонентов, emit("server.started")
+    async def stop(self) -> None   # Остановка компонентов, emit("server.stopped")
+```
+
+**Использование:**
+```python
+engine = CoreEngine(config=config, bus=bus)
+await engine.start()  # Запуск
+await engine.stop()   # Остановка
+```
+
+**Особенности:**
+- `start()` — idempotent (повторный вызов игнорируется)
+- `stop()` без `start()` — не падает
+- Компоненты инициализируются через конструкторы (ручной DI)
+- События: `server.started` (port), `server.stopped` (reason)
+
+---
+
 ### EventBus
 
-**Файл:** `core/event_bus.py`
+**Файл:** `core/event_bus.py` | **Статус:** ✅ Реализован (итерация 1.1)
 
 Асинхронная шина событий. Компоненты **не вызывают друг друга напрямую** — только через события.
 
 ```python
 class EventBus:
-    async def subscribe(self, event_type: str, handler: Callable) -> None
-    async def unsubscribe(self, event_type: str, handler: Callable) -> None
-    async def emit(self, event_type: str, data: dict) -> None
+    def on(self, event_name: str, handler: Callable, ordered: bool = False) -> None
+    def off(self, event_name: str, handler: Callable) -> None
+    async def emit(self, event_name: str, data: dict) -> None
 ```
 
-**Типы событий (строго 3):**
+**Поддерживаемые события (ТЗ v7.0, Раздел 2.3):**
 
-| Событие | Когда | Данные |
-|---------|-------|--------|
-| `packet.received` | Получен EGTS-пакет | `{"hex": "...", "parsed": {...}, "source": "tcp\|sms", "timestamp": "..."}` |
-| `connection.changed` | Изменение состояния соединения | `{"state": "connected\|disconnected\|reconnecting", "details": "..."}` |
-| `scenario.step` | Шаг сценария выполнен/провален | `{"step_id": "...", "status": "pass\|fail\|skip", "result": {...}}` |
+| Событие | Данные | Кто публикует | Кто подписывается |
+|---------|--------|---------------|-------------------|
+| `raw.packet.received` | `raw, channel, connection_id` | TcpServerManager, Cmw500Controller | PacketDispatcher |
+| `packet.processed` | `ctx, connection_id` | PacketDispatcher | SessionManager (ordered), LogManager, ScenarioManager |
+| `command.send` | `connection_id, packet_bytes, step_name, pid, rn, timeout` | ScenarioManager | CommandDispatcher |
+| `command.sent` | `connection_id, step_name, packet_bytes` | CommandDispatcher | ScenarioManager, LogManager |
+| `command.error` | `error, step_name` | CommandDispatcher | ScenarioManager, LogManager |
+| `connection.changed` | `usv_id, state, action, reason` | SessionManager | LogManager, CLI/GUI |
+| `scenario.step` | `name, status, error` | ScenarioManager | LogManager, CLI/GUI |
+| `server.started` | `port` | CoreEngine | CLI/GUI |
+| `server.stopped` | `reason` | CoreEngine | CLI/GUI |
+| `cmw.error` | `error, command` | Cmw500Controller | CLI/GUI |
+
+**Типы обработчиков:**
+
+| Тип | Параметр `ordered` | Поведение | Для чего |
+|-----|-------------------|----------|----------|
+| Ordered | `True` | Последовательное выполнение, один за другим | FSM (SessionManager) |
+| Parallel | `False` (по умолчанию) | Параллельно через `asyncio.gather(return_exceptions=True)` | LogManager, ScenarioManager |
+
+**Порядок выполнения:** все ordered → все parallel. Ошибка в одном parallel-хендлере не блокирует остальные.
 
 **Требования:**
-- Async-совместимый — IO-подписчики должны быть async-функциями
-- Неблокирующий emit — события уходят в очередь
-- Подписчики не знают друг о друге
+- Async-совместимый — поддержка sync и async handlers
+- Ordered handlers гарантируют порядок (критично для FSM)
+- Parallel handlers не блокируют друг друга
+- `return_exceptions=True` в `asyncio.gather` для изоляции ошибок
 
 ---
 
@@ -417,26 +465,58 @@ class ExportManager:
 
 **Файл:** `core/config.py`
 
-Загрузка и валидация конфигурации.
+Загрузка и валидация конфигурации. Структура **вложенная** (nested dataclass'ы) — 1:1 с `settings.json`.
 
 ```python
 @dataclass(frozen=True)
+class CmwConfig:
+    ip: str | None = None
+    timeout: float = 5.0
+    retries: int = 3
+    sms_send_timeout: float = 10.0
+    status_poll_interval: float = 2.0
+
+@dataclass(frozen=True)
+class TimeoutsConfig:
+    tl_response_to: float = 5.0
+    tl_resend_attempts: int = 3
+    tl_reconnect_to: float = 30.0
+    egts_sl_not_auth_to: float = 6.0
+
+@dataclass(frozen=True)
+class LogConfig:
+    level: str = "INFO"
+    dir: str = "logs"
+    rotation: str = "daily"
+    max_size_mb: int = 100
+    retention_days: int = 30
+
+@dataclass(frozen=True)
 class Config:
+    gost_version: str = "2015"
     tcp_host: str = "0.0.0.0"
     tcp_port: int = 8090
-    cmw_ip: str | None = None
-    cmw_scpi_timeout: float = 5.0
-    cmw_scpi_retries: int = 3
-    tl_response_to: float = 5.0
-    tl_reconnect_to: float = 30.0
-    tl_resend_attempts: int = 3
-    egts_sl_not_auth_to: float = 6.0
-    log_dir: str = "logs"
+    cmw500: CmwConfig = field(default_factory=CmwConfig)
+    timeouts: TimeoutsConfig = field(default_factory=TimeoutsConfig)
+    logging: LogConfig = field(default_factory=LogConfig)
     credentials_path: str = "config/credentials.json"
 
     @classmethod
-    def from_file(cls, path: str) -> Config
+    def from_file(cls, path: str) -> Config: ...
+    def merge_with_cli(self, cli_args: dict[str, Any]) -> Config: ...
 ```
+
+**Использование:**
+```python
+config = Config.from_file("config/settings.json")
+config = config.merge_with_cli({"tcp_port": 9090})
+print(config.cmw500.timeout)       # 5.0
+print(config.timeouts.tl_response_to)  # 5.0
+```
+
+**Приоритеты:** CLI args > settings.json > defaults.
+**CLI merge:** dot-notation — `"cmw500.timeout": 10` → `config.cmw500.timeout = 10`.
+**Валидация:** `__post_init__` — порт 1–65535, таймауты > 0, retries >= 0.
 
 ---
 
@@ -552,9 +632,9 @@ egts-tester/
 ├── scenarios/                     # Готовые сценарии (JSON + HEX)
 ├── config/                        # settings.json, credentials.json
 └── tests/                         # pytest
-    ├── conftest.py
+    ├── conftest.py                # Shared fixtures
     ├── core/
-    │   ├── test_event_bus.py
+    │   ├── test_event_bus.py      # ✅ EventBus (14 тестов, 100% coverage)
     │   ├── test_fsm.py
     │   ├── test_pipeline.py
     │   └── ...

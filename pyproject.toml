@@ -111,6 +111,10 @@ select = [
 ]
 ignore = [
     "E501",   # line-length (управляется выше)
+    "RUF001", # ambiguous characters — разрешаем кириллицу в строках
+    "RUF002", # ambiguous characters — разрешаем кириллицу в docstring
+    "RUF003", # ambiguous characters in comments — разрешаем кириллицу в комментариях
+    "RUF043", # metacharacters in match — упрощение для pytest.match
 ]
 
 [tool.ruff.lint.isort]
