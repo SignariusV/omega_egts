@@ -1,0 +1,5579 @@
+{
+  "01": {
+    "hex": "01",
+    "hex_length": 1,
+    "descriptions": [
+      "SRT (Subrecord Type) | BYTE | Используемая подзапись сервиса:  | EGTS_SR_TERM_IDENTITY=1 | Подзапись содержит учётные данные УСВ",
+      "SST (Source Service Type) | BYTE | тип сервиса-отправителя | EGTS_COMMANDS_SERVICE=4 | сервис для обработки команд, сообщений и подтверждений",
+      "SST (Source Service Type) | BYTE | тип сервиса-отправителя | EGTS_AUTH_SERVICE=1 | сервис для процедуры аутентификации УСВ",
+      "PRV (Protocol Version) | BYTE | Состав пакета протокола транспортного уровня | (строки 1 - 3244)",
+      "PRV (Protocol Version) | BYTE | Состав пакета протокола транспортного уровня | (строки 1 - 46)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(2)",
+      "EGTS_SR_VEHICLE_DATA (3)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 499
+  },
+  "00": {
+    "hex": "00",
+    "hex_length": 1,
+    "descriptions": [
+      "PN (Part Number) | USHORT | последовательный номер текущей части передаваемой сущности",
+      "RTM (RelativeTime) | USHORT | ADS 1 (Accelerometer Data Structure)",
+      "INT | параметры для выполнения команды: 10 минут",
+      "RST (Record Status) | BYTE | EGTS_PC_OK=0 | статус обработки записи (команды приняты в обработку) | Подтверждение уровня поддержки услуг",
+      "TID (TerminalIdentifier) | UINT"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(2)",
+      "EGTS_SR_VEHICLE_DATA (3)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 6679
+  },
+  "0B": {
+    "hex": "0B",
+    "hex_length": 1,
+    "descriptions": [
+      "HL1 (Header Length) | BYTE | 11 байт | Заголовок | Строки 1 - 11",
+      "LAT (Latitude) | UINT | младший байт | 0B",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "HL (Header Length) | BYTE | 11 байт | Заголовок | Строки 1 - 11",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=11 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 22"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(2)",
+      "EGTS_SR_VEHICLE_DATA (3)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 358
+  },
+  "21": {
+    "hex": "21",
+    "hex_length": 1,
+    "descriptions": [
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=33)",
+      "PID (Packet Identifier) | USHORT | номер пакета (=33)",
+      "SRT (Subrecord Type) | BYTE | используемая подзапись сервиса:  | EGTS_SR_SERVICE_PART_DATA=33 | передача на УСВ данных по частям последовательно",
+      "RN (Record Number) | USHORT | номер записи (=33)",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=33 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 44"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 352
+  },
+  "1B": {
+    "hex": "1B",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=27)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xB01B",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=27)",
+      "LONG (Longitude) | UINT | 1B",
+      "LONG (Longitude) | UINT | младший байт | 1B"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_PT_RESPONSE (8)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 286
+  },
+  "32": {
+    "hex": "32",
+    "hex_length": 1,
+    "descriptions": [
+      "2 | STRING | IMSI",
+      "LAT (Latitude) | UINT | младший байт | 32",
+      "2 | STRING | VIN",
+      "2 | BINARY | параметры для выполнения команды",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x32"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 279
+  },
+  "1A": {
+    "hex": "1A",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 1A",
+      "RL (Record Length) | USHORT | 26 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 44 (для всех подзаписей)",
+      "LONG (Longitude) | UINT | 1A",
+      "RL (Record Length) | USHORT | 26 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 22 - 47 (для всех подзаписей)",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=26)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 290
+  },
+  "2A": {
+    "hex": "2A",
+    "hex_length": 1,
+    "descriptions": [
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=42 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 53",
+      "RN (Record Number) | USHORT | номер записи (=42)",
+      "RPID (Response Packet ID) | USHORT | номер подтверждаемого пакета (PID=42)",
+      "PID (Packet Identifier) | USHORT | номер пакета (=42)"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 295
+  },
+  "40": {
+    "hex": "40",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "RN (Record Number) | USHORT | номер записи (=64)",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=64) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "RFL (Record Flags) | BYTE | флаги записи | RFL=40H или 0100 0000 | SSOD=0 (ТП) | RSOD=1 (УСВ) | RPP=000 | TMFE=0 | EVFE=0 | OBFE=0 | отправитель ТП, получатель УСВ",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x40"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 347
+  },
+  "04": {
+    "hex": "04",
+    "hex_length": 1,
+    "descriptions": [
+      "CCD (Command Code) | USHORT | код команды для исполнения на УСВ (EGTS_UNIT_ID = 0х0404) | старший байт",
+      "SST (Source Service Type) | BYTE | тип сервиса-отправителя | EGTS_COMMANDS_SERVICE=4 | сервис для обработки команд, сообщений и подтверждений",
+      "CCD (Command Code) | USHORT | код команды для исполнения на УСВ (EGTS_UNIT_ID = 0х0404) | младший байт | Уникальный идентификатор УСВ, назначаемый оператором системы при первой авторизации",
+      "LAT (Latitude) | UINT | младший байт | 04",
+      "CCD (Command Code) | USHORT | команда для исполнения на УСВ (EGTS_SERVER_ADDRESS = 0х0204) | младший байт | Параметр, определяющий адрес и порт сервера для установления сессии"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (11)",
+      "CT_COMCONF (9)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 388
+  },
+  "33": {
+    "hex": "33",
+    "hex_length": 1,
+    "descriptions": [
+      "3 | STRING | IMEI",
+      "SRT (Subrecord Type) | BYTE | Используемая подзапись сервиса:  | EGTS_SR_COMMAND_DATA=51 | Формат отдельной подзаписи протокола уровня поддержки услуг",
+      "LAT (Latitude) | UINT | младший байт | 33",
+      "3 | STRING | VIN",
+      "SRT3 (Subrecord Type) | BYTE | Используемая подзапись сервиса:  | EGTS_SR_COMMAND_DATA=51 | Формат отдельной подзаписи протокола уровня поддержки услуг"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(2)",
+      "EGTS_SR_VEHICLE_DATA (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 330
+  },
+  "17": {
+    "hex": "17",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 17",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=23) | Строки 22 - 44 (для текущей подзаписи)",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=23)",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=51223 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 51234"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 287
+  },
+  "50": {
+    "hex": "50",
+    "hex_length": 1,
+    "descriptions": [
+      "OD (Object Data) | BINARY | данные непосредственно передаваемой сущности (файл 10077.001)",
+      "P | STRING | VIN",
+      "CT (Command Type) | BYTE | CT=0101 (CT_COM команда для выполнения на УСВ) | CCT (Command Confirmation Type) | CCT=0000 (CC_OK успешное выполнение)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 346
+  },
+  "02": {
+    "hex": "02",
+    "hex_length": 1,
+    "descriptions": [
+      "CCD (Command Code) | USHORT | код команды для исполнения на УСВ (EGTS_GPRS_APN = 0х0203) | старший байт",
+      "CID (Command Identifier) | UINT | идентификатор команды, сообщения (это третья команда при конфигурировании) | CID=2",
+      "CCD (Command Code) | USHORT | команда для исполнения на УСВ (EGTS_SERVER_ADDRESS = 0х0204) | старший байт",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "VER (Version) | USHORT | старший байт"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_UNIT_ID (SMS)(5)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 368
+  },
+  "03": {
+    "hex": "03",
+    "hex_length": 1,
+    "descriptions": [
+      "SRT (Subrecord Type) | BYTE | Используемая подзапись сервиса:  | EGTS_SR_VEHICLE_DATA=3 | Подзапись содержит учётные данные транспортного средства",
+      "LONG (Longitude) | UINT | младший байт | 03",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи в поле SRD (=3) | Строки 25 - 27 (для текущей подзаписи)",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=3) | Строки 25 - 27 (для текущей подзаписи)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 344
+  },
+  "69": {
+    "hex": "69",
+    "hex_length": 1,
+    "descriptions": [
+      "i | BINARY | параметры для выполнения команды (кодировка Windows-1251)",
+      "LAT (Latitude) | UINT | младший байт | 69",
+      "SRL (Subrecord Length) | USHORT | количество байт в подзаписи (=29289) | Формат отдельной подзаписи протокола уровня поддержки услуг | Строки 22 - 29310 (для текущей подзаписи)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_GPRS_APN (SMS)(1)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 311
+  },
+  "6E": {
+    "hex": "6E",
+    "hex_length": 1,
+    "descriptions": [
+      "n | BINARY | параметры для выполнения команды: internet | Значение параметра",
+      "n | BINARY | параметры для выполнения команды",
+      "LAT (Latitude) | UINT | младший байт | 6E"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_GPRS_APN (SMS)(1)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 318
+  },
+  "74": {
+    "hex": "74",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 74",
+      "t | BINARY | параметры для выполнения команды"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_GPRS_APN (SMS)(1)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 358
+  },
+  "65": {
+    "hex": "65",
+    "hex_length": 1,
+    "descriptions": [
+      "e | BINARY | параметры для выполнения команды",
+      "LONG (Longitude) | UINT | 65"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_GPRS_APN (SMS)(1)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 351
+  },
+  "72": {
+    "hex": "72",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 72",
+      "r | BINARY | параметры для выполнения команды",
+      "LONG (Longitude) | UINT | младший байт | 72",
+      "SRD (Subrecord Data) | USHORT | старший байт количества байт в подзаписи",
+      "RL (Record Length) | USHORT | старший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_GPRS_APN (SMS)(1)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 334
+  },
+  "0D": {
+    "hex": "0D",
+    "hex_length": 1,
+    "descriptions": [
+      "SRL (Subrecord Length) | USHORT | количество байт в подзаписи (=51213) | Формат отдельной подзаписи протокола уровня поддержки услуг | Строки 22 - 51234 (для текущей подзаписи)",
+      "RL (Record Length) | USHORT | 13 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 31 (для всех подзаписей)",
+      "CCD (Command Code) | USHORT | код параметра для исполнения на УСВ (EGTS_ECALL_TEST_NUMBER = 0x020D) | младший байт | Телефонный номер для тестовых звонков",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=13)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x480D"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_GPRS_APN (SMS)(1)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(6)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 304
+  },
+  "48": {
+    "hex": "48",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=72)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_GPRS_APN (SMS)(1)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 317
+  },
+  "14": {
+    "hex": "14",
+    "hex_length": 1,
+    "descriptions": [
+      "PID (Packet Identifier) | USHORT | номер пакета (=20)",
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=20)",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=20 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 31",
+      "SRT (Subrecord Type) | BYTE | Используемая подзапись сервиса:  | EGTS_SR_ ACCEL_DATA=20 | передача данных профиля ускорения УСВ при ДТП",
+      "CCD (Command Code) | USHORT | код команды для исполнения на УСВ (EGTS_ ACCEL_DATA = 0x0114) | младший байт | Передача данных профиля ускорения"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_ ACCEL_DATA (1)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_RESULT_CODE (7)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 385
+  },
+  "27": {
+    "hex": "27",
+    "hex_length": 1,
+    "descriptions": [
+      "PID (Packet Identifier) | USHORT | номер пакета (=39)",
+      "RL (Record Length) | USHORT | 39 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 57 (для всех подзаписей)",
+      "RN (Record Number) | USHORT | номер записи (=39)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 275
+  },
+  "DC": {
+    "hex": "DC",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xBEDC",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x5BDC",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xDC"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_TRACK_DATA (1)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 303
+  },
+  "46": {
+    "hex": "46",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=70)",
+      "LAT (Latitude) | UINT | младший байт | 46",
+      "LONG (Longitude) | UINT | младший байт | 46"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 289
+  },
+  "80": {
+    "hex": "80",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 80",
+      "RFL (Record Flags) | BYTE | флаги записи | RFL=80H или 1000 0000 | SSOD=1 (УСВ) | RSOD=0 (ТП) | RPP=000 | TMFE=0 | EVFE=0 | OBFE=0 | отправитель УСВ, получатель ТП",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(2)",
+      "EGTS_SR_VEHICLE_DATA (3)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 300
+  },
+  "0A": {
+    "hex": "0A",
+    "hex_length": 1,
+    "descriptions": [
+      "RTM (RelativeTime) | USHORT | ADS 341 (Accelerometer Data Structure)",
+      "RTM (RelativeTime) | USHORT | ADS 14 (Accelerometer Data Structure)",
+      "RTM (RelativeTime) | USHORT | ADS 127 (Accelerometer Data Structure)",
+      "RTM (RelativeTime) | USHORT | ADS 62 (Accelerometer Data Structure)",
+      "RTM (RelativeTime) | USHORT | ADS 214 (Accelerometer Data Structure)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 648
+  },
+  "10": {
+    "hex": "10",
+    "hex_length": 1,
+    "descriptions": [
+      "CT (Command Type) | BYTE | CT=0001 (CT_COMCONF - подтверждение о приёме, обработке или результат выполнения команды) | CCT (Command Confirmation Type) | CCT=0000 (CC_OK успешное выполнение команды)",
+      "PID (Packet Identifier) | USHORT | номер пакета (=16)",
+      "FDL (Frame Data Length) | USHORT | Размер в байтах поля данных SFRD=16 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 27",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xD910",
+      "LAT (Latitude) | UINT | младший байт | 10"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "CT_COMCONF (2)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_PT_RESPONSE (8)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 390
+  },
+  "CE": {
+    "hex": "CE",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x40CE",
+      "LONG (Longitude) | UINT | младший байт | CE"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "CT_COMCONF (SMS)(2)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 300
+  },
+  "1C": {
+    "hex": "1C",
+    "hex_length": 1,
+    "descriptions": [
+      "RL (Record Length) | USHORT | 28 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 46 (для всех подзаписей)",
+      "PID (Packet Identifier) | USHORT | номер пакета (=28)",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=28)",
+      "RN (Record Number) | USHORT | номер записи (=28)",
+      "LAT (Latitude) | UINT | младший байт | 1C"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 294
+  },
+  "AB": {
+    "hex": "AB",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xAB"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 296
+  },
+  "23": {
+    "hex": "23",
+    "hex_length": 1,
+    "descriptions": [
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=35 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 46",
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=35)",
+      "RN (Record Number) | USHORT | номер записи (=35)",
+      "RL (Record Length) | USHORT | 35 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 53 (для всех подзаписей)",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=35) | Формат подзаписи EGTS_SR_RECORD_RESPONSE"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 284
+  },
+  "2B": {
+    "hex": "2B",
+    "hex_length": 1,
+    "descriptions": [
+      "PID (Packet Identifier) | USHORT | номер пакета (=43)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x562B",
+      "+ | STRING | параметры для выполнения команды (кодировка Windows-1251)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xAC2B",
+      "LONG (Longitude) | UINT | младший байт | 2B"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 242
+  },
+  "20": {
+    "hex": "20",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=32)",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=32) | Строки 22 - 53 (для текущей подзаписи)",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "LONG (Longitude) | UINT | младший байт | 20",
+      "PID (Packet Identifier) | USHORT | номер пакета (=32)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 302
+  },
+  "30": {
+    "hex": "30",
+    "hex_length": 1,
+    "descriptions": [
+      "0 | STRING | IMEI",
+      "0 | STRING | IMSI",
+      "0 | BINARY | параметры для выполнения команды",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "0 | STRING | параметры для выполнения команды"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 373
+  },
+  "2E": {
+    "hex": "2E",
+    "hex_length": 1,
+    "descriptions": [
+      ". | BINARY | параметры для выполнения команды",
+      "RN (Record Number) | USHORT | номер записи (=46)",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=46 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 57"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 352
+  },
+  "31": {
+    "hex": "31",
+    "hex_length": 1,
+    "descriptions": [
+      "1 | STRING | IMEI",
+      "1 | STRING | VIN: 1D4GP25B038108775 | Формат подзаписи EGTS_SR_VEHICLE_DATA сервиса EGTS_AUTH_SERVICE",
+      "1 | STRING | IMSI",
+      "1 | STRING | VIN: 1D4GP25B038108775 | Структура подзаписи EGTS_SR_VEHICLE_DATA сервиса EGTS_AUTH_SERVICE (поле SRD)",
+      "1 | STRING | VIN"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 349
+  },
+  "37": {
+    "hex": "37",
+    "hex_length": 1,
+    "descriptions": [
+      "7 | STRING | IMSI",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=55) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=55) | Структура подзаписи EGTS_SR_RECORD_RESPONSE (поле SRD)",
+      "7 | STRING | параметры для выполнения команды: +79418100000"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 346
+  },
+  "3A": {
+    "hex": "3A",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "RN (Record Number) | USHORT | номер записи (=58)",
+      ": | BINARY | параметры для выполнения команды"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 273
+  },
+  "39": {
+    "hex": "39",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "9 | STRING | IMSI",
+      "RN (Record Number) | USHORT | номер записи (=57)",
+      "9 | STRING | параметры для выполнения команды",
+      "9 | BINARY | параметры для выполнения команды"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 291
+  },
+  "5E": {
+    "hex": "5E",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x555E",
+      "LONG (Longitude) | UINT | 5E"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 285
+  },
+  "55": {
+    "hex": "55",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x55",
+      "LONG (Longitude) | UINT | младший байт | 55",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 276
+  },
+  "28": {
+    "hex": "28",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=40)",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=40)",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=40) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "LONG (Longitude) | UINT | 28"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_RESULT_CODE (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 335
+  },
+  "6D": {
+    "hex": "6D",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x6D"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(4)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 351
+  },
+  "47": {
+    "hex": "47",
+    "hex_length": 1,
+    "descriptions": [
+      "G | STRING | VIN",
+      "SA (Structures Amount) | BYTE | количество передаваемых точек траектории движения ТС (=71) | Структура подзаписи EGTS_SR_ TRACK_DATA сервиса EGTS_ECALL_SERVICE",
+      "RN (Record Number) | USHORT | номер записи (=71)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "CT_COMCONF (SMS)(4)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 311
+  },
+  "5B": {
+    "hex": "5B",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(4)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 314
+  },
+  "1D": {
+    "hex": "1D",
+    "hex_length": 1,
+    "descriptions": [
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=29) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=29) | Структура подзаписи EGTS_SR_RECORD_RESPONSE (поле SRD)",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=29 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 40",
+      "PID (Packet Identifier) | USHORT | номер пакета (=29)",
+      "RN (Record Number) | USHORT | номер записи (=29)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_UNIT_ID (SMS)(5)"
+    ],
+    "direction": "Не определено",
+    "count": 287
+  },
+  "16": {
+    "hex": "16",
+    "hex_length": 1,
+    "descriptions": [
+      "RL (Record Length) | USHORT | 22 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 40 (для всех подзаписей)",
+      "Flags=0001 0110 | BYTE | MNE=0 | BSE=0 | NIDE=0 | SSRA=1 | LNGCE=0 | IMSIE=1 | IMEIE=1 | HDIDE=0",
+      "PID (Packet Identifier) | USHORT | номер пакета (=22)",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_UNIT_ID (SMS)(5)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "Не определено",
+    "count": 297
+  },
+  "2C": {
+    "hex": "2C",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x5F2C",
+      "LAT (Latitude) | UINT | младший байт | 2C",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x2C",
+      "PID (Packet Identifier) | USHORT | номер пакета (=44)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_UNIT_ID (SMS)(5)"
+    ],
+    "direction": "Не определено",
+    "count": 339
+  },
+  "13": {
+    "hex": "13",
+    "hex_length": 1,
+    "descriptions": [
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=19) | Строки 52 - 70 (для текущей подзаписи)",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=19)",
+      "LONG (Longitude) | UINT | 13",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x13",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=19) | Строки 22 - 40 (для текущей подзаписи)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_UNIT_ID (SMS)(5)"
+    ],
+    "direction": "Не определено",
+    "count": 349
+  },
+  "BE": {
+    "hex": "BE",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x2CBE",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xBE",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_UNIT_ID (SMS)(5)"
+    ],
+    "direction": "Не определено",
+    "count": 323
+  },
+  "29": {
+    "hex": "29",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 29",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=41)",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "RN (Record Number) | USHORT | номер записи (=41)",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x29"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 292
+  },
+  "22": {
+    "hex": "22",
+    "hex_length": 1,
+    "descriptions": [
+      "VER (Version) | USHORT | версия передаваемой сущности (версия 2.34) | 0x5640",
+      "LONG (Longitude) | UINT | младший байт | 22",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=34)",
+      "RN (Record Number) | USHORT | номер записи (=34)",
+      "LONG (Longitude) | UINT | 22"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 267
+  },
+  "77": {
+    "hex": "77",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (SMS)(6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 331
+  },
+  "CC": {
+    "hex": "CC",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xCC",
+      "LONG (Longitude) | UINT | младший байт | CC"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "Не определено",
+    "count": 286
+  },
+  "49": {
+    "hex": "49",
+    "hex_length": 1,
+    "descriptions": [
+      "CRN (Confirmed Record Number) | USHORT | номер подтверждаемой записи (RN=73) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "LAT (Latitude) | UINT | младший байт | 49",
+      "RN (Record Number) | USHORT | номер записи (=73)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "Не определено",
+    "count": 296
+  },
+  "24": {
+    "hex": "24",
+    "hex_length": 1,
+    "descriptions": [
+      "PID (Packet Identifier) | USHORT | номер пакета (=36)",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=36) | Формат отдельной подзаписи протокола уровня поддержки услуг | Строки 22 - 57 (для текущей подзаписи)",
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=36)",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=36 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 47",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи в поле SRD (=36) | Формат отдельной подзаписи протокола уровня поддержки услуг | Строки 22 - 57 (для текущей подзаписи)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_TERM_IDENTITY (1)"
+    ],
+    "direction": "Не определено",
+    "count": 340
+  },
+  "38": {
+    "hex": "38",
+    "hex_length": 1,
+    "descriptions": [
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=56) | Структура подзаписи EGTS_SR_RECORD_RESPONSE (поле SRD)",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x38",
+      "8 | STRING | VIN",
+      "8 | STRING | IMEI 860 803 066 448 313",
+      "8 | STRING | параметры для выполнения команды"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "Не определено",
+    "count": 360
+  },
+  "36": {
+    "hex": "36",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 36",
+      "6 | STRING | IMSI",
+      "6 | STRING | IMEI"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "Не определено",
+    "count": 331
+  },
+  "34": {
+    "hex": "34",
+    "hex_length": 1,
+    "descriptions": [
+      "4 | STRING | IMSI",
+      "4 | STRING | IMEI",
+      "4 | STRING | VIN",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "RL (Record Length) | USHORT | количество байт в записи (=52) | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 70 (для всех подзаписей)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "Не определено",
+    "count": 390
+  },
+  "35": {
+    "hex": "35",
+    "hex_length": 1,
+    "descriptions": [
+      "5 | STRING | VIN",
+      "5 | STRING | IMSI"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_TERM_IDENTITY (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "Не определено",
+    "count": 302
+  },
+  "0F": {
+    "hex": "0F",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x3A0F",
+      "PID (Packet Identifier) | USHORT | номер пакета (=15)",
+      "LAT (Latitude) | UINT | младший байт | 0F",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=15) | Строки 22 - 36 (для текущей подзаписи)",
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=15)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_SR_TERM_IDENTITY (7)"
+    ],
+    "direction": "Не определено",
+    "count": 319
+  },
+  "1E": {
+    "hex": "1E",
+    "hex_length": 1,
+    "descriptions": [
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=30)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=30)",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "RN (Record Number) | USHORT | номер записи (=30)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_PT_RESPONSE (8)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 337
+  },
+  "3B": {
+    "hex": "3B",
+    "hex_length": 1,
+    "descriptions": [
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=59 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 70",
+      "RN (Record Number) | USHORT | номер записи (=59)",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x3B"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 329
+  },
+  "06": {
+    "hex": "06",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 06",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x06",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "RL (Record Length) | USHORT | 6 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 22 - 27 (для всех подзаписей)"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_PT_RESPONSE (8)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 375
+  },
+  "2D": {
+    "hex": "2D",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=45)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (4)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 345
+  },
+  "E6": {
+    "hex": "E6",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xBEE6"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 301
+  },
+  "78": {
+    "hex": "78",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 78",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x78"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 341
+  },
+  "4A": {
+    "hex": "4A",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=74)",
+      "LONG (Longitude) | UINT | 4A",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (RN=74) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "LONG (Longitude) | UINT | младший байт | 4A"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 295
+  },
+  "19": {
+    "hex": "19",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xED19",
+      "WOS (Whole Object Signature) | USHORT | контрольная сумма всей передаваемой сущности (две части) | 0x4D19",
+      "PID (Packet Identifier) | USHORT | номер пакета (=25)",
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=25)",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=25 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 36"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 313
+  },
+  "44": {
+    "hex": "44",
+    "hex_length": 1,
+    "descriptions": [
+      "D | STRING | VIN",
+      "RN (Record Number) | USHORT | номер записи (=68)",
+      "LAT (Latitude) | UINT | младший байт | 44"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 336
+  },
+  "42": {
+    "hex": "42",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=66)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "B | STRING | VIN",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x8E42",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=66) | Формат подзаписи EGTS_SR_RECORD_RESPONSE"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 294
+  },
+  "6C": {
+    "hex": "6C",
+    "hex_length": 1,
+    "descriptions": [
+      "RL (Record Length) | USHORT | количество байт в записи (=29292) | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 29310 (для всех подзаписей)",
+      "LONG (Longitude) | UINT | 6C",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xE16C",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 382
+  },
+  "E1": {
+    "hex": "E1",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 279
+  },
+  "1F": {
+    "hex": "1F",
+    "hex_length": 1,
+    "descriptions": [
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=31) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "PID (Packet Identifier) | USHORT | номер пакета (=31)",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "RN (Record Number) | USHORT | номер записи (=31)",
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=31)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (5)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 286
+  },
+  "7D": {
+    "hex": "7D",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 7D",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x7D",
+      "LONG (Longitude) | UINT | младший байт | 7D"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 293
+  },
+  "68": {
+    "hex": "68",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 68",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x3768"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 274
+  },
+  "26": {
+    "hex": "26",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 26",
+      "LAT (Latitude) | UINT | младший байт | 26",
+      "RN (Record Number) | USHORT | номер записи (=38)",
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=38)",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x26"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 312
+  },
+  "2F": {
+    "hex": "2F",
+    "hex_length": 1,
+    "descriptions": [
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x2F",
+      "LONG (Longitude) | UINT | 2F",
+      "RN (Record Number) | USHORT | номер записи (=47)",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (RN=47) | Формат подзаписи EGTS_SR_RECORD_RESPONSE"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 352
+  },
+  "09": {
+    "hex": "09",
+    "hex_length": 1,
+    "descriptions": [
+      "RTM (RelativeTime) | USHORT | старший байт | интервал 10 мс x 250 = 2500 мс | Это приращение по времени к значению в ATM",
+      "SRT (Subrecord Type) | BYTE | Используемая подзапись сервиса:  | EGTS_SR_RESULT_CODE=9 | Результаты процедуры аутентификации УСВ",
+      "SST (Source Service Type) | BYTE | тип сервиса-отправителя | EGTS_FIRMWARE_SERVICE=9 | сервис для передачи на УСВ конфигурации и обновления ПО",
+      "LONG (Longitude) | UINT | младший байт | 09",
+      "SST (Source Service Type) | BYTE | тип сервиса-отправителя | EGTS_FIRMWARE_SERVICE=9 | сервис, обеспечивающий передачу конфигурации и ПО"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_RESULT_CODE (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 339
+  },
+  "BA": {
+    "hex": "BA",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x4CBA"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 284
+  },
+  "4C": {
+    "hex": "4C",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 4C",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (11)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TRACK_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 328
+  },
+  "6A": {
+    "hex": "6A",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x6A",
+      "LONG (Longitude) | UINT | младший байт | 6A"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 286
+  },
+  "4B": {
+    "hex": "4B",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=75)"
+    ],
+    "files": [
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (12)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 333
+  },
+  "F1": {
+    "hex": "F1",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x39F1",
+      "LAT (Latitude) | UINT | младший байт | F1",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "1. Состав команд для конфигурирования (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (12)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 315
+  },
+  "11": {
+    "hex": "11",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xFD11",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x11",
+      "PID (Packet Identifier) | USHORT | номер пакета (=17)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)",
+      "EGTS_SR_RESULT_CODE (7)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 323
+  },
+  "56": {
+    "hex": "56",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x56",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 319
+  },
+  "12": {
+    "hex": "12",
+    "hex_length": 1,
+    "descriptions": [
+      "RL (Record Length) | USHORT | 18 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 36 (для всех подзаписей)",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x12",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=18)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_TRACK_DATA (1)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 313
+  },
+  "15": {
+    "hex": "15",
+    "hex_length": 1,
+    "descriptions": [
+      "CCD (Command Code) | USHORT | код команды для исполнения на УСВ (EGTS_TRACK _DATA = 0x0115) | младший байт | Передача данных траектории движения",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=21)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_TRACK_DATA (1)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 312
+  },
+  "DF": {
+    "hex": "DF",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xDF",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x7EDF",
+      "LONG (Longitude) | UINT | DF"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 277
+  },
+  "3C": {
+    "hex": "3C",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=60)",
+      "LONG (Longitude) | UINT | младший байт | 3C",
+      "LONG (Longitude) | UINT | 3C"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 316
+  },
+  "5D": {
+    "hex": "5D",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 5D",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xBD5D"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 290
+  },
+  "BD": {
+    "hex": "BD",
+    "hex_length": 1,
+    "descriptions": [
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=1213) | Формат отдельной подзаписи протокола уровня поддержки услуг | Строки 2030 - 3242 (для текущей подзаписи)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 338
+  },
+  "3D": {
+    "hex": "3D",
+    "hex_length": 1,
+    "descriptions": [
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=61) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "RN (Record Number) | USHORT | номер записи (=61)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_TERM_IDENTITY (3)"
+    ],
+    "direction": "Не определено",
+    "count": 315
+  },
+  "8E": {
+    "hex": "8E",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x8E",
+      "LONG (Longitude) | UINT | 8E",
+      "LONG (Longitude) | UINT | младший байт | 8E",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)"
+    ],
+    "direction": "Не определено",
+    "count": 295
+  },
+  "AC": {
+    "hex": "AC",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x6CAC",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_VEHICLE_DATA (3)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 284
+  },
+  "8C": {
+    "hex": "8C",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x8C",
+      "LAT (Latitude) | UINT | младший байт | 8C"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TRACK_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 293
+  },
+  "3E": {
+    "hex": "3E",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 3E",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=62) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "LONG (Longitude) | UINT | младший байт | 3E",
+      "SRT (Subrecord Type) | BYTE | Используемая подзапись сервиса:  | EGTS_SR_TRACK_DATA=62 | передача данных траектории движения ТС при ДТП"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (5)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 316
+  },
+  "07": {
+    "hex": "07",
+    "hex_length": 1,
+    "descriptions": [
+      "SRD (Subrecord Data) | USHORT | Старший байт количества байт в подзаписи",
+      "LONG (Longitude) | UINT | 07",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x7007"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (5)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 305
+  },
+  "70": {
+    "hex": "70",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 70",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TRACK_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 318
+  },
+  "A5": {
+    "hex": "A5",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x25A5"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 305
+  },
+  "25": {
+    "hex": "25",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=37)",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=37)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 283
+  },
+  "D2": {
+    "hex": "D2",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xD2"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 291
+  },
+  "AA": {
+    "hex": "AA",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xF9AA",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 290
+  },
+  "F9": {
+    "hex": "F9",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | F9",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TRACK_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 284
+  },
+  "3F": {
+    "hex": "3F",
+    "hex_length": 1,
+    "descriptions": [
+      "RN (Record Number) | USHORT | номер записи (=63)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x1E3F"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (7)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 291
+  },
+  "89": {
+    "hex": "89",
+    "hex_length": 1,
+    "descriptions": [
+      "TDS 63 (Track Data Structure) | BYTE | 1000 1001",
+      "TDS 31 (Track Data Structure) | BYTE | 1000 1001",
+      "TDS 36 (Track Data Structure) | BYTE | 1000 1001",
+      "TDS 45 (Track Data Structure) | BYTE | 1000 1001",
+      "TDS 56 (Track Data Structure) | BYTE | 1000 1001"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 321
+  },
+  "43": {
+    "hex": "43",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 43",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=67) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "RN (Record Number) | USHORT | номер записи (=67)",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_VEHICLE_DATA (5)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 277
+  },
+  "63": {
+    "hex": "63",
+    "hex_length": 1,
+    "descriptions": [
+      "SPDL (Speed Low Bits) | USHORT | младший байт",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=867 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 878"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 325
+  },
+  "FB": {
+    "hex": "FB",
+    "hex_length": 1,
+    "descriptions": [
+      "OD (Object Data) | BINARY | данные непосредственно передаваемой сущности (файл 10077.002)",
+      "LAT (Latitude) | UINT | младший байт | FB",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16",
+      "LONG (Longitude) | UINT | младший байт | FB",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xFB"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 331
+  },
+  "5C": {
+    "hex": "5C",
+    "hex_length": 1,
+    "descriptions": [
+      "RL (Record Length) | USHORT | 860 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 878 (для всех подзаписей)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 280
+  },
+  "59": {
+    "hex": "59",
+    "hex_length": 1,
+    "descriptions": [
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=857) | Формат отдельной подзаписи протокола уровня поддержки услуг | Строки 22 - 878 (для текущей подзаписи)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 316
+  },
+  "A6": {
+    "hex": "A6",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | A6"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 301
+  },
+  "B9": {
+    "hex": "B9",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | B9"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 340
+  },
+  "71": {
+    "hex": "71",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | 71",
+      "LAT (Latitude) | UINT | младший байт | 71",
+      "LONG (Longitude) | UINT | младший байт | 71",
+      "LONG (Longitude) | UINT | 71"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 400
+  },
+  "9C": {
+    "hex": "9C",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | 9C"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 361
+  },
+  "D7": {
+    "hex": "D7",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | D7",
+      "LONG (Longitude) | UINT | D7"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 344
+  },
+  "D3": {
+    "hex": "D3",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | D3"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 346
+  },
+  "88": {
+    "hex": "88",
+    "hex_length": 1,
+    "descriptions": [
+      "SPDL (Speed Low Bits) | USHORT | младший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 360
+  },
+  "5A": {
+    "hex": "5A",
+    "hex_length": 1,
+    "descriptions": [
+      "DIR (Direction) | BYTE | на восток (мы стоим в направлении на восток)",
+      "DIR (Direction) | BYTE | на восток"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 329
+  },
+  "8D": {
+    "hex": "8D",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 8D",
+      "LONG (Longitude) | UINT | младший байт | 8D"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 282
+  },
+  "EB": {
+    "hex": "EB",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | EB",
+      "LAT (Latitude) | UINT | младший байт | EB",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x6CEB",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 311
+  },
+  "91": {
+    "hex": "91",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 91"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 281
+  },
+  "FF": {
+    "hex": "FF",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | FF",
+      "XAAV (X Axis Acceleration Value) | SHORT",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 346
+  },
+  "52": {
+    "hex": "52",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 52",
+      "LONG (Longitude) | UINT | младший байт | 52"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 312
+  },
+  "ED": {
+    "hex": "ED",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xEBED",
+      "LONG (Longitude) | UINT | младший байт | ED",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 295
+  },
+  "D4": {
+    "hex": "D4",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | D4",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x42D4"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 308
+  },
+  "85": {
+    "hex": "85",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 85"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 329
+  },
+  "A0": {
+    "hex": "A0",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | A0"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 284
+  },
+  "A2": {
+    "hex": "A2",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | A2",
+      "LONG (Longitude) | UINT | A2"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 304
+  },
+  "AF": {
+    "hex": "AF",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | AF",
+      "LONG (Longitude) | UINT | AF"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 319
+  },
+  "51": {
+    "hex": "51",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 51"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 289
+  },
+  "A1": {
+    "hex": "A1",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | A1",
+      "LONG (Longitude) | UINT | A1",
+      "LAT (Latitude) | UINT | младший байт | A1"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 284
+  },
+  "45": {
+    "hex": "45",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 45",
+      "CRN (Confirmed Record Number) | USHORT | Номер подтверждаемой записи (=69) | Формат подзаписи EGTS_SR_RECORD_RESPONSE",
+      "RN (Record Number) | USHORT | номер записи (=69)",
+      "LONG (Longitude) | UINT | младший байт | 45"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 263
+  },
+  "79": {
+    "hex": "79",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 79",
+      "LAT (Latitude) | UINT | младший байт | 79"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 315
+  },
+  "4E": {
+    "hex": "4E",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 4E"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 336
+  },
+  "E5": {
+    "hex": "E5",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | E5",
+      "LONG (Longitude) | UINT | E5"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 269
+  },
+  "B3": {
+    "hex": "B3",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xB3",
+      "LONG (Longitude) | UINT | младший байт | B3"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 329
+  },
+  "B5": {
+    "hex": "B5",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | B5",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xB5",
+      "LONG (Longitude) | UINT | B5"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_ ACCEL_DATA (1)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 332
+  },
+  "CA": {
+    "hex": "CA",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | CA",
+      "LONG (Longitude) | UINT | CA"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 298
+  },
+  "EE": {
+    "hex": "EE",
+    "hex_length": 1,
+    "descriptions": [
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "LAT (Latitude) | UINT | младший байт | EE"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 326
+  },
+  "DE": {
+    "hex": "DE",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | DE"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 358
+  },
+  "B8": {
+    "hex": "B8",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x1EB8",
+      "LAT (Latitude) | UINT | B8"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 332
+  },
+  "BC": {
+    "hex": "BC",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | BC",
+      "LONG (Longitude) | UINT | BC"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 290
+  },
+  "F2": {
+    "hex": "F2",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | F2",
+      "LONG (Longitude) | UINT | младший байт | F2"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 278
+  },
+  "EC": {
+    "hex": "EC",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | EC"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 299
+  },
+  "D5": {
+    "hex": "D5",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | D5",
+      "SRL (Subrecord Length) | USHORT | Количество байт в подзаписи (=2005) | Формат отдельной подзаписи протокола уровня поддержки услуг | Строки 22 - 2026 (для текущей подзаписи)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 331
+  },
+  "76": {
+    "hex": "76",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 76"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 316
+  },
+  "B6": {
+    "hex": "B6",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | B6",
+      "LAT (Latitude) | UINT | младший байт | B6",
+      "LAT (Latitude) | UINT | B6"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 334
+  },
+  "92": {
+    "hex": "92",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 92",
+      "LAT (Latitude) | UINT | младший байт | 92"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 316
+  },
+  "57": {
+    "hex": "57",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 57"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 312
+  },
+  "AE": {
+    "hex": "AE",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | AE"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 292
+  },
+  "9D": {
+    "hex": "9D",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x9D",
+      "LONG (Longitude) | UINT | младший байт | 9D"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TERM_IDENTITY (1)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 280
+  },
+  "6B": {
+    "hex": "6B",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 6B",
+      "LONG (Longitude) | UINT | 6B"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 279
+  },
+  "F4": {
+    "hex": "F4",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | F4"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 287
+  },
+  "93": {
+    "hex": "93",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 93",
+      "LONG (Longitude) | UINT | 93"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 284
+  },
+  "41": {
+    "hex": "41",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 41",
+      "RN (Record Number) | USHORT | номер записи (=65)",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x41"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 317
+  },
+  "A8": {
+    "hex": "A8",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | A8",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xA8",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 277
+  },
+  "C1": {
+    "hex": "C1",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | C1"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 309
+  },
+  "B7": {
+    "hex": "B7",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xE3B7",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xB7",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "LAT (Latitude) | UINT | B7"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 342
+  },
+  "D0": {
+    "hex": "D0",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | D0"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 274
+  },
+  "DD": {
+    "hex": "DD",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | DD"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 291
+  },
+  "C3": {
+    "hex": "C3",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | C3"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 302
+  },
+  "0E": {
+    "hex": "0E",
+    "hex_length": 1,
+    "descriptions": [
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=14)",
+      "LONG (Longitude) | UINT | 0E",
+      "PID (Packet Identifier) | USHORT | номер пакета (=14)",
+      "PID (Packet Identifier) | USHORT | номер пакета протокола транспортного уровня (=14)"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (5)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 302
+  },
+  "D6": {
+    "hex": "D6",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | D6"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 279
+  },
+  "EA": {
+    "hex": "EA",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | EA",
+      "LAT (Latitude) | UINT | младший байт | EA"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 297
+  },
+  "75": {
+    "hex": "75",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 75"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 290
+  },
+  "66": {
+    "hex": "66",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 66"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 328
+  },
+  "F6": {
+    "hex": "F6",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | F6",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 327
+  },
+  "C8": {
+    "hex": "C8",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | C8",
+      "SRD (Subrecord Data) | USHORT | старший байт количества байт в подзаписи",
+      "RL (Record Length) | USHORT | старший байт",
+      "FDL (Frame Data Length) | USHORT | старший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 269
+  },
+  "86": {
+    "hex": "86",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 86",
+      "LONG (Longitude) | UINT | 86",
+      "LAT (Latitude) | UINT | младший байт | 86"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 293
+  },
+  "9B": {
+    "hex": "9B",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 9B"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 313
+  },
+  "C2": {
+    "hex": "C2",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x2DC2",
+      "LONG (Longitude) | UINT | C2"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (4)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 344
+  },
+  "7B": {
+    "hex": "7B",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 7B"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 332
+  },
+  "B2": {
+    "hex": "B2",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | B2"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 302
+  },
+  "A9": {
+    "hex": "A9",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | A9"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 288
+  },
+  "D9": {
+    "hex": "D9",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | D9",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 314
+  },
+  "98": {
+    "hex": "98",
+    "hex_length": 1,
+    "descriptions": [
+      "RL (Record Length) | USHORT | 3224 байт | Формат отдельной записи протокола уровня поддержки услуг | Строки 19 - 3242 (для всех подзаписей)",
+      "LAT (Latitude) | UINT | младший байт | 98"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 310
+  },
+  "8F": {
+    "hex": "8F",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 8F"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 302
+  },
+  "97": {
+    "hex": "97",
+    "hex_length": 1,
+    "descriptions": [
+      "SA (Structures Amount) | BYTE | количество передаваемых структур профиля ускорения ТС (=151) | Структура подзаписи EGTS_SR_ ACCEL_DATA сервиса EGTS_ECALL_SERVICE",
+      "LAT (Latitude) | UINT | младший байт | 97",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_PT_RESPONSE (8)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 328
+  },
+  "FE": {
+    "hex": "FE",
+    "hex_length": 1,
+    "descriptions": [
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "LONG (Longitude) | UINT | младший байт | FE"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 301
+  },
+  "90": {
+    "hex": "90",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 90"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 347
+  },
+  "D8": {
+    "hex": "D8",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | D8",
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xD8"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (3)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 309
+  },
+  "60": {
+    "hex": "60",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 60",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 245
+  },
+  "C0": {
+    "hex": "C0",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | C0"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 261
+  },
+  "7F": {
+    "hex": "7F",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 7F"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 315
+  },
+  "F0": {
+    "hex": "F0",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | F0",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 297
+  },
+  "73": {
+    "hex": "73",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | 73",
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=29299 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 29310"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 349
+  },
+  "08": {
+    "hex": "08",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | 08"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 400
+  },
+  "A7": {
+    "hex": "A7",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | A7",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x61A7",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 309
+  },
+  "F3": {
+    "hex": "F3",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | F3"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 351
+  },
+  "82": {
+    "hex": "82",
+    "hex_length": 1,
+    "descriptions": [
+      "LAT (Latitude) | UINT | младший байт | 82"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 297
+  },
+  "E8": {
+    "hex": "E8",
+    "hex_length": 1,
+    "descriptions": [
+      "LONG (Longitude) | UINT | младший байт | E8"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 287
+  },
+  "E3": {
+    "hex": "E3",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_TRACK_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 311
+  },
+  "A3": {
+    "hex": "A3",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xA3"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 273
+  },
+  "F8": {
+    "hex": "F8",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x3EF8"
+    ],
+    "files": [
+      "2. Передача траектории движения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 309
+  },
+  "B0": {
+    "hex": "B0",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "CT_COMCONF (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 291
+  },
+  "C9": {
+    "hex": "C9",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xC9"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_VEHICLE_DATA (5)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 293
+  },
+  "18": {
+    "hex": "18",
+    "hex_length": 1,
+    "descriptions": [
+      "RPID (Response Packet ID) | USHORT | Номер подтверждаемого пакета (=24)",
+      "PID (Packet Identifier) | USHORT | номер пакета (=24)",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=24)",
+      "PID (Packet Identifier) | USHORT | номер пакета протокола транспортного уровня (=24)"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_TERM_IDENTITY (1)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 333
+  },
+  "9E": {
+    "hex": "9E",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x9E"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (6)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 335
+  },
+  "EF": {
+    "hex": "EF",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0xEF"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 309
+  },
+  "FD": {
+    "hex": "FD",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_RESULT_CODE (7)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 318
+  },
+  "7E": {
+    "hex": "7E",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x7E",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RESULT_CODE (5)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 298
+  },
+  "9F": {
+    "hex": "9F",
+    "hex_length": 1,
+    "descriptions": [
+      "FDL (Frame Data Length) | USHORT | размер в байтах поля данных SFRD=3231 | количество байт, начиная ниже от HCS, не включая два последних байта контрольной суммы  | Строки 12 - 3242"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 313
+  },
+  "0C": {
+    "hex": "0C",
+    "hex_length": 1,
+    "descriptions": [
+      "PID (Packet Identifier) | USHORT | Номер пакета (=12) (не связан с ответом, собственная нумерация ТП)",
+      "PID (Packet Identifier) | USHORT | Номер пакета (=12)",
+      "RL (Record Length) | USHORT | старший байт",
+      "FDL (Frame Data Length) | USHORT | старший байт"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_RECORD_RESPONSE (2)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 306
+  },
+  "FA": {
+    "hex": "FA",
+    "hex_length": 1,
+    "descriptions": [
+      "SA (Structures Amount) | BYTE | количество передаваемых структур профиля ускорения ТС (=250) | Структура подзаписи EGTS_SR_ ACCEL_DATA сервиса EGTS_ECALL_SERVICE",
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 294
+  },
+  "C4": {
+    "hex": "C4",
+    "hex_length": 1,
+    "descriptions": [
+      "RTM (RelativeTime) | USHORT | ADS 251 (Accelerometer Data Structure)"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 288
+  },
+  "05": {
+    "hex": "05",
+    "hex_length": 1,
+    "descriptions": [
+      "RTM (RelativeTime) | USHORT | ADS 378 (Accelerometer Data Structure)",
+      "RTM (RelativeTime) | USHORT | ADS 375 (Accelerometer Data Structure)",
+      "RTM (RelativeTime) | USHORT | ADS 361 (Accelerometer Data Structure)",
+      "RTM (RelativeTime) | USHORT | ADS 385 (Accelerometer Data Structure)",
+      "RTM (RelativeTime) | USHORT | ADS 368 (Accelerometer Data Structure)"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 341
+  },
+  "64": {
+    "hex": "64",
+    "hex_length": 1,
+    "descriptions": [
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 340
+  },
+  "94": {
+    "hex": "94",
+    "hex_length": 1,
+    "descriptions": [
+      "XAAV (X Axis Acceleration Value) | SHORT | младший байт"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 291
+  },
+  "5F": {
+    "hex": "5F",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_ ACCEL_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 304
+  },
+  "96": {
+    "hex": "96",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "3. Передача профиля ускорения (ОК).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (10)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 266
+  },
+  "83": {
+    "hex": "83",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xFB83"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (4)"
+    ],
+    "direction": "PLATFORM -> УСВ",
+    "count": 289
+  },
+  "4D": {
+    "hex": "4D",
+    "hex_length": 1,
+    "descriptions": [
+      "WOS (Whole Object Signature) | USHORT | старший байт | СRC16-CCITT",
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 316
+  },
+  "6F": {
+    "hex": "6F",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 369
+  },
+  "54": {
+    "hex": "54",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x54"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 316
+  },
+  "B4": {
+    "hex": "B4",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 260
+  },
+  "95": {
+    "hex": "95",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x5695"
+    ],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 263
+  },
+  "4F": {
+    "hex": "4F",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 268
+  },
+  "87": {
+    "hex": "87",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 271
+  },
+  "C6": {
+    "hex": "C6",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 292
+  },
+  "61": {
+    "hex": "61",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16"
+    ],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_RECORD_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 327
+  },
+  "F7": {
+    "hex": "F7",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 300
+  },
+  "81": {
+    "hex": "81",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 282
+  },
+  "B1": {
+    "hex": "B1",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x97B1"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_PT_RESPONSE (8)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 273
+  },
+  "CF": {
+    "hex": "CF",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 350
+  },
+  "9A": {
+    "hex": "9A",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 262
+  },
+  "67": {
+    "hex": "67",
+    "hex_length": 1,
+    "descriptions": [
+      "HCS (Header Check Sum) | BYTE | CRC-8 | 0x67"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 313
+  },
+  "E9": {
+    "hex": "E9",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 319
+  },
+  "BB": {
+    "hex": "BB",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0xBDBB"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)",
+      "EGTS_SR_COMMAND_DATA (7)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 324
+  },
+  "7A": {
+    "hex": "7A",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 273
+  },
+  "E0": {
+    "hex": "E0",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 265
+  },
+  "8A": {
+    "hex": "8A",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 316
+  },
+  "D1": {
+    "hex": "D1",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 266
+  },
+  "58": {
+    "hex": "58",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 296
+  },
+  "CD": {
+    "hex": "CD",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 292
+  },
+  "53": {
+    "hex": "53",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 279
+  },
+  "AD": {
+    "hex": "AD",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 300
+  },
+  "A4": {
+    "hex": "A4",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 271
+  },
+  "E4": {
+    "hex": "E4",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 275
+  },
+  "E2": {
+    "hex": "E2",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 308
+  },
+  "7C": {
+    "hex": "7C",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 315
+  },
+  "BF": {
+    "hex": "BF",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 291
+  },
+  "62": {
+    "hex": "62",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 305
+  },
+  "8B": {
+    "hex": "8B",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 253
+  },
+  "F5": {
+    "hex": "F5",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 332
+  },
+  "DA": {
+    "hex": "DA",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 316
+  },
+  "DB": {
+    "hex": "DB",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 331
+  },
+  "CB": {
+    "hex": "CB",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 280
+  },
+  "99": {
+    "hex": "99",
+    "hex_length": 1,
+    "descriptions": [
+      "SFRCS (Services Frame Data Check Sum) | USHORT | CRC-16 | 0x4D99"
+    ],
+    "files": [
+      "5. Передача настроек для УСВ (OK).xlsx",
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "CT_COMCONF (9)",
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 327
+  },
+  "C5": {
+    "hex": "C5",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 297
+  },
+  "E7": {
+    "hex": "E7",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 336
+  },
+  "84": {
+    "hex": "84",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 312
+  },
+  "FC": {
+    "hex": "FC",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 281
+  },
+  "C7": {
+    "hex": "C7",
+    "hex_length": 1,
+    "descriptions": [],
+    "files": [
+      "4. Передача обновлённого ПО (OK).xlsx"
+    ],
+    "sheets": [
+      "EGTS_SR_SERVICE_PART_DATA (7)",
+      "EGTS_SR_SERVICE_PART_DATA (9)"
+    ],
+    "direction": "УСВ -> PLATFORM",
+    "count": 358
+  }
+}

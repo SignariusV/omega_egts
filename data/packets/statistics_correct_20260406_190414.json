@@ -1,0 +1,49 @@
+{
+  "total_packets": 51,
+  "unique_hex_count": 45,
+  "by_type": {
+    "EGTS_GPRS_APN (SMS)(1)": 1,
+    "CT_COMCONF (SMS)(2)": 1,
+    "EGTS_SERVER_ADDRESS (SMS)(3)": 1,
+    "CT_COMCONF (SMS)(4)": 1,
+    "EGTS_UNIT_ID (SMS)(5)": 1,
+    "CT_COMCONF (SMS)(6)": 1,
+    "EGTS_SR_TERM_IDENTITY (7)": 1,
+    "EGTS_SR_RECORD_RESPONSE (8)": 4,
+    "EGTS_SR_VEHICLE_DATA (9)": 1,
+    "EGTS_SR_RECORD_RESPONSE (10)": 4,
+    "EGTS_SR_RESULT_CODE (11)": 1,
+    "EGTS_SR_RECORD_RESPONSE (12)": 1,
+    "EGTS_TRACK_DATA (1)": 1,
+    "CT_COMCONF (2)": 2,
+    "EGTS_SR_TERM_IDENTITY (3)": 2,
+    "EGTS_SR_RECORD_RESPONSE (4)": 4,
+    "EGTS_SR_VEHICLE_DATA (5)": 2,
+    "EGTS_SR_RECORD_RESPONSE (6)": 4,
+    "EGTS_SR_RESULT_CODE (7)": 2,
+    "EGTS_SR_TRACK_DATA (9)": 1,
+    "EGTS_ ACCEL_DATA (1)": 1,
+    "EGTS_SR_ ACCEL_DATA (9)": 1,
+    "EGTS_SR_TERM_IDENTITY (1)": 2,
+    "EGTS_SR_RECORD_RESPONSE (2)": 2,
+    "EGTS_SR_VEHICLE_DATA (3)": 2,
+    "EGTS_SR_RESULT_CODE (5)": 2,
+    "EGTS_SR_SERVICE_PART_DATA (7)": 1,
+    "EGTS_SR_SERVICE_PART_DATA (9)": 1,
+    "EGTS_SR_COMMAND_DATA (7)": 1,
+    "EGTS_PT_RESPONSE (8)": 1,
+    "CT_COMCONF (9)": 1
+  },
+  "by_direction": {
+    "PLATFORM -> УСВ": 33,
+    "Не определено": 6,
+    "УСВ -> PLATFORM": 12
+  },
+  "by_file": {
+    "1. Состав команд для конфигурирования (OK).xlsx": 12,
+    "2. Передача траектории движения (ОК).xlsx": 10,
+    "3. Передача профиля ускорения (ОК).xlsx": 10,
+    "4. Передача обновлённого ПО (OK).xlsx": 10,
+    "5. Передача настроек для УСВ (OK).xlsx": 9
+  }
+}
