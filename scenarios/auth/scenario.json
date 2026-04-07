@@ -1,6 +1,6 @@
 {
   "name": "Аутентификация",
-  "version": "2015",
+  "version": "ГОСТ 33465-2015",
   "timeout": 30,
   "description": "Процедура аутентификации УСВ по TCP/IP: TERM_IDENTITY → VEHICLE_DATA → RESULT_CODE",
   "channels": ["tcp"],
@@ -9,7 +9,6 @@
       "name": "Идентификация терминала",
       "type": "expect",
       "channel": "tcp",
-      "direction": "from_usv",
       "packet_type": "EGTS_SR_TERM_IDENTITY",
       "timeout": 6,
       "capture": {
@@ -27,7 +26,6 @@
       "name": "Подтверждение TERM_IDENTITY",
       "type": "send",
       "channel": "tcp",
-      "direction": "from_platform",
       "packet_type": "EGTS_SR_RECORD_RESPONSE",
       "packet_file": "packets/platform/record_response_term_identity.hex",
       "timeout": 5,
@@ -37,7 +35,6 @@
       "name": "Данные транспортного средства",
       "type": "expect",
       "channel": "tcp",
-      "direction": "from_usv",
       "packet_type": "EGTS_SR_VEHICLE_DATA",
       "timeout": 6,
       "capture": {
@@ -55,7 +52,6 @@
       "name": "Подтверждение VEHICLE_DATA",
       "type": "send",
       "channel": "tcp",
-      "direction": "from_platform",
       "packet_type": "EGTS_SR_RECORD_RESPONSE",
       "packet_file": "packets/platform/record_response_vehicle_data.hex",
       "timeout": 5,
@@ -65,7 +61,6 @@
       "name": "Результат аутентификации",
       "type": "send",
       "channel": "tcp",
-      "direction": "from_platform",
       "packet_type": "EGTS_SR_RESULT_CODE",
       "packet_file": "packets/platform/result_code.hex",
       "timeout": 5,
@@ -78,7 +73,6 @@
       "name": "Подтверждение результата",
       "type": "expect",
       "channel": "tcp",
-      "direction": "from_usv",
       "packet_type": "EGTS_SR_RECORD_RESPONSE",
       "timeout": 5,
       "checks": {

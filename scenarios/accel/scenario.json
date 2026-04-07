@@ -1,6 +1,6 @@
 {
   "name": "Передача профиля ускорения",
-  "version": "2015",
+  "version": "ГОСТ 33465-2015",
   "timeout": 60,
   "description": "Платформа запрашивает профиль ускорения через SMS, УСВ передаёт данные по TCP/IP",
   "channels": ["tcp", "sms"],
@@ -9,7 +9,6 @@
       "name": "SMS-запрос профиля ускорения",
       "type": "send",
       "channel": "sms",
-      "direction": "from_platform",
       "packet_type": "EGTS_ACCEL_DATA",
       "packet_file": "packets/platform/accel_data_request.hex",
       "timeout": 10,
@@ -19,7 +18,6 @@
       "name": "Подтверждение SMS-запроса",
       "type": "expect",
       "channel": "sms",
-      "direction": "from_usv",
       "packet_type": "CT_COMCONF",
       "timeout": 10,
       "checks": {
@@ -31,7 +29,6 @@
       "name": "Данные профиля ускорения",
       "type": "expect",
       "channel": "tcp",
-      "direction": "from_usv",
       "packet_type": "EGTS_SR_ACCEL_DATA",
       "timeout": 30,
       "capture": {
@@ -47,7 +44,6 @@
       "name": "Подтверждение профиля ускорения",
       "type": "send",
       "channel": "tcp",
-      "direction": "from_platform",
       "packet_type": "EGTS_SR_RECORD_RESPONSE",
       "packet_file": "packets/platform/record_response_accel.hex",
       "timeout": 5,

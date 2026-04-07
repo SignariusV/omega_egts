@@ -1,6 +1,6 @@
 {
   "name": "Передача траектории движения",
-  "version": "2015",
+  "version": "ГОСТ 33465-2015",
   "timeout": 60,
   "description": "Платформа запрашивает траекторию через SMS, УСВ передаёт данные по TCP/IP",
   "channels": ["tcp", "sms"],
@@ -9,7 +9,6 @@
       "name": "SMS-запрос траектории",
       "type": "send",
       "channel": "sms",
-      "direction": "from_platform",
       "packet_type": "EGTS_TRACK_DATA",
       "packet_file": "packets/platform/track_data_request.hex",
       "timeout": 10,
@@ -19,7 +18,6 @@
       "name": "Подтверждение SMS-запроса",
       "type": "expect",
       "channel": "sms",
-      "direction": "from_usv",
       "packet_type": "CT_COMCONF",
       "timeout": 10,
       "checks": {
@@ -31,7 +29,6 @@
       "name": "Данные траектории",
       "type": "expect",
       "channel": "tcp",
-      "direction": "from_usv",
       "packet_type": "EGTS_SR_TRACK_DATA",
       "timeout": 30,
       "capture": {
@@ -47,7 +44,6 @@
       "name": "Подтверждение траектории",
       "type": "send",
       "channel": "tcp",
-      "direction": "from_platform",
       "packet_type": "EGTS_SR_RECORD_RESPONSE",
       "packet_file": "packets/platform/record_response_track.hex",
       "timeout": 5,

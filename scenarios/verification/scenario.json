@@ -1,6 +1,6 @@
 {
   "name": "Верификация (SMS)",
-  "version": "2015",
+  "version": "ГОСТ 33465-2015",
   "timeout": 30,
   "description": "Первоначальная настройка УСВ через SMS: APN, адрес сервера, запрос UNIT_ID",
   "channels": ["sms"],
@@ -9,7 +9,6 @@
       "name": "Настройка GPRS/APN",
       "type": "send",
       "channel": "sms",
-      "direction": "from_platform",
       "packet_type": "EGTS_GPRS_APN",
       "packet_file": "packets/platform/gprs_apn.hex",
       "timeout": 5,
@@ -19,7 +18,6 @@
       "name": "Подтверждение APN",
       "type": "expect",
       "channel": "sms",
-      "direction": "from_usv",
       "packet_type": "CT_COMCONF",
       "timeout": 5,
       "checks": {
@@ -32,7 +30,6 @@
       "name": "Настройка адреса сервера",
       "type": "send",
       "channel": "sms",
-      "direction": "from_platform",
       "packet_type": "EGTS_SERVER_ADDRESS",
       "packet_file": "packets/platform/server_address.hex",
       "timeout": 5,
@@ -42,7 +39,6 @@
       "name": "Подтверждение адреса",
       "type": "expect",
       "channel": "sms",
-      "direction": "from_usv",
       "packet_type": "CT_COMCONF",
       "timeout": 5,
       "checks": {
@@ -55,7 +51,6 @@
       "name": "Запрос UNIT_ID",
       "type": "send",
       "channel": "sms",
-      "direction": "from_platform",
       "packet_type": "EGTS_UNIT_ID",
       "packet_file": "packets/platform/unit_id.hex",
       "timeout": 5,
@@ -65,7 +60,6 @@
       "name": "Ответ с UNIT_ID",
       "type": "expect",
       "channel": "sms",
-      "direction": "from_usv",
       "packet_type": "CT_COMCONF",
       "timeout": 5,
       "checks": {

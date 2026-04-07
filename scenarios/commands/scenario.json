@@ -1,6 +1,6 @@
 {
   "name": "Команды конфигурирования",
-  "version": "2015",
+  "version": "ГОСТ 33465-2015",
   "timeout": 30,
   "description": "Платформа отправляет команды конфигурирования на УСВ через EGTS_COMMANDS_SERVICE",
   "channels": ["tcp"],
@@ -9,7 +9,6 @@
       "name": "Команда конфигурирования",
       "type": "send",
       "channel": "tcp",
-      "direction": "from_platform",
       "packet_type": "EGTS_SR_COMMAND_DATA",
       "packet_file": "packets/platform/command_data.hex",
       "timeout": 10,
@@ -23,7 +22,6 @@
       "name": "Ответ транспортного уровня",
       "type": "expect",
       "channel": "tcp",
-      "direction": "from_usv",
       "packet_type": "EGTS_PT_RESPONSE",
       "timeout": 5,
       "checks": {
@@ -35,7 +33,6 @@
       "name": "Подтверждение выполнения команды",
       "type": "expect",
       "channel": "tcp",
-      "direction": "from_usv",
       "packet_type": "CT_COMCONF",
       "timeout": 10,
       "checks": {
