@@ -1,6 +1,6 @@
 {
   "name": "Передача профиля ускорения",
-  "scenario_version": "1.0.0",
+  "scenario_version": "1",
   "gost_version": "ГОСТ 33465-2015",
   "timeout": 60,
   "description": "Платформа запрашивает профиль ускорения через SMS, УСВ передаёт данные по TCP/IP",

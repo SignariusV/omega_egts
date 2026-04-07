@@ -1,6 +1,6 @@
 {
   "name": "Аутентификация",
-  "scenario_version": "1.0.0",
+  "scenario_version": "1",
   "gost_version": "ГОСТ 33465-2015",
   "timeout": 30,
   "description": "Процедура аутентификации УСВ по TCP/IP: TERM_IDENTITY → VEHICLE_DATA → RESULT_CODE",

@@ -1,6 +1,6 @@
 {
   "name": "Обновление ПО",
-  "scenario_version": "1.0.0",
+  "scenario_version": "1",
   "gost_version": "ГОСТ 33465-2015",
   "timeout": 120,
   "description": "Платформа передаёт прошивку на УСВ частями через EGTS_FIRMWARE_SERVICE",
