@@ -1,6 +1,57 @@
 {
-  "name": "Траектория",
-  "version": "2015",
-  "timeout": 30,
-  "steps": []
+  "name": "Передача траектории движения",
+  "scenario_version": "1",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 60,
+  "description": "Платформа запрашивает траекторию через SMS, УСВ передаёт данные по TCP/IP",
+  "channels": ["tcp", "sms"],
+  "steps": [
+    {
+      "name": "SMS-запрос траектории",
+      "type": "send",
+      "channel": "sms",
+      "packet_type": "EGTS_TRACK_DATA",
+      "packet_file": "packets/platform/track_data_request.hex",
+      "timeout": 10,
+      "description": "Платформа запрашивает траекторию через SMS"
+    },
+    {
+      "name": "Подтверждение SMS-запроса",
+      "type": "expect",
+      "channel": "sms",
+      "packet_type": "CT_COMCONF",
+      "timeout": 10,
+      "checks": {
+        "subrecord_type": "CT_COMCONF"
+      },
+      "description": "УСВ подтверждает приём SMS-запроса"
+    },
+    {
+      "name": "Данные траектории",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "EGTS_SR_TRACK_DATA",
+      "timeout": 30,
+      "capture": {
+        "track_points_count": "data.points_count"
+      },
+      "checks": {
+        "service": 2,
+        "subrecord_type": "EGTS_SR_TRACK_DATA"
+      },
+      "description": "УСВ передаёт данные траектории (880 байт)"
+    },
+    {
+      "name": "Подтверждение траектории",
+      "type": "send",
+      "channel": "tcp",
+      "packet_type": "EGTS_SR_RECORD_RESPONSE",
+      "packet_file": "packets/platform/record_response_track.hex",
+      "timeout": 5,
+      "checks": {
+        "rst": 0
+      },
+      "description": "Платформа подтверждает приём траектории"
+    }
+  ]
 }

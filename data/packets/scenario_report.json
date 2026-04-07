@@ -1,0 +1,1200 @@
+{
+  "scenarios": [
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_GPRS_APN (SMS)(1)",
+      "type": "🌐 Настройки подключения (APN/Адрес сервера)",
+      "packets_count": 46,
+      "unique_hex_count": 22,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 46
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "CT_COMCONF (SMS)(2)",
+      "type": "🔧 Конфигурация (COMCONF)",
+      "packets_count": 33,
+      "unique_hex_count": 15,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 33
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_SERVER_ADDRESS (SMS)(3)",
+      "type": "🌐 Настройки подключения (APN/Адрес сервера)",
+      "packets_count": 55,
+      "unique_hex_count": 23,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 55
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "CT_COMCONF (SMS)(4)",
+      "type": "🔧 Конфигурация (COMCONF)",
+      "packets_count": 33,
+      "unique_hex_count": 15,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 33
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_UNIT_ID (SMS)(5)",
+      "type": "🆔 Идентификатор устройства",
+      "packets_count": 42,
+      "unique_hex_count": 14,
+      "main_direction": "Не определено",
+      "directions": {
+        "Не определено": 42
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "CT_COMCONF (SMS)(6)",
+      "type": "🔧 Конфигурация (COMCONF)",
+      "packets_count": 33,
+      "unique_hex_count": 16,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 33
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_SR_TERM_IDENTITY (7)",
+      "type": "🔐 Аутентификация (идентификация терминала)",
+      "packets_count": 59,
+      "unique_hex_count": 23,
+      "main_direction": "Не определено",
+      "directions": {
+        "Не определено": 59
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_SR_VEHICLE_DATA (9)",
+      "type": "🚗 Данные транспортного средства",
+      "packets_count": 48,
+      "unique_hex_count": 25,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 48
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_SR_RESULT_CODE (11)",
+      "type": "🏁 Код результата",
+      "packets_count": 24,
+      "unique_hex_count": 11,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 24
+      }
+    },
+    {
+      "file": "1. Состав команд для конфигурирования (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (12)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_TRACK_DATA (1)",
+      "type": "📍 Передача траектории движения",
+      "packets_count": 38,
+      "unique_hex_count": 16,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 38
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "CT_COMCONF (2)",
+      "type": "🔧 Конфигурация (COMCONF)",
+      "packets_count": 33,
+      "unique_hex_count": 15,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 33
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_SR_TERM_IDENTITY (3)",
+      "type": "🔐 Аутентификация (идентификация терминала)",
+      "packets_count": 59,
+      "unique_hex_count": 22,
+      "main_direction": "Не определено",
+      "directions": {
+        "Не определено": 59
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 13,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_SR_VEHICLE_DATA (5)",
+      "type": "🚗 Данные транспортного средства",
+      "packets_count": 48,
+      "unique_hex_count": 25,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 48
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 13,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_SR_RESULT_CODE (7)",
+      "type": "🏁 Код результата",
+      "packets_count": 24,
+      "unique_hex_count": 11,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 24
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_SR_TRACK_DATA (9)",
+      "type": "📍 Передача траектории движения",
+      "packets_count": 880,
+      "unique_hex_count": 152,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 880
+      }
+    },
+    {
+      "file": "2. Передача траектории движения (ОК).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_ ACCEL_DATA (1)",
+      "type": "📈 Передача профиля ускорения",
+      "packets_count": 38,
+      "unique_hex_count": 16,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 38
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "CT_COMCONF (2)",
+      "type": "🔧 Конфигурация (COMCONF)",
+      "packets_count": 33,
+      "unique_hex_count": 15,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 33
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_SR_TERM_IDENTITY (3)",
+      "type": "🔐 Аутентификация (идентификация терминала)",
+      "packets_count": 59,
+      "unique_hex_count": 23,
+      "main_direction": "Не определено",
+      "directions": {
+        "Не определено": 59
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_SR_VEHICLE_DATA (5)",
+      "type": "🚗 Данные транспортного средства",
+      "packets_count": 48,
+      "unique_hex_count": 24,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 48
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 13,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_SR_RESULT_CODE (7)",
+      "type": "🏁 Код результата",
+      "packets_count": 24,
+      "unique_hex_count": 11,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 24
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_SR_ ACCEL_DATA (9)",
+      "type": "📈 Передача профиля ускорения",
+      "packets_count": 3244,
+      "unique_hex_count": 51,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 3244
+      }
+    },
+    {
+      "file": "3. Передача профиля ускорения (ОК).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 15,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_TERM_IDENTITY (1)",
+      "type": "🔐 Аутентификация (идентификация терминала)",
+      "packets_count": 59,
+      "unique_hex_count": 22,
+      "main_direction": "Не определено",
+      "directions": {
+        "Не определено": 59
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (2)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_VEHICLE_DATA (3)",
+      "type": "🚗 Данные транспортного средства",
+      "packets_count": 48,
+      "unique_hex_count": 23,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 48
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_RESULT_CODE (5)",
+      "type": "🏁 Код результата",
+      "packets_count": 24,
+      "unique_hex_count": 11,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 24
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_SERVICE_PART_DATA (7)",
+      "type": "📦 Передача данных (части сервиса)",
+      "packets_count": 51236,
+      "unique_hex_count": 256,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 51236
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 15,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_SERVICE_PART_DATA (9)",
+      "type": "📦 Передача данных (части сервиса)",
+      "packets_count": 29312,
+      "unique_hex_count": 256,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 29312
+      }
+    },
+    {
+      "file": "4. Передача обновлённого ПО (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "EGTS_SR_TERM_IDENTITY (1)",
+      "type": "🔐 Аутентификация (идентификация терминала)",
+      "packets_count": 59,
+      "unique_hex_count": 22,
+      "main_direction": "Не определено",
+      "directions": {
+        "Не определено": 59
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (2)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "EGTS_SR_VEHICLE_DATA (3)",
+      "type": "🚗 Данные транспортного средства",
+      "packets_count": 48,
+      "unique_hex_count": 23,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 48
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "EGTS_SR_RESULT_CODE (5)",
+      "type": "🏁 Код результата",
+      "packets_count": 24,
+      "unique_hex_count": 11,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 24
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+      "type": "✅ Подтверждение записи (ответ)",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "EGTS_SR_COMMAND_DATA (7)",
+      "type": "⚙️ Команды конфигурирования",
+      "packets_count": 72,
+      "unique_hex_count": 26,
+      "main_direction": "УСВ -> PLATFORM",
+      "directions": {
+        "УСВ -> PLATFORM": 72
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "EGTS_PT_RESPONSE (8)",
+      "type": "📨 Транспортный ответ",
+      "packets_count": 29,
+      "unique_hex_count": 14,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 29
+      }
+    },
+    {
+      "file": "5. Передача настроек для УСВ (OK).xlsx",
+      "sheet": "CT_COMCONF (9)",
+      "type": "🔧 Конфигурация (COMCONF)",
+      "packets_count": 49,
+      "unique_hex_count": 16,
+      "main_direction": "PLATFORM -> УСВ",
+      "directions": {
+        "PLATFORM -> УСВ": 49
+      }
+    }
+  ],
+  "scenario_types": {
+    "🌐 Настройки подключения (APN/Адрес сервера)": {
+      "count": 2,
+      "total_packets": 101,
+      "scenarios": [
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_GPRS_APN (SMS)(1)",
+          "type": "🌐 Настройки подключения (APN/Адрес сервера)",
+          "packets_count": 46,
+          "unique_hex_count": 22,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 46
+          }
+        },
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_SERVER_ADDRESS (SMS)(3)",
+          "type": "🌐 Настройки подключения (APN/Адрес сервера)",
+          "packets_count": 55,
+          "unique_hex_count": 23,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 55
+          }
+        }
+      ]
+    },
+    "🔧 Конфигурация (COMCONF)": {
+      "count": 6,
+      "total_packets": 214,
+      "scenarios": [
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "CT_COMCONF (SMS)(2)",
+          "type": "🔧 Конфигурация (COMCONF)",
+          "packets_count": 33,
+          "unique_hex_count": 15,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 33
+          }
+        },
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "CT_COMCONF (SMS)(4)",
+          "type": "🔧 Конфигурация (COMCONF)",
+          "packets_count": 33,
+          "unique_hex_count": 15,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 33
+          }
+        },
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "CT_COMCONF (SMS)(6)",
+          "type": "🔧 Конфигурация (COMCONF)",
+          "packets_count": 33,
+          "unique_hex_count": 16,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 33
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "CT_COMCONF (2)",
+          "type": "🔧 Конфигурация (COMCONF)",
+          "packets_count": 33,
+          "unique_hex_count": 15,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 33
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "CT_COMCONF (2)",
+          "type": "🔧 Конфигурация (COMCONF)",
+          "packets_count": 33,
+          "unique_hex_count": 15,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 33
+          }
+        },
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "CT_COMCONF (9)",
+          "type": "🔧 Конфигурация (COMCONF)",
+          "packets_count": 49,
+          "unique_hex_count": 16,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 49
+          }
+        }
+      ]
+    },
+    "🆔 Идентификатор устройства": {
+      "count": 1,
+      "total_packets": 42,
+      "scenarios": [
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_UNIT_ID (SMS)(5)",
+          "type": "🆔 Идентификатор устройства",
+          "packets_count": 42,
+          "unique_hex_count": 14,
+          "main_direction": "Не определено",
+          "directions": {
+            "Не определено": 42
+          }
+        }
+      ]
+    },
+    "🔐 Аутентификация (идентификация терминала)": {
+      "count": 5,
+      "total_packets": 295,
+      "scenarios": [
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_SR_TERM_IDENTITY (7)",
+          "type": "🔐 Аутентификация (идентификация терминала)",
+          "packets_count": 59,
+          "unique_hex_count": 23,
+          "main_direction": "Не определено",
+          "directions": {
+            "Не определено": 59
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_SR_TERM_IDENTITY (3)",
+          "type": "🔐 Аутентификация (идентификация терминала)",
+          "packets_count": 59,
+          "unique_hex_count": 22,
+          "main_direction": "Не определено",
+          "directions": {
+            "Не определено": 59
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_SR_TERM_IDENTITY (3)",
+          "type": "🔐 Аутентификация (идентификация терминала)",
+          "packets_count": 59,
+          "unique_hex_count": 23,
+          "main_direction": "Не определено",
+          "directions": {
+            "Не определено": 59
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_TERM_IDENTITY (1)",
+          "type": "🔐 Аутентификация (идентификация терминала)",
+          "packets_count": 59,
+          "unique_hex_count": 22,
+          "main_direction": "Не определено",
+          "directions": {
+            "Не определено": 59
+          }
+        },
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "EGTS_SR_TERM_IDENTITY (1)",
+          "type": "🔐 Аутентификация (идентификация терминала)",
+          "packets_count": 59,
+          "unique_hex_count": 22,
+          "main_direction": "Не определено",
+          "directions": {
+            "Не определено": 59
+          }
+        }
+      ]
+    },
+    "✅ Подтверждение записи (ответ)": {
+      "count": 19,
+      "total_packets": 551,
+      "scenarios": [
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (12)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 13,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 13,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 13,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 15,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (2)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 15,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (2)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        },
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+          "type": "✅ Подтверждение записи (ответ)",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        }
+      ]
+    },
+    "🚗 Данные транспортного средства": {
+      "count": 5,
+      "total_packets": 240,
+      "scenarios": [
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_SR_VEHICLE_DATA (9)",
+          "type": "🚗 Данные транспортного средства",
+          "packets_count": 48,
+          "unique_hex_count": 25,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 48
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_SR_VEHICLE_DATA (5)",
+          "type": "🚗 Данные транспортного средства",
+          "packets_count": 48,
+          "unique_hex_count": 25,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 48
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_SR_VEHICLE_DATA (5)",
+          "type": "🚗 Данные транспортного средства",
+          "packets_count": 48,
+          "unique_hex_count": 24,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 48
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_VEHICLE_DATA (3)",
+          "type": "🚗 Данные транспортного средства",
+          "packets_count": 48,
+          "unique_hex_count": 23,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 48
+          }
+        },
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "EGTS_SR_VEHICLE_DATA (3)",
+          "type": "🚗 Данные транспортного средства",
+          "packets_count": 48,
+          "unique_hex_count": 23,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 48
+          }
+        }
+      ]
+    },
+    "🏁 Код результата": {
+      "count": 5,
+      "total_packets": 120,
+      "scenarios": [
+        {
+          "file": "1. Состав команд для конфигурирования (OK).xlsx",
+          "sheet": "EGTS_SR_RESULT_CODE (11)",
+          "type": "🏁 Код результата",
+          "packets_count": 24,
+          "unique_hex_count": 11,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 24
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_SR_RESULT_CODE (7)",
+          "type": "🏁 Код результата",
+          "packets_count": 24,
+          "unique_hex_count": 11,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 24
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_SR_RESULT_CODE (7)",
+          "type": "🏁 Код результата",
+          "packets_count": 24,
+          "unique_hex_count": 11,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 24
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_RESULT_CODE (5)",
+          "type": "🏁 Код результата",
+          "packets_count": 24,
+          "unique_hex_count": 11,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 24
+          }
+        },
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "EGTS_SR_RESULT_CODE (5)",
+          "type": "🏁 Код результата",
+          "packets_count": 24,
+          "unique_hex_count": 11,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 24
+          }
+        }
+      ]
+    },
+    "📍 Передача траектории движения": {
+      "count": 2,
+      "total_packets": 918,
+      "scenarios": [
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_TRACK_DATA (1)",
+          "type": "📍 Передача траектории движения",
+          "packets_count": 38,
+          "unique_hex_count": 16,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 38
+          }
+        },
+        {
+          "file": "2. Передача траектории движения (ОК).xlsx",
+          "sheet": "EGTS_SR_TRACK_DATA (9)",
+          "type": "📍 Передача траектории движения",
+          "packets_count": 880,
+          "unique_hex_count": 152,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 880
+          }
+        }
+      ]
+    },
+    "📈 Передача профиля ускорения": {
+      "count": 2,
+      "total_packets": 3282,
+      "scenarios": [
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_ ACCEL_DATA (1)",
+          "type": "📈 Передача профиля ускорения",
+          "packets_count": 38,
+          "unique_hex_count": 16,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 38
+          }
+        },
+        {
+          "file": "3. Передача профиля ускорения (ОК).xlsx",
+          "sheet": "EGTS_SR_ ACCEL_DATA (9)",
+          "type": "📈 Передача профиля ускорения",
+          "packets_count": 3244,
+          "unique_hex_count": 51,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 3244
+          }
+        }
+      ]
+    },
+    "📦 Передача данных (части сервиса)": {
+      "count": 2,
+      "total_packets": 80548,
+      "scenarios": [
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_SERVICE_PART_DATA (7)",
+          "type": "📦 Передача данных (части сервиса)",
+          "packets_count": 51236,
+          "unique_hex_count": 256,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 51236
+          }
+        },
+        {
+          "file": "4. Передача обновлённого ПО (OK).xlsx",
+          "sheet": "EGTS_SR_SERVICE_PART_DATA (9)",
+          "type": "📦 Передача данных (части сервиса)",
+          "packets_count": 29312,
+          "unique_hex_count": 256,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 29312
+          }
+        }
+      ]
+    },
+    "⚙️ Команды конфигурирования": {
+      "count": 1,
+      "total_packets": 72,
+      "scenarios": [
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "EGTS_SR_COMMAND_DATA (7)",
+          "type": "⚙️ Команды конфигурирования",
+          "packets_count": 72,
+          "unique_hex_count": 26,
+          "main_direction": "УСВ -> PLATFORM",
+          "directions": {
+            "УСВ -> PLATFORM": 72
+          }
+        }
+      ]
+    },
+    "📨 Транспортный ответ": {
+      "count": 1,
+      "total_packets": 29,
+      "scenarios": [
+        {
+          "file": "5. Передача настроек для УСВ (OK).xlsx",
+          "sheet": "EGTS_PT_RESPONSE (8)",
+          "type": "📨 Транспортный ответ",
+          "packets_count": 29,
+          "unique_hex_count": 14,
+          "main_direction": "PLATFORM -> УСВ",
+          "directions": {
+            "PLATFORM -> УСВ": 29
+          }
+        }
+      ]
+    }
+  }
+}
