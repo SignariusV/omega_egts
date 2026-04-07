@@ -1,6 +1,7 @@
 {
   "name": "Аутентификация",
-  "version": "ГОСТ 33465-2015",
+  "scenario_version": "1.0.0",
+  "gost_version": "ГОСТ 33465-2015",
   "timeout": 30,
   "description": "Процедура аутентификации УСВ по TCP/IP: TERM_IDENTITY → VEHICLE_DATA → RESULT_CODE",
   "channels": ["tcp"],
@@ -9,7 +10,7 @@
       "name": "Идентификация терминала",
       "type": "expect",
       "channel": "tcp",
-      "packet_type": "EGTS_SR_TERM_IDENTITY",
+      "packet_type": "EGTS_SR_TERM_IDENTITY",дава
       "timeout": 6,
       "capture": {
         "tid": "data.TID",

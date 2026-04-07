@@ -1,6 +1,7 @@
 {
   "name": "Верификация (SMS)",
-  "version": "ГОСТ 33465-2015",
+  "scenario_version": "1.0.0",
+  "gost_version": "ГОСТ 33465-2015",
   "timeout": 30,
   "description": "Первоначальная настройка УСВ через SMS: APN, адрес сервера, запрос UNIT_ID",
   "channels": ["sms"],

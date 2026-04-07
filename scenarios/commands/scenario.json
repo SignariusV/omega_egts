@@ -1,6 +1,7 @@
 {
   "name": "Команды конфигурирования",
-  "version": "ГОСТ 33465-2015",
+  "scenario_version": "1.0.0",
+  "gost_version": "ГОСТ 33465-2015",
   "timeout": 30,
   "description": "Платформа отправляет команды конфигурирования на УСВ через EGTS_COMMANDS_SERVICE",
   "channels": ["tcp"],
