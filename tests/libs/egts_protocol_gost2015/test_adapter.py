@@ -6,7 +6,7 @@
 import pytest
 
 from libs.egts_protocol_gost2015.adapter import EgtsProtocol2015
-from libs.egts_protocol_gost2015.crc import crc8, crc16, verify_crc8, verify_crc16
+from libs.egts_protocol_gost2015.gost2015_impl.crc import crc8, crc16, verify_crc8, verify_crc16
 from libs.egts_protocol_iface import IEgtsProtocol, create_protocol
 from libs.egts_protocol_iface.models import Packet, Record, Subrecord
 

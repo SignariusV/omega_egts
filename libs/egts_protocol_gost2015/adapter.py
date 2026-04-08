@@ -4,9 +4,9 @@
 парсинга/сборки пакетов ГОСТ 33465-2015.
 
 Архитектура:
-- _internal/ — скопированные модули из EGTS_GUI (Packet, Record, Subrecord)
-- Этот модуль — маппинг между _internal моделями и iface моделями
-- Ядро OMEGA_EGTS НЕ знает о _internal — работает только с iface
+- gost2015_impl/ — скопированные модули из EGTS_GUI (Packet, Record, Subrecord)
+- Этот модуль — маппинг между gost2015_impl моделями и iface моделями
+- Ядро OMEGA_EGTS НЕ знает о gost2015_impl — работает только с iface
 """
 
 from libs.egts_protocol_iface import IEgtsProtocol
@@ -15,20 +15,20 @@ from libs.egts_protocol_iface.models import ParseResult
 from libs.egts_protocol_iface.models import Record as IfaceRecord
 from libs.egts_protocol_iface.models import Subrecord as IfaceSubrecord
 
-from ._internal.packet import Packet as InternalPacket
-from ._internal.record import Record as InternalRecord
-from ._internal.subrecord import Subrecord as InternalSubrecord
-from ._internal.types import PacketType as InternalPacketType
-from ._internal.types import Priority as InternalPriority
-from ._internal.types import ServiceType as InternalServiceType
-from .crc import crc8, crc16, verify_crc8, verify_crc16
-from .sms import create_sms_pdu, parse_sms_pdu
+from .gost2015_impl.crc import crc8, crc16, verify_crc8, verify_crc16
+from .gost2015_impl.packet import Packet as InternalPacket
+from .gost2015_impl.record import Record as InternalRecord
+from .gost2015_impl.sms import create_sms_pdu, parse_sms_pdu
+from .gost2015_impl.subrecord import Subrecord as InternalSubrecord
+from .gost2015_impl.types import PacketType as InternalPacketType
+from .gost2015_impl.types import Priority as InternalPriority
+from .gost2015_impl.types import ServiceType as InternalServiceType
 
 
 class EgtsProtocol2015(IEgtsProtocol):
     """Реализация EGTS-протокола по ГОСТ 33465-2015.
 
-    Использует внутренние модули _internal/ (копии из EGTS_GUI)
+    Использует внутренние модули gost2015_impl/ (копии из EGTS_GUI)
     для парсинга/сборки, маппит результаты в iface-модели.
     """
 
@@ -89,7 +89,7 @@ class EgtsProtocol2015(IEgtsProtocol):
     def parse_sms_pdu(self, pdu: bytes, **kwargs: object) -> bytes:
         """Извлечь EGTS-пакет из SMS PDU."""
         result = parse_sms_pdu(pdu)
-        return result["user_data"]
+        return bytes(result["user_data"])
 
     # ========================================================================
     # Сборка
@@ -108,14 +108,14 @@ class EgtsProtocol2015(IEgtsProtocol):
             processing_result=result_code,
             records=[],
         )
-        return internal_pkt.to_bytes()  # type: ignore[return-value]
+        return internal_pkt.to_bytes()
 
     def build_record_response(self, crn: int, rst: int, **kwargs: object) -> bytes:
         """Собрать RECORD_RESPONSE подзапись.
 
         Формат: SRT(1) + SRL(2) + CRN(2) + RST(1)
         """
-        from ._internal.types import EGTS_SRT_RECORD_RESPONSE
+        from .gost2015_impl.types import EGTS_SRT_RECORD_RESPONSE
 
         crn_bytes = crn.to_bytes(2, "little")
         srd = crn_bytes + bytes([rst])
@@ -254,16 +254,14 @@ class EgtsProtocol2015(IEgtsProtocol):
             self._map_subrecord_to_internal(sub) for sub in iface.subrecords
         ]
         # Internal Record требует ServiceType enum, iface использует int
-        # Если service_type не в enum — используем AUTH как fallback
-        try:
-            svc_type = InternalServiceType(iface.service_type)
-        except ValueError:
-            svc_type = InternalServiceType.EGTS_AUTH_SERVICE
-
-        try:
-            rst_type = InternalServiceType(iface.rst_service_type)
-        except ValueError:
-            rst_type = InternalServiceType.EGTS_AUTH_SERVICE
+        # Неизвестный service_type — ошибка (ГОСТ 2023 или vendor extension)
+        svc_type = InternalServiceType(iface.service_type)
+        # rst_service_type=0 означает «не указан» — маппим на AUTH (ближайший аналог)
+        rst_type = (
+            InternalServiceType(iface.rst_service_type)
+            if iface.rst_service_type != 0
+            else InternalServiceType.EGTS_AUTH_SERVICE
+        )
 
         return InternalRecord(
             record_id=iface.record_id,

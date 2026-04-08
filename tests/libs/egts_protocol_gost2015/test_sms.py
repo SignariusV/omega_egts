@@ -14,7 +14,7 @@
 import pytest
 
 from libs.egts_protocol_gost2015.adapter import EgtsProtocol2015
-from libs.egts_protocol_gost2015.sms import (
+from libs.egts_protocol_gost2015.gost2015_impl.sms import (
     SMSDataCodingScheme,
     SMSNumberingPlan,
     SMSReassembler,

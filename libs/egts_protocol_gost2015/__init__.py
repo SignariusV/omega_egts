@@ -6,7 +6,7 @@
 """
 
 from .adapter import EgtsProtocol2015
-from .crc import crc8, crc16, verify_crc8, verify_crc16
+from .gost2015_impl.crc import crc8, crc16, verify_crc8, verify_crc16
 
 __all__ = [
     "EgtsProtocol2015",

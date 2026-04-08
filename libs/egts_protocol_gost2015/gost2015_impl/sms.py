@@ -597,7 +597,7 @@ class SMSReassembler:
                 print(f"Сообщение собрано: {len(complete_data)} байт")
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._fragments: dict[int, dict[str, Any]] = {}
 
     def add_fragment(

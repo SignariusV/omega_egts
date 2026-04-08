@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir *)",
+      "Bash(.venv\\scripts\\ruff *)",
+      "Bash(.venv\\scripts\\mypy *)",
+      "Bash(.venv\\scripts\\python *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(mypy *)"
+    ]
+  },
+  "$version": 3
+}
