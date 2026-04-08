@@ -24,8 +24,12 @@
 - [x] Enums: PacketType, ServiceType, SubrecordType, RecordStatus, ResultCode + константы
 - [x] Методы сборки: pr_flags(), rf_flags() для флагов PR/RF
 - [x] Заглушка egts_protocol_gost2015/adapter.py (EgtsProtocol2015)
-- [ ] EgtsProtocol2015 — парсинг/сборка пакетов (итерация 2.3)
-- [ ] SMS PDU — упаковка/распаковка (итерация 2.4)
+- [x] EgtsProtocol2015 — парсинг/сборка пакетов (итерация 2.3)
+  - Полная реализация parse_packet, build_response, build_record_response, build_packet
+  - Чистая реализация CRC-8/CRC-16 на Python (без crcmod)
+  - Маппинг между internal-моделями (EGTS_GUI) и iface-моделями
+  - 27 новых тестов адаптера
+- [ ] SMS PDU — полная интеграция в адаптере (итерация 2.4, параллельный агент)
 
 ### Этап 3: Сценарии (планируется)
 - [ ] Все 10 сценариев (авторизация, телеметрия, траектория, ускорение, eCall, обновление ПО, команды, тестирование, SMS, пассивный режим)

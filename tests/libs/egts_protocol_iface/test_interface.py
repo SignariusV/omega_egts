@@ -55,13 +55,14 @@ class TestCreateProtocol:
             create_protocol("1999")
 
     def test_2015_returns_instance(self) -> None:
-        """ГОСТ 2015 — возвращает экземпляр (заглушка)"""
+        """ГОСТ 2015 — возвращает экземпляр (полная реализация)"""
         protocol = create_protocol("2015")
         assert protocol.version == "2015"
-        assert protocol.capabilities == {"sms_pdu"}
-        # Методы пока бросают NotImplementedError
-        with pytest.raises(NotImplementedError):
-            protocol.parse_packet(b"")
+        assert "sms_pdu" in protocol.capabilities
+        assert "auth" in protocol.capabilities
+        # parse_packet теперь работает (не заглушка)
+        result = protocol.parse_packet(b"")
+        assert result.is_valid is False
 
     def test_2023_raises_not_implemented(self) -> None:
         """ГОСТ 2023 — NotImplementedError (ещё не реализован)"""
