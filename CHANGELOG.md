@@ -19,6 +19,9 @@
 - [ ] pytest, покрытие ≥ 90%
 
 ### Этап 2: Библиотека EGTS (в разработке)
+
+> **⚠️ Отклонение от ТЗ (раздел 2.4):** ТЗ определяет структуру `libs/egts_protocol/` с файлами `base.py`, `v2015.py`, `v2023.py`, `sms.py`. Реализована **другая структура** — два пакета: `egts_protocol_iface/` (абстрактный интерфейс, dependency inversion) и `egts_protocol_gost2015/` (реализация с внутренней папкой `gost2015_impl/`). Обоснование: ядро зависит только от интерфейса, не от конкретной реализации. Это упрощает добавление ГОСТ 2023 и тестирование.
+
 - [x] egts_protocol_iface — IEgtsProtocol (Protocol), create_protocol factory (итерация 2.1–2.2)
 - [x] Модели: Packet, Record, Subrecord, ParseResult (dataclass-контракты с extra, parse_error, crc_valid)
 - [x] Enums: PacketType, ServiceType, SubrecordType, RecordStatus, ResultCode + константы
