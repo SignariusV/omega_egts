@@ -1,13 +1,13 @@
 # Прогресс реализации — OMEGA_EGTS
 
-**Обновлено:** 06.04.2026 | **Ветка:** `iteration-1/core-engine`
+**Обновлено:** 08.04.2026 | **Ветка:** `iteration-2/egts-protocol` | **Коммит:** 5f363ba
 
 ---
 
 ## 📊 Общий прогресс
 
 ```
-██████████░░░░░░░░░░░░░░░░░░░░░░░░ 17% (6/36 задач)
+██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 33% (12/36 задач)
 ```
 
 ---
@@ -69,10 +69,10 @@
 ### Итерация 2: EGTS Protocol Library
 
 ```
-2.1 Базовые структуры EGTS               ░░░░░░░░░░   0% ⏳
-2.2 IEgtsProtocol + factory              ░░░░░░░░░░   0% ⏳
-2.3 EgtsProtocol2015 (транспорт)          ░░░░░░░░░░   0% ⏳
-2.4 EgtsProtocol2015 (SMS PDU)           ░░░░░░░░░░   0% ⏳
+2.1 Базовые структуры EGTS (iface)     ██████████ 100% ✅
+2.2 IEgtsProtocol + factory            ██████████ 100% ✅
+2.3 EgtsProtocol2015 (транспорт)       ██████████ 100% ✅
+2.4 EgtsProtocol2015 (SMS PDU)          ██████████ 100% ✅
 ```
 
 ### Итерация 3: Session Management и FSM
@@ -156,6 +156,27 @@
 | `tests/core/test_config.py` | 28 тестов, 91% coverage | ✅ Готово |
 | `core/engine.py` | CoreEngine (start/stop, lifecycle) | ✅ Готово |
 | `tests/core/test_engine.py` | 6 тестов, 100% coverage | ✅ Готово |
+| `libs/egts_protocol_iface/__init__.py` | IEgtsProtocol (`@runtime_checkable`) + create_protocol factory | ✅ Готово |
+| `libs/egts_protocol_iface/models.py` | Packet, Record, Subrecord, ParseResult + pr_flags/rf_flags | ✅ Готово |
+| `libs/egts_protocol_iface/types.py` | Enums (PacketType, ServiceType, SubrecordType, ...) + константы | ✅ Готово |
+| `tests/libs/egts_protocol_iface/test_models.py` | 17 тестов, 100% coverage | ✅ Готово |
+| `tests/libs/egts_protocol_iface/test_types.py` | 47 тестов, 100% coverage | ✅ Готово |
+| `tests/libs/egts_protocol_iface/test_interface.py` | 7 тестов, IEgtsProtocol + factory + runtime_checkable | ✅ Готово |
+| `libs/egts_protocol_gost2015/__init__.py` | Экспорт EgtsProtocol2015, crc8/16 | ✅ Готово |
+| `libs/egts_protocol_gost2015/adapter.py` | EgtsProtocol2015: parse_packet, build_packet, build_response, SMS PDU | ✅ Готово |
+| `libs/egts_protocol_gost2015/crc.py` | CRC-8/CRC-16 чистый Python (реэкспорт) | ✅ Готово |
+| `libs/egts_protocol_gost2015/_internal/packet.py` | Парсинг/сборка транспортного пакета | ✅ Готово |
+| `libs/egts_protocol_gost2015/_internal/record.py` | Парсинг/сборка записи ППУ | ✅ Готово |
+| `libs/egts_protocol_gost2015/_internal/subrecord.py` | Парсинг/сборка подзаписи | ✅ Готово |
+| `libs/egts_protocol_gost2015/_internal/types.py` | Enums + константы EGTS (1833 строки) | ✅ Готово |
+| `libs/egts_protocol_gost2015/_internal/crc.py` | CRC-8/CRC-16 (внутренний) | ✅ Готово |
+| `libs/egts_protocol_gost2015/services/auth.py` | TERM_IDENTITY, MODULE_DATA, VEHICLE_DATA, RESULT_CODE | ✅ Готово |
+| `libs/egts_protocol_gost2015/services/commands.py` | COMMAND_DATA сериализация/парсинг | ✅ Готово |
+| `libs/egts_protocol_gost2015/services/ecall.py` | ACCEL_DATA, TRACK_DATA, RAW_MSD_DATA | ✅ Готово |
+| `libs/egts_protocol_gost2015/services/firmware.py` | SERVICE_PART_DATA, SERVICE_FULL_DATA, ODH | ✅ Готово |
+| `libs/egts_protocol_gost2015/sms.py` | SMS PDU, конкатенация, SMSReassembler | ✅ Готово |
+| `tests/libs/egts_protocol_gost2015/test_adapter.py` | 27 тестов адаптера (CRC, parse, build, roundtrip) | ✅ Готово |
+| `tests/libs/egts_protocol_gost2015/test_sms.py` | 32 теста SMS PDU (агент 2.4) | ✅ Готово |
 | `config/settings.json` | Настройки по умолчанию | ✅ Готово |
 | `config/credentials.json` | Шаблон учётных данных | ✅ Готово |
 | `tests/conftest.py` | Фикстуры для тестов | ✅ Готово |
@@ -166,5 +187,7 @@
 
 ## 📝 Примечания
 
-- **RUF001/RUF002:** Добавлены в ruff ignore — разрешаем кириллицу в строках и docstring
+- **RUF001/RUF002/SIM108:** Добавлены в ruff ignore — кириллица в строках/docstring, if/else читаемее для битовых операций
 - **Все комментарии и docstring на русском языке**
+- **Общее покрытие:** 185 тестов, 92% (цель ≥ 90% ✅)
+- **Code review (5f363ba):** 5 findings, 0 Critical. KI-013–KI-016 добавлены в KNOWN_ISSUES.md

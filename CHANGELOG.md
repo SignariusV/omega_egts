@@ -18,19 +18,34 @@
 - [ ] Базовое логирование пакетов (hex + parsed)
 - [ ] pytest, покрытие ≥ 90%
 
-### Этап 2: Сценарии (планируется)
+### Этап 2: Библиотека EGTS (в разработке)
+- [x] egts_protocol_iface — IEgtsProtocol (Protocol), create_protocol factory (итерация 2.1–2.2)
+- [x] Модели: Packet, Record, Subrecord, ParseResult (dataclass-контракты с extra, parse_error, crc_valid)
+- [x] Enums: PacketType, ServiceType, SubrecordType, RecordStatus, ResultCode + константы
+- [x] Методы сборки: pr_flags(), rf_flags() для флагов PR/RF
+- [x] Заглушка egts_protocol_gost2015/adapter.py (EgtsProtocol2015)
+- [x] EgtsProtocol2015 — парсинг/сборка пакетов (итерация 2.3)
+  - Полная реализация parse_packet, build_response, build_record_response, build_packet
+  - Чистая реализация CRC-8/CRC-16 на Python (без crcmod)
+  - Маппинг между internal-моделями (EGTS_GUI) и iface-моделями
+  - 27 новых тестов адаптера
+- [ ] SMS PDU — полная интеграция в адаптере (итерация 2.4, параллельный агент)
+- [ ] Реэкспорт crc.py из _internal (устранение дублирования KI-013)
+- [ ] Оптимизация to_bytes: b"".join вместо += (KI-014)
+
+### Этап 3: Сценарии (планируется)
 - [ ] Все 10 сценариев (авторизация, телеметрия, траектория, ускорение, eCall, обновление ПО, команды, тестирование, SMS, пассивный режим)
 - [ ] Загрузка/генерация HEX-файлов
 - [ ] Export (CSV/JSON/DER)
 - [ ] CredentialsRepository (JSON-хранилище)
 
-### Этап 3: ГОСТ 2023 (планируется)
+### Этап 4: ГОСТ 2023 (планируется)
 - [ ] Поддержка ГОСТ 33465-2023
 
-### Этап 4: GUI (планируется)
+### Этап 5: GUI (планируется)
 - [ ] Графический интерфейс оператора (PyQt6/PySide6)
 
-### Этап 5: Реальное CMW-500 (планируется)
+### Этап 6: Реальное CMW-500 (планируется)
 - [ ] Интеграция с реальным оборудованием CMW-500 (PyVISA/SCPI)
 
 ---

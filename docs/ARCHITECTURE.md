@@ -609,6 +609,75 @@ TcpServerManager  ──emit──► EventBus ◄──emit── Cmw500Control
 
 ---
 
+## Библиотека EGTS-протокола
+
+### Общая схема
+
+```
+libs/
+├── egts_protocol_iface/           ← Абстрактный интерфейс (ядро зависит только от этого)
+│   ├── __init__.py                │  IEgtsProtocol (Protocol), create_protocol()
+│   ├── models.py                  │  Packet, Record, Subrecord, ParseResult (dataclass)
+│   └── types.py                   │  Enums, константы (таймауты, CRC, размеры)
+│
+└── egts_protocol_gost2015/        ← Реализация ГОСТ 33465-2015
+    ├── __init__.py                │  Публичный API: EgtsProtocol2015, crc8/16
+    ├── adapter.py                 │  Маппинг gost2015_impl ↔ iface (IEgtsProtocol)
+    └── gost2015_impl/             │  Внутренняя реализация (копии из EGTS_GUI)
+        ├── crc.py                 │  CRC-8/CRC-16 (чистый Python, без зависимостей)
+        ├── sms.py                 │  SMS PDU: create/parse, конкатенация, SMSReassembler
+        ├── packet.py              │  Парсинг/сборка транспортного пакета
+        ├── record.py              │  Парсинг/сборка записей ППУ
+        ├── subrecord.py           │  Парсинг/сборка подзаписей
+        ├── types.py               │  Все enums и константы ГОСТ
+        └── services/              │  Сервисная логика
+            ├── auth.py            │  Авторизация: TERM_IDENTITY, RESULT_CODE, ...
+            ├── commands.py        │  Команды: COMMAND_DATA, подтверждения
+            ├── ecall.py           │  eCall: RAW_MSD_DATA, TRACK_DATA, ACCEL_DATA
+            └── firmware.py        │  Обновление ПО: SERVICE_PART_DATA, ODH
+```
+
+### Принципы
+
+1. **Ядро зависит только от `egts_protocol_iface/`** — не знает о реализации
+2. **Адаптер** (`adapter.py`) маппит внутренние модели → iface-модели
+3. **`gost2015_impl/`** — копии из EGTS_GUI, адаптированные под архитектуру OMEGA_EGTS
+4. **CRC** — чистая Python-реализация, без внешних зависимостей (`crcmod` не нужен)
+5. **SMS PDU** — полный стек: создание, парсинг, конкатенация, сборка фрагментов
+
+### IEgtsProtocol — интерфейс
+
+```python
+class IEgtsProtocol(Protocol):
+    def parse_packet(self, data: bytes, **kwargs) -> ParseResult: ...
+    def build_response(self, pid: int, result_code: int, **kwargs) -> bytes: ...
+    def build_record_response(self, crn: int, rst: int, **kwargs) -> bytes: ...
+    def build_packet(self, packet: Packet, **kwargs) -> bytes: ...
+    def build_sms_pdu(self, egts_bytes: bytes, destination: str, **kwargs) -> bytes: ...
+    def parse_sms_pdu(self, pdu: bytes, **kwargs) -> bytes: ...
+    def validate_crc8(self, header: bytes, expected: int, **kwargs) -> bool: ...
+    def validate_crc16(self, data: bytes, expected: int, **kwargs) -> bool: ...
+    def calculate_crc8(self, data: bytes, **kwargs) -> int: ...
+    def calculate_crc16(self, data: bytes, **kwargs) -> int: ...
+    @property
+    def version(self) -> str: ...
+    @property
+    def capabilities(self) -> set[str]: ...
+```
+
+**`**kwargs`** — для расширяемости. Новые версии ГОСТ (2023) добавляют параметры без изменения сигнатуры.
+
+### Factory
+
+```python
+from libs.egts_protocol_iface import create_protocol
+
+protocol = create_protocol("2015")   # EgtsProtocol2015
+protocol = create_protocol("2023")   # NotImplementedError (будет позже)
+```
+
+---
+
 ## Структура кода
 
 ```
@@ -627,7 +696,11 @@ egts-tester/
 │   ├── logger.py                  # LogManager
 │   ├── credentials.py             # CredentialsRepository
 │   └── export.py                  # Выгрузка данных
-├── libs/egts_protocol/            # Библиотеки EGTS (2015, 2023)
+├── libs/
+│   ├── egts_protocol_iface/       # Абстрактный интерфейс (IEgtsProtocol)
+│   └── egts_protocol_gost2015/    # Реализация ГОСТ 33465-2015
+│       ├── adapter.py             # Маппинг gost2015_impl ↔ iface
+│       └── gost2015_impl/         # Парсер, сборщик, CRC, SMS, сервисы
 ├── cli/app.py                     # CLI приложение
 ├── scenarios/                     # Готовые сценарии (JSON + HEX)
 ├── config/                        # settings.json, credentials.json
@@ -635,9 +708,10 @@ egts-tester/
     ├── conftest.py                # Shared fixtures
     ├── core/
     │   ├── test_event_bus.py      # ✅ EventBus (14 тестов, 100% coverage)
-    │   ├── test_fsm.py
-    │   ├── test_pipeline.py
+    │   ├── test_config.py         # ✅ Config (28 тестов, 91% coverage)
+    │   ├── test_engine.py         # ✅ CoreEngine (6 тестов, 100% coverage)
     │   └── ...
-    └── integration/
-        └── ...
+    └── libs/
+        ├── egts_protocol_iface/   # ✅ iface (73 теста, 100% coverage)
+        └── egts_protocol_gost2015/ # ✅ адаптер (59 тестов)
 ```

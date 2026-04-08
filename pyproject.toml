@@ -111,6 +111,7 @@ select = [
 ]
 ignore = [
     "E501",   # line-length (управляется выше)
+    "SIM108", # ternary operator — if/else читаемее для битовых операций
     "RUF001", # ambiguous characters — разрешаем кириллицу в строках
     "RUF002", # ambiguous characters — разрешаем кириллицу в docstring
     "RUF003", # ambiguous characters in comments — разрешаем кириллицу в комментариях
