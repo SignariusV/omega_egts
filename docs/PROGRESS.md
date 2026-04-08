@@ -1,13 +1,13 @@
 # Прогресс реализации — OMEGA_EGTS
 
-**Обновлено:** 06.04.2026 | **Ветка:** `iteration-1/core-engine`
+**Обновлено:** 08.04.2026 | **Ветка:** `iteration-2/egts-protocol`
 
 ---
 
 ## 📊 Общий прогресс
 
 ```
-██████████░░░░░░░░░░░░░░░░░░░░░░░░ 17% (6/36 задач)
+███████████░░░░░░░░░░░░░░░░░░░░░░░ 22% (8/36 задач)
 ```
 
 ---
@@ -69,8 +69,8 @@
 ### Итерация 2: EGTS Protocol Library
 
 ```
-2.1 Базовые структуры EGTS               ░░░░░░░░░░   0% ⏳
-2.2 IEgtsProtocol + factory              ░░░░░░░░░░   0% ⏳
+2.1 Базовые структуры EGTS (iface)     ██████████ 100% ✅
+2.2 IEgtsProtocol + factory            ██████████ 100% ✅
 2.3 EgtsProtocol2015 (транспорт)          ░░░░░░░░░░   0% ⏳
 2.4 EgtsProtocol2015 (SMS PDU)           ░░░░░░░░░░   0% ⏳
 ```
@@ -156,6 +156,14 @@
 | `tests/core/test_config.py` | 28 тестов, 91% coverage | ✅ Готово |
 | `core/engine.py` | CoreEngine (start/stop, lifecycle) | ✅ Готово |
 | `tests/core/test_engine.py` | 6 тестов, 100% coverage | ✅ Готово |
+| `libs/egts_protocol_iface/__init__.py` | IEgtsProtocol (`@runtime_checkable`) + create_protocol factory | ✅ Готово |
+| `libs/egts_protocol_iface/models.py` | Packet, Record, Subrecord, ParseResult + pr_flags/rf_flags | ✅ Готово |
+| `libs/egts_protocol_iface/types.py` | Enums (PacketType, ServiceType, SubrecordType, ...) + константы | ✅ Готово |
+| `tests/libs/egts_protocol_iface/test_models.py` | 17 тестов, 100% coverage | ✅ Готово |
+| `tests/libs/egts_protocol_iface/test_types.py` | 47 тестов, 100% coverage | ✅ Готово |
+| `tests/libs/egts_protocol_iface/test_interface.py` | 7 тестов, IEgtsProtocol + factory + runtime_checkable | ✅ Готово |
+| `libs/egts_protocol_gost2015/__init__.py` | Заглушка реализации ГОСТ 2015 | ✅ Заглушка |
+| `libs/egts_protocol_gost2015/adapter.py` | EgtsProtocol2015 (заглушка, **kwargs) | ✅ Заглушка |
 | `config/settings.json` | Настройки по умолчанию | ✅ Готово |
 | `config/credentials.json` | Шаблон учётных данных | ✅ Готово |
 | `tests/conftest.py` | Фикстуры для тестов | ✅ Готово |
