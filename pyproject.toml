@@ -57,6 +57,10 @@ gui = [
     # или
     # "PySide6>=6.6.0",
 ]
+asn1 = [
+    # ASN.1 PER кодек для eCall/MSD (ГОСТ 33464)
+    "asn1tools>=0.163.0",
+]
 
 [project.scripts]
 omega-egts = "cli.app:main"
@@ -116,6 +120,7 @@ ignore = [
     "RUF002", # ambiguous characters — разрешаем кириллицу в docstring
     "RUF003", # ambiguous characters in comments — разрешаем кириллицу в комментариях
     "RUF043", # metacharacters in match — упрощение для pytest.match
+    "SIM105", # contextlib.suppress — не работает с async (false positive для await)
 ]
 
 [tool.ruff.lint.isort]
@@ -133,3 +138,4 @@ no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 files = ["core/", "cli/", "libs/"]
+ignore_missing_imports = true

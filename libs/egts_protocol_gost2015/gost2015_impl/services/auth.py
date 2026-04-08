@@ -14,7 +14,7 @@ AUTH сервис EGTS (ГОСТ 33465-2015, раздел 6.7.2)
 
 from typing import Any
 
-from .._internal.types import (
+from ..types import (
     # MODULE_DATA размеры
     EGTS_MODULE_DATA_MIN_SIZE,
     EGTS_MODULE_FWV_SIZE,
@@ -50,6 +50,8 @@ from .._internal.types import (
     EGTS_VEHICLE_VHT_SIZE,
     EGTS_VEHICLE_VIN_SIZE,
     EGTS_VEHICLE_VPST_SIZE,
+    # RESULT_CODES из ГОСТ Приложение В
+    RESULT_CODES as _RESULT_CODES,
 )
 
 # ============================================
@@ -467,6 +469,11 @@ class StringEncoder:
 
         Returns:
             bytes: Закодированная строка нужной длины
+                   (дополняется нулями или обрезается до length)
+
+        Note:
+            Если строка длиннее length, она будет обрезана без ошибки.
+            Вызывающий код должен убедиться, что строка помещается.
         """
         encoded = s.encode(encoding) if isinstance(s, str) else s
         if len(encoded) < length:
@@ -537,10 +544,8 @@ def parse_vehicle_data(data: bytes) -> dict[str, Any]:
     offset = 0
 
     # VIN (17 байт)
-    vin = (
+    vin = StringEncoder.decode(
         data[offset : offset + EGTS_VEHICLE_VIN_SIZE]
-        .decode("cp1251")
-        .rstrip("\x00")
     )
     offset += EGTS_VEHICLE_VIN_SIZE
 
@@ -655,35 +660,17 @@ def serialize_record_response(data: dict[str, Any]) -> bytes:
     if not (0 <= rst <= 255):
         raise ValueError(f"RST вне диапазона: {rst} (0-255)")
 
-    return (
-        crn.to_bytes(EGTS_RECORD_RESPONSE_CRN_SIZE, "little") + bytes([rst])
-    )  # type: ignore[no-any-return]
+    result = bytearray()
+    result.extend(crn.to_bytes(EGTS_RECORD_RESPONSE_CRN_SIZE, "little"))
+    result.append(rst)
+    return bytes(result)
 
 
 # ============================================
 # EGTS_SR_RESULT_CODE (таблица 27 + Приложение В)
 # ============================================
 
-# Коды результатов обработки (Приложение В)
-RESULT_CODES = {
-    0: "EGTS_PC_OK",  # Успешно
-    1: "EGTS_PC_INVALID",  # Неверный пакет
-    2: "EGTS_PC_TTLEXPIRED",  # Истек TTL
-    3: "EGTS_PC_NOROUTE",  # Нет маршрута
-    4: "EGTS_PC_NOSERVICE",  # Сервис не поддерживается
-    5: "EGTS_PC_AUTHFAIL",  # Ошибка аутентификации
-    6: "EGTS_PC_NOTSUPPORTED",  # Не поддерживается
-    7: "EGTS_PC_BUSY",  # Занято
-    8: "EGTS_PC_NOTREADY",  # Не готов
-    9: "EGTS_PC_ACCESSDENIED",  # Доступ запрещен
-    10: "EGTS_PC_TOBIGHSRL",  # Превышен размер подзаписи
-    11: "EGTS_PC_TOBIGHSRD",  # Превышен размер данных подзаписи
-    12: "EGTS_PC_INVALIDSUBR",  # Неверная подзапись
-    13: "EGTS_PC_INVALIDDATA",  # Неверные данные
-    14: "EGTS_PC_MODULEFAULT",  # Неисправность модуля (>127)
-    15: "EGTS_PC_BADTID",  # Неверный TID
-    16: "EGTS_PC_BADVIN",  # Неверный VIN
-}
+# RESULT_CODES импортированы из types.py (Полный список из Приложения В ГОСТ 33465-2015)
 
 
 def parse_result_code(data: bytes) -> dict[str, Any]:
@@ -697,12 +684,12 @@ def parse_result_code(data: bytes) -> dict[str, Any]:
         Dict с полями: rcd, rcd_text
     """
     if len(data) < 1:
-        return {"rcd": 0, "rcd_text": RESULT_CODES.get(0, "Unknown")}
+        return {"rcd": 0, "rcd_text": _RESULT_CODES.get(0, "Unknown")}
 
     rcd = data[0]
     return {
         "rcd": rcd,
-        "rcd_text": RESULT_CODES.get(rcd, f"Unknown ({rcd})"),
+        "rcd_text": _RESULT_CODES.get(rcd, f"Unknown ({rcd})"),
     }
 
 

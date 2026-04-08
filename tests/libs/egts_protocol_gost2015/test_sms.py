@@ -104,6 +104,34 @@ class TestCreateSmsPdu:
         )
         assert user_data in pdu
 
+    def test_pdu_user_data_over_140_raises(self) -> None:
+        """Данные > 140 байт без конкатенации вызывают ValueError"""
+        with pytest.raises(ValueError, match="Данные превышают 140 байт"):
+            create_sms_pdu(
+                phone_number="+79001234567",
+                user_data=b"\x00" * 141,
+            )
+
+    def test_pdu_user_data_exactly_140_ok(self) -> None:
+        """Ровно 140 байт допустимо без конкатенации"""
+        pdu = create_sms_pdu(
+            phone_number="+79001234567",
+            user_data=b"\x00" * 140,
+        )
+        assert pdu is not None
+
+    def test_pdu_user_data_over_140_with_concat_ok(self) -> None:
+        """Данные > 140 байт с конкатенацией допустимы"""
+        pdu = create_sms_pdu(
+            phone_number="+79001234567",
+            user_data=b"\x00" * 200,
+            concatenated=True,
+            concat_ref=1,
+            concat_total=2,
+            concat_seq=1,
+        )
+        assert pdu is not None
+
 
 class TestParseSmsPdu:
     """Тесты на парсинг SMS PDU"""
@@ -159,6 +187,45 @@ class TestParseSmsPdu:
         result = parse_sms_pdu(pdu)
 
         assert result["message_reference"] == 99
+
+    def test_parse_invalid_tp_mti_raises(self) -> None:
+        """Неподдерживаемый TP-MTI вызывает ValueError"""
+        # Создаём валидный PDU и меняем TP-MTI на недопустимый (0b10 = 2)
+        pdu = create_sms_pdu(
+            phone_number="+79001234567",
+            user_data=b"\x00",
+        )
+        # TP-MTI — первые 2 бита байта флагов
+        # Для PDU без SMSC: pdu[0] = SMSC_len = 0, pdu[1] = TP-flags
+        # Для PDU со SMSC: SMSC_len = pdu[0], TP-flags = pdu[SMSC_len + 1]
+        if pdu[0] == 0:
+            flags_offset = 1
+        else:
+            flags_offset = pdu[0] + 1
+
+        # Устанавливаем TP-MTI = 0b10 (3 — зарезервировано)
+        pdu_bytes = bytearray(pdu)
+        pdu_bytes[flags_offset] = (pdu_bytes[flags_offset] & ~0x03) | 0x03
+
+        with pytest.raises(ValueError, match="Неподдерживаемый TP-MTI"):
+            parse_sms_pdu(bytes(pdu_bytes))
+
+    def test_parse_invalid_tp_dcs_raises(self) -> None:
+        """Неподдерживаемый TP-DCS вызывает ValueError"""
+        pdu = create_sms_pdu(
+            phone_number="+79001234567",
+            user_data=b"\x00",
+        )
+        # Находим позицию TP-DCS: SMSC_len + TP-Flags + TP-MR + TP-DA_len + TP-DA + TP-DCS + TP-PID
+        # Проще: ищем TP-DCS = 0x04 и меняем на 0x00
+        pdu_bytes = bytearray(pdu)
+        for i in range(len(pdu_bytes) - 1):
+            if pdu_bytes[i] == SMSDataCodingScheme.BINARY_8BIT:
+                pdu_bytes[i] = 0x00  # Невалидный DCS
+                break
+
+        with pytest.raises(ValueError, match="Неподдерживаемый TP-DCS"):
+            parse_sms_pdu(bytes(pdu_bytes))
 
 
 class TestSmsRoundtrip:
@@ -247,6 +314,24 @@ class TestConcatenation:
     def test_split_empty_data(self) -> None:
         """Пустые данные — пустой список"""
         assert split_for_sms_concatenation(b"") == []
+
+    def test_split_with_explicit_concat_ref(self) -> None:
+        """Явный concat_ref используется вместо случайного"""
+        data = b"\x00" * 300
+        parts = split_for_sms_concatenation(data, max_part_size=134, concat_ref=42)
+
+        assert all(p[0] == 42 for p in parts)
+        assert len(parts) == 3
+
+    def test_split_without_concat_ref_is_random(self) -> None:
+        """Без concat_ref — случайный reference"""
+        data = b"\x00" * 300
+        parts1 = split_for_sms_concatenation(data, max_part_size=134)
+        parts2 = split_for_sms_concatenation(data, max_part_size=134)
+
+        # Оба вызова возвращают одинаковые части внутри себя
+        assert all(p[0] == parts1[0][0] for p in parts1)
+        assert all(p[0] == parts2[0][0] for p in parts2)
 
     def test_create_concatenated_sms_list(self) -> None:
         """Создание списка конкатенированных SMS"""

@@ -10,7 +10,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from .types import MIN_SUBRECORD_SIZE, SRL_SIZE, SRT_SIZE, SUBRECORD_HEADER_SIZE
+from .types import MAX_SUBRECORD_SIZE, MIN_SUBRECORD_SIZE, SRL_SIZE, SRT_SIZE, SUBRECORD_HEADER_SIZE
 
 
 @dataclass
@@ -34,18 +34,34 @@ class Subrecord:
 
         Returns:
             bytes: Подзапись с заголовком и данными
+
+        Raises:
+            ValueError: Если длина SRD превышает MAX_SUBRECORD_SIZE
+            NotImplementedError: Если data — dict, но raw_data отсутствует
         """
         # Определяем данные для сериализации
         if isinstance(self.data, bytes):
             srd = self.data
         elif isinstance(self.data, dict):
-            # Если данные распарсены, нужно сериализовать через сервис
-            # Пока просто возвращаем raw_data если есть
-            srd = self.raw_data if self.raw_data else b""
+            # Для dict-данных требуется внешний сериализатор
+            if self.raw_data:
+                srd = self.raw_data
+            else:
+                raise NotImplementedError(
+                    "Сериализация dict-данных требует внешнего сериализатора. "
+                    "Установите raw_data или используйте bytes для data."
+                )
         elif self.data is None:
             srd = self.raw_data
         else:
             srd = bytes(self.data) if self.data else b""
+
+        # Валидация максимальной длины SRD
+        if len(srd) > MAX_SUBRECORD_SIZE:
+            raise ValueError(
+                f"Превышен максимальный размер SRD: {len(srd)} байт "
+                f"(макс. {MAX_SUBRECORD_SIZE} по ГОСТ 33465-2015)"
+            )
 
         # SRT (1 байт)
         header = bytes([self.subrecord_type])
@@ -66,6 +82,10 @@ class Subrecord:
 
         Returns:
             Subrecord: Распарсенная подзапись
+
+        Raises:
+            ValueError: Если данные меньше минимального размера, SRL превышает
+                        MAX_SUBRECORD_SIZE или данных недостаточно для SRD
         """
         if len(data) < SUBRECORD_HEADER_SIZE:
             raise ValueError(f"Слишком маленькая подзапись: {len(data)} байт (минимум {MIN_SUBRECORD_SIZE})")
@@ -79,6 +99,18 @@ class Subrecord:
         # SRL (2 байта) - длина данных SRD
         srl = int.from_bytes(data[offset : offset + SRL_SIZE], "little")
         offset += SRL_SIZE
+
+        # Валидация размера SRD
+        if srl > MAX_SUBRECORD_SIZE:
+            raise ValueError(
+                f"Превышен максимальный размер SRD: {srl} > {MAX_SUBRECORD_SIZE} (ГОСТ 33465-2015)"
+            )
+
+        # Проверка наличия достаточного количества данных
+        if offset + srl > len(data):
+            raise ValueError(
+                f"Недостаточно данных для SRD: ожидается {srl}, доступно {len(data) - offset}"
+            )
 
         # SRD (данные)
         srd = data[offset : offset + srl]
@@ -97,16 +129,23 @@ def parse_subrecords(data: bytes, service_type: int) -> list[Subrecord]:
     Args:
         data: Байты данных записи (RD)
         service_type: Тип сервиса для определения формата подзаписей
+            (используется на более высоких уровнях парсинга, пока не применяется)
 
     Returns:
         List[Subrecord]: Список распарсенных подзаписей
+
+    Raises:
+        ValueError: Если SRL превышает MAX_SUBRECORD_SIZE или данных недостаточно
     """
     subrecords = []
     offset = 0
 
     while offset < len(data):
         if offset + SUBRECORD_HEADER_SIZE > len(data):
-            break  # Недостаточно данных для заголовка подзаписи
+            raise ValueError(
+                f"Недостаточно данных для заголовка подзаписи: "
+                f"доступно {len(data) - offset} байт, требуется {SUBRECORD_HEADER_SIZE}"
+            )
 
         # SRT (1 байт)
         srt = data[offset]
@@ -116,9 +155,17 @@ def parse_subrecords(data: bytes, service_type: int) -> list[Subrecord]:
         srl = int.from_bytes(data[offset : offset + SRL_SIZE], "little")
         offset += SRL_SIZE
 
+        # Валидация размера SRD
+        if srl > MAX_SUBRECORD_SIZE:
+            raise ValueError(
+                f"Превышен максимальный размер SRD: {srl} > {MAX_SUBRECORD_SIZE} (ГОСТ 33465-2015)"
+            )
+
         # SRD (данные)
         if offset + srl > len(data):
-            break  # Недостаточно данных
+            raise ValueError(
+                f"Недостаточно данных для SRD: ожидается {srl}, доступно {len(data) - offset}"
+            )
 
         srd = data[offset : offset + srl]
         offset += srl

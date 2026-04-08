@@ -1,13 +1,13 @@
 # Прогресс реализации — OMEGA_EGTS
 
-**Обновлено:** 08.04.2026 | **Ветка:** `iteration-2/egts-protocol` | **Коммит:** 5f363ba
+**Обновлено:** 08.04.2026 | **Ветка:** `iteration-3/session-management`
 
 ---
 
 ## 📊 Общий прогресс
 
 ```
-██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 33% (12/36 задач)
+████████████████████████░░░░░░░░░░░░░░░░░░░░░ 44% (16/36 задач)
 ```
 
 ---
@@ -30,7 +30,7 @@
 │  ┌────────▼────┐ ┌──▼──────┐ ┌─▼───────┐ ┌▼──────┐ ┌▼────────┐ │
 │  │TcpServer    │ │Cmw500   │ │Session  │ │Scenari│ │Packet   │ │
 │  │Manager      │ │Controlle│ │Manager  │ │oMng   │ │Pipeline │ │
-│  │░░░░░░░░░░ 0%│ │░░░░░░ 0%│ │░░░░░░ 0%│ │░░░░ 0%│ │░░░░░░ 0%│ │
+│  │░░░░░░░░░░ 0%│ │░░░░░░ 0%│ │█████ 50%│ │░░░░ 0%│ │░░░░░░ 0%│ │
 │  └─────────────┘ └─────────┘ └─────────┘ └───────┘ └─────────┘ │
 │  ┌─────────────┐ ┌───────────────┐ ┌────────┐ ┌────────┐       │
 │  │LogManager   │ │CredentialsRepo│ │Export  │ │Config  │       │
@@ -78,10 +78,10 @@
 ### Итерация 3: Session Management и FSM
 
 ```
-3.1 UsvStateMachine (FSM)                ░░░░░░░░░░   0% ⏳
-3.2 TransactionManager                   ░░░░░░░░░░   0% ⏳
-3.3 UsvConnection                        ░░░░░░░░░░   0% ⏳
-3.4 SessionManager                       ░░░░░░░░░░   0% ⏳
+3.1 UsvStateMachine (FSM)                ██████████ 100% ✅
+3.2 TransactionManager                   ██████████ 100% ✅
+3.3 UsvConnection                        ██████████ 100% ✅
+3.4 SessionManager                       ██████████ 100% ✅
 ```
 
 ### Итерация 4: Packet Processing Pipeline
@@ -177,6 +177,11 @@
 | `libs/egts_protocol_gost2015/sms.py` | SMS PDU, конкатенация, SMSReassembler | ✅ Готово |
 | `tests/libs/egts_protocol_gost2015/test_adapter.py` | 27 тестов адаптера (CRC, parse, build, roundtrip) | ✅ Готово |
 | `tests/libs/egts_protocol_gost2015/test_sms.py` | 32 теста SMS PDU (агент 2.4) | ✅ Готово |
+| `core/session.py` | UsvStateMachine (7 сост., 18 переходов), TransactionManager, UsvConnection (LRU), SessionManager | ✅ Готово |
+| `tests/core/test_fsm.py` | 27 тестов FSM, все 18 переходов + таймауты + std USV + сброс счётчика | ✅ Готово |
+| `tests/core/test_transaction.py` | 14 тестов TransactionManager (PID/RN, cleanup, дубликаты, orphan RN) | ✅ Готово |
+| `tests/core/test_connection.py` | 8 тестов UsvConnection (LRU, TTL, usv_id) | ✅ Готово |
+| `tests/core/test_session_manager.py` | 12 тестов SessionManager (создание, close, FSM update, emit) | ✅ Готово |
 | `config/settings.json` | Настройки по умолчанию | ✅ Готово |
 | `config/credentials.json` | Шаблон учётных данных | ✅ Готово |
 | `tests/conftest.py` | Фикстуры для тестов | ✅ Готово |
@@ -189,5 +194,7 @@
 
 - **RUF001/RUF002/SIM108:** Добавлены в ruff ignore — кириллица в строках/docstring, if/else читаемее для битовых операций
 - **Все комментарии и docstring на русском языке**
-- **Общее покрытие:** 185 тестов, 92% (цель ≥ 90% ✅)
+- **Общее покрытие:** 246 тестов, 93% (цель ≥ 90% ✅)
+- **Итерация 3 (session.py):** 61 тест, 93% покрытие session.py, 18 переходов FSM, внешний аудит 9.5/10
+- **Code review (session.py):** 10 записей R-050—R-059 исправлены. KI-030–KI-032 добавлены как опциональные
 - **Code review (5f363ba):** 5 findings, 0 Critical. KI-013–KI-016 добавлены в KNOWN_ISSUES.md

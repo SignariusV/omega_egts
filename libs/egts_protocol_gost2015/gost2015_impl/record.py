@@ -17,9 +17,16 @@ from .types import (
     EGTS_RFL_RSOD_MASK,
     EGTS_RFL_SSOD_MASK,
     EGTS_RFL_TMFE_MASK,
-    RECORD_HEADER_SIZE,
+    MAX_RECORD_SIZE,
+    RECORD_EVID_SIZE,
     RECORD_MIN_SIZE,
+    RECORD_OID_SIZE,
+    RECORD_RFL_SIZE,
     RECORD_RL_SIZE,
+    RECORD_RN_SIZE,
+    RECORD_RST_SIZE,
+    RECORD_SST_SIZE,
+    RECORD_TM_SIZE,
     ServiceType,
 )
 
@@ -60,6 +67,15 @@ class Record:
 
     # Внутреннее поле для хранения сырых данных
     _raw_data: bytes = field(default_factory=bytes, repr=False, init=False)
+
+    def __post_init__(self) -> None:
+        """Валидация после инициализации"""
+        if not 0 <= self.rpp <= 7:
+            raise ValueError(f"rpp должен быть в диапазоне 0-7, получено {self.rpp}")
+        if not 0 <= self.record_id <= 65535:
+            raise ValueError(
+                f"record_id должен быть в диапазоне 0-65535, получено {self.record_id}"
+            )
 
     def _build_flags(self) -> int:
         """Построение поля флагов RFL
@@ -170,6 +186,12 @@ class Record:
         rl = int.from_bytes(data[offset : offset + 2], "little")
         offset += 2
 
+        # Валидация размера RD (ГОСТ 33465-2015, таблица 14)
+        if rl > MAX_RECORD_SIZE:
+            raise ValueError(
+                f"Размер данных RD превышает максимум: {rl} > {MAX_RECORD_SIZE}"
+            )
+
         # RN (2 байта) - номер записи
         record_id = int.from_bytes(data[offset : offset + 2], "little")
         offset += 2
@@ -217,8 +239,8 @@ class Record:
 
         record = cls(
             record_id=record_id,
-            service_type=service_type,
-            rst_service_type=rst_service_type,
+            service_type=ServiceType(service_type),
+            rst_service_type=ServiceType(rst_service_type),
             object_id=object_id,
             event_id=event_id,
             timestamp=timestamp,
@@ -249,13 +271,14 @@ class Record:
         return parse_subrecords(self._raw_data, self.service_type)
 
     @staticmethod
-    def parse_records(data: bytes, service_type: int) -> list["Record"]:
+    def parse_records(data: bytes, service_type: int | None = None) -> list["Record"]:
         """
         Парсинг списка записей из данных ППУ
 
         Args:
             data: Байты данных ППУ (SFRD)
-            service_type: Тип сервиса для всех записей
+            service_type: Не используется (SST определяется внутри каждой записи).
+                          Оставлен для обратной совместимости.
 
         Returns:
             list[Record]: Список распарсенных записей
@@ -264,22 +287,56 @@ class Record:
         offset = 0
 
         while offset < len(data):
-            if offset + 2 > len(data):
-                break  # Недостаточно данных для RL
+            # Нужно минимум RL(2) байта
+            if offset + RECORD_RL_SIZE > len(data):
+                break
 
-            # RL (2 байта) - длина RD (данных подзаписей)
-            rl = int.from_bytes(data[offset : offset + 2], "little")
+            start_offset = offset
 
-            # Минимальная запись: RL(2) + RN(2) + RFL(1) + SST(1) + RST(1) = 7 байт
-            # rl - это длина RD, значит полная запись = 2 (RL) + 5 (заголовок) + rl
-            if offset + RECORD_RL_SIZE + RECORD_HEADER_SIZE + rl > len(data):
-                break  # Недостаточно данных
+            # RL (2 байта) - длина данных RD
+            rl = int.from_bytes(data[offset : offset + RECORD_RL_SIZE], "little")
+            offset += RECORD_RL_SIZE
+
+            # Валидация размера RD (ГОСТ 33465-2015, таблица 14)
+            if rl > MAX_RECORD_SIZE:
+                raise ValueError(
+                    f"Размер данных RD превышает максимум: {rl} > {MAX_RECORD_SIZE}"
+                )
+
+            # RN (2 байта)
+            if offset + RECORD_RN_SIZE > len(data):
+                break
+            offset += RECORD_RN_SIZE
+
+            # RFL (1 байт)
+            if offset + RECORD_RFL_SIZE > len(data):
+                break
+            rfl = data[offset]
+            offset += RECORD_RFL_SIZE
+
+            # Определяем размер опциональных полей по флагам RFL
+            optional_size = 0
+            if rfl & EGTS_RFL_OBFE_MASK:   # OID
+                optional_size += RECORD_OID_SIZE
+            if rfl & EGTS_RFL_EVFE_MASK:   # EVID
+                optional_size += RECORD_EVID_SIZE
+            if rfl & EGTS_RFL_TMFE_MASK:   # TM
+                optional_size += RECORD_TM_SIZE
+
+            # Полный размер заголовка (без RL): RN(2) + RFL(1) + optional + SST(1) + RST(1)
+            header_without_rl = RECORD_RN_SIZE + RECORD_RFL_SIZE + optional_size + RECORD_SST_SIZE + RECORD_RST_SIZE
+
+            # Общий размер записи = RL(2) + header_without_rl + rl
+            total_size = RECORD_RL_SIZE + header_without_rl + rl
+
+            if start_offset + total_size > len(data):
+                break
 
             # Парсим запись (включая RL)
-            record_data = data[offset : offset + RECORD_RL_SIZE + RECORD_HEADER_SIZE + rl]
+            record_data = data[start_offset : start_offset + total_size]
             record = Record.from_bytes(record_data)
             records.append(record)
 
-            offset += RECORD_RL_SIZE + RECORD_HEADER_SIZE + rl
+            offset = start_offset + total_size
 
         return records
