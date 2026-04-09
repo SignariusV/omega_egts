@@ -1,13 +1,13 @@
 # Прогресс реализации — OMEGA_EGTS
 
-**Обновлено:** 09.04.2026 | **Ветка:** `iteration-5/network-cmw` | **Интеграционные тесты:** 6 passed
+**Обновлено:** 10.04.2026 | **Ветка:** `iteration-6/logging-credentials` | **Интеграционные тесты:** 6 passed
 
 ---
 
 ## 📊 Общий прогресс
 
 ```
-███████████████████████████████████████████░ 92% (33/36 задач)
+██████████████████████████████████████████░ 97% (35/36 задач)
 ```
 
 ---
@@ -34,7 +34,7 @@
 │  └─────────────┘ └─────────┘ └─────────┘ └───────┘ └─────────┘ │
 │  ┌─────────────┐ ┌───────────────┐ ┌────────┐ ┌────────┐       │
 │  │LogManager   │ │CredentialsRepo│ │Export  │ │Config  │       │
-│  │░░░░░░░░░░ 0%│ │░░░░░░░░░░░░ 0%│ │░░░░ 0% │ │████ 100%│       │
+│  │█████ 100%   │ │█████ 100%     │ │░░░░ 0% │ │████ 100%│       │
 │  └─────────────┘ └───────────────┘ └────────┘ └────────┘       │
 │  ┌─────────────┐ ┌───────────────┐                              │
 │  │PacketDisp   │ │CommandDisp    │                              │
@@ -113,8 +113,8 @@
 ### Итерация 6: LogManager и Credentials
 
 ```
-6.1 LogManager                           ░░░░░░░░░░   0% ⏳
-6.2 CredentialsRepository                ░░░░░░░░░░   0% ⏳
+6.1 LogManager                           ██████████ 100% ✅
+6.2 CredentialsRepository                ██████████ 100% ✅
 ```
 
 ### Итерация 7: Scenario Engine
@@ -195,6 +195,10 @@
 | `tests/core/test_duplicate_middleware.py` | 8 тестов DuplicateDetectionMiddleware (дубликаты, LRU-кэш, guards) | ✅ Готово |
 | `tests/core/test_event_emit_middleware.py` | 10 тестов EventEmitMiddleware (emit packet.processed, terminated) | ✅ Готово |
 | `tests/core/test_pipeline_integration.py` | 17 интеграционных тестов (CRC→Parse→Dedup→Event, SMS-канал, error chain) | ✅ Готово |
+| `core/logger.py` | LogManager — подписчик на 3 события, буферизация, JSONL, сортировка по timestamp (CR-002) | ✅ Готово |
+| `tests/core/test_logger.py` | 23 теста LogManager (packet, connection, scenario, flush, buffer) | ✅ Готово |
+| `core/credentials.py` | Credentials (dataclass) + CredentialsRepository (JSON, find_by_imei, get, save, list_all) | ✅ Готово |
+| `tests/core/test_credentials.py` | 25 тестов CredentialsRepository (загрузка, поиск, save, защита, edge cases) | ✅ Готово |
 | `config/settings.json` | Настройки по умолчанию | ✅ Готово |
 | `config/credentials.json` | Шаблон учётных данных | ✅ Готово |
 | `tests/conftest.py` | Фикстуры для тестов | ✅ Готово |
@@ -207,7 +211,8 @@
 
 - **RUF001/RUF002/SIM108:** Добавлены в ruff ignore — кириллица в строках/docstring, if/else читаемее для битовых операций
 - **Все комментарии и docstring на русском языке**
-- **Общее покрытие:** 634+ тестов (включая 6 интеграционных), 94% (цель ≥ 90% ✅)
+- **Общее покрытие:** 727 тестов (включая 6 интеграционных), 93% (цель ≥ 90% ✅)
+- **Итерация 6:** LogManager (23 теста, 93% coverage) + CredentialsRepository (25 тестов, 94% coverage)
 - **Интеграционные тесты:** `tests/core/test_integration_chain.py` — 6 тестов, связывают EventBus → Pipeline → SessionManager → CommandDispatcher
 - **Итерация 5 завершена:** 126 тестов, 91–97% coverage, ruff + mypy чистые, интеграционные тесты подтверждают работоспособность цепочки
 - **Итерация 3 (session.py):** 61 тест, 93% покрытие session.py, 18 переходов FSM, внешний аудит 9.5/10

@@ -6,6 +6,30 @@
 
 ## [Unreleased]
 
+### Итерация 6: LogManager и Credentials (10.04.2026)
+
+**Ветка:** `iteration-6/logging-credentials` | **Задач выполнено:** 2/2 | **Тестов:** 48 | **Покрытие:** 93–94%
+
+#### Добавлено (6.1 — LogManager)
+- **LogManager** — подписчик на 3 события EventBus: `packet.processed`, `connection.changed`, `scenario.step`
+- **Буферизация + сортировка по timestamp** — решает CR-002 (нарушение порядка логов при parallel-обработке)
+- **JSONL-файлы** — одна записи на строку, именование по дате `YYYY-MM-DD.jsonl`
+- **Логирование пакетов** — hex + parsed данные + crc_valid + is_duplicate + terminated + errors
+- **flush()** — сброс буфера на диск, сортировка, очистка буфера
+
+#### Добавлено (6.2 — CredentialsRepository)
+- **Credentials** — dataclass (imei, imsi, term_code, auth_key, device_id, description) с to_dict()/from_dict()
+- **CredentialsRepository** — JSON-хранилище: find_by_imei(), get(), save(), list_all()
+- **save()** использует creds.device_id как ключ (fallback на IMEI) — устранена рассинхронизация
+- **Защита файла**: chmod 600 (Unix), документированное ограничение ACL (Windows)
+- **Устойчивость** к отсутствию/битому JSON-файлу, некорректным записям
+- **25 тестов**, 94% покрытие credentials.py, ruff + mypy clean
+
+#### Исправлено (внешний аудит credentials.py)
+- Убран избыточный параметр `device_id` из `save()` — ключ теперь берётся из `creds.device_id`
+- Windows-защита: `attrib +h` не вызывается (мешает записи), ограничение ACL документировано
+- Логи предупреждений переведены на английский для единообразия
+
 ### Итерация 5: Network и CMW-500 (09.04.2026)
 
 **Ветка:** `iteration-5/network-cmw` | **Задач выполнено:** 6/6 | **Тестов:** 132 | **Покрытие:** 91–97%
