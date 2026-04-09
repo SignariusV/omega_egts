@@ -93,8 +93,13 @@ class TcpServerManager:
             self.port,
         )
 
-        actual_port = self.port
+        actual_port = self.actual_port or self.port
         logger.info("TcpServerManager запущен на %s:%s", self.host, actual_port)
+
+        await self.bus.emit(
+            "server.started",
+            {"port": actual_port},
+        )
 
     async def stop(self) -> None:
         """Остановить TCP-сервер.
@@ -108,18 +113,20 @@ class TcpServerManager:
 
         logger.info("Останавливаю TcpServerManager...")
 
-        # Закрываем все задачи обработки подключений
-        for task in self._tasks:
+        # 1. Отменяем handler-задачи (иначе wait_closed зависнет)
+        tasks_to_cancel = list(self._tasks)
+        for task in tasks_to_cancel:
             task.cancel()
 
-        if self._tasks:
-            await asyncio.gather(*self._tasks, return_exceptions=True)
-            self._tasks.clear()
+        # 2. Дожидаемся завершения отменённых задач
+        if tasks_to_cancel:
+            await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+        self._tasks.clear()
 
+        # 3. Закрываем слушающий сокет
         self._server.close()
         await self._server.wait_closed()
         self._server = None
-
         logger.info("TcpServerManager остановлен")
 
     async def _handle_connection(
@@ -141,13 +148,16 @@ class TcpServerManager:
 
         # Создание полноценной сессии через SessionManager
         if self.session_mgr is not None:
-            self.session_mgr.create_session(
+            conn = self.session_mgr.create_session(
                 connection_id=connection_id,
                 remote_ip=remote_host,
                 remote_port=remote_port,
                 reader=reader,
                 writer=writer,
             )
+            # Инициализация FSM при подключении (CR-010)
+            if conn.fsm is not None:
+                conn.fsm.on_connect()
 
         # Эмитим событие подключения
         await self.bus.emit(
@@ -238,8 +248,11 @@ class TcpServerManager:
         if writer and not writer.is_closing():
             writer.close()
 
-        # Удаление из SessionManager
+        # Удаление из SessionManager с уведомлением FSM (CR-011)
         if self.session_mgr is not None:
+            conn = self.session_mgr.connections.get(connection_id)
+            if conn and conn.fsm is not None:
+                conn.fsm.on_disconnect()
             self.session_mgr.connections.pop(connection_id, None)
 
         # Эмитим событие отключения

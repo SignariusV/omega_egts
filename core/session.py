@@ -671,6 +671,12 @@ class SessionManager:
         if connection_id in self.connections:
             raise ValueError(f"Сессия {connection_id} уже существует")
 
+        # Автоматическое создание протокола, если не передан (CR-008)
+        if protocol is None:
+            from libs.egts_protocol_iface import create_protocol
+
+            protocol = create_protocol(self.gost_version)
+
         fsm = UsvStateMachine(is_std_usv=is_std_usv)
         txn_mgr = TransactionManager()
 
@@ -740,7 +746,22 @@ class SessionManager:
         # Извлечение parsed данных из контекста
         parsed: dict[str, Any] = {}
         if ctx is not None:
-            parsed = getattr(ctx, "parsed", {})
+            raw_parsed = getattr(ctx, "parsed", None)
+            if raw_parsed is not None:
+                # ctx.parsed может быть ParseResult или dict
+                if hasattr(raw_parsed, "packet"):
+                    # ParseResult — извлекаем данные из packet и extra
+                    parsed = dict(getattr(raw_parsed, "extra", {}) or {})
+                    if raw_parsed.packet is not None and raw_parsed.packet.records:
+                        # Берём service_type из первой записи
+                        parsed.setdefault("service", raw_parsed.packet.records[0].service_type)
+                        # Извлекаем данные из подзаписей первой записи
+                        for sr in raw_parsed.packet.records[0].subrecords:
+                            if isinstance(sr.data, dict):
+                                parsed.update(sr.data)
+                elif isinstance(raw_parsed, dict):
+                    parsed = raw_parsed
+                # Для ParseResult без пакета — оставляем пустой dict
 
         # Пакет без service — ошибка парсинга, FSM не обрабатывает
         if "service" not in parsed:
