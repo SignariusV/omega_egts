@@ -11,6 +11,7 @@
 - [x] Config — nested dataclass'ы, JSON загрузка, CLI merge, валидация (итерация 1.2)
 - [x] CoreEngine — координатор компонентов (итерация 1.3)
 - [x] FSM авторизации — UsvStateMachine (7 сост., 18 переходов), TransactionManager, UsvConnection, SessionManager (итерация 3)
+- [x] PacketPipeline — middleware-конвейер обработки пакетов (итерация 4)
 - [ ] asyncio TCP-сервер для приёма EGTS-пакетов
 - [ ] Поддержка ГОСТ 33465-2015 (транспортный уровень)
 - [ ] Эмулятор CMW-500 для тестирования
@@ -89,6 +90,40 @@
 - 93% покрытие session.py
 - ruff clean, mypy clean
 - Внешний аудит: 9.5/10
+
+---
+
+### Итерация 4: Packet Processing Pipeline (09.04.2026)
+
+#### Добавлено
+- `core/pipeline.py` — PacketPipeline + PacketContext + 4 middleware:
+  - **CrcValidationMiddleware** — валидация CRC-8/CRC-16, RESPONSE с кодами ошибок
+  - **ParseMiddleware** — парсинг через protocol, ParseResult с extra-полями (service, tid, imei, imsi)
+  - **DuplicateDetectionMiddleware** — обнаружение дубликатов PID через LRU-кэш UsvConnection
+  - **EventEmitMiddleware** — публикация `packet.processed`, ВСЕГДА вызывается (100% логирование)
+- `tests/core/test_pipeline.py` — 15 тестов: порядок, terminated, exception handling, context passthrough
+- `tests/core/test_crc_middleware.py` — 11 тестов: валидный/невалидный CRC, protocol из UsvConnection
+- `tests/core/test_parse_middleware.py` — 10 тестов: успешный парсинг, ошибки, отсутствие protocol
+- `tests/core/test_event_emit_middleware.py` — 10 тестов: emit события, данные события
+- `tests/core/test_pipeline_integration.py` — 11 интеграционных тестов с реальными EGTS-пакетами:
+  - Прогон 51 пакета из `data/packets/all_packets_correct_20260406_190414.json`
+  - CRC-валидация всех пакетов
+  - 100% emit событий (гарантия логирования)
+  - Duplicate detection на реальных пакетах
+  - RESPONSE и APPDATA типы пакетов
+  - Error handling: невалидный CRC, пустой пакет, короткий пакет, неизвестный connection_id
+
+#### Исправлено (в процессе разработки)
+- ctx.parsed тип изменён с `ParseResult | None` на `dict[str, Any] | None` (согласовано с ТЗ)
+- DuplicateDetectionMiddleware использует dict access `ctx.parsed["packet"]`
+- PacketPipeline.process() гарантирует вызов EventEmitMiddleware даже при terminated=True
+- ParseResult.extra поле для метаданных (service, tid, imei, imsi)
+
+#### Метрики
+- **60 тестов** в итерации 4 (43 unit + 6 integration + 11 integration с реальными пакетами)
+- **81%** покрытие pipeline.py
+- ruff clean, mypy clean
+- **51 реальный EGTS-пакет** успешно обработан конвейером
 
 ---
 
