@@ -181,12 +181,14 @@ class ParseResult:
         errors: Список ошибок парсинга
         warnings: Список предупреждений
         raw_bytes: Исходные байты
+        extra: Дополнительные данные (service, tid, imei, imsi и т.д.)
     """
 
     packet: Packet | None = None
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     raw_bytes: bytes = field(default_factory=bytes, repr=False)
+    extra: dict[str, object] = field(default_factory=dict)
 
     @property
     def is_success(self) -> bool:
