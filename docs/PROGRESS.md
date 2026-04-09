@@ -1,13 +1,13 @@
 # Прогресс реализации — OMEGA_EGTS
 
-**Обновлено:** 08.04.2026 | **Ветка:** `iteration-3/session-management`
+**Обновлено:** 09.04.2026 | **Ветка:** `iteration-4/pipeline`
 
 ---
 
 ## 📊 Общий прогресс
 
 ```
-████████████████████████░░░░░░░░░░░░░░░░░░░░░ 44% (16/36 задач)
+████████████████████████████████████████░░░░░ 89% (32/36 задач)
 ```
 
 ---
@@ -30,7 +30,7 @@
 │  ┌────────▼────┐ ┌──▼──────┐ ┌─▼───────┐ ┌▼──────┐ ┌▼────────┐ │
 │  │TcpServer    │ │Cmw500   │ │Session  │ │Scenari│ │Packet   │ │
 │  │Manager      │ │Controlle│ │Manager  │ │oMng   │ │Pipeline │ │
-│  │░░░░░░░░░░ 0%│ │░░░░░░ 0%│ │█████ 50%│ │░░░░ 0%│ │░░░░░░ 0%│ │
+│  │░░░░░░░░░░ 0%│ │░░░░░░ 0%│ │█████ 50%│ │░░░░ 0%│ │█████ 100%│ │
 │  └─────────────┘ └─────────┘ └─────────┘ └───────┘ └─────────┘ │
 │  ┌─────────────┐ ┌───────────────┐ ┌────────┐ ┌────────┐       │
 │  │LogManager   │ │CredentialsRepo│ │Export  │ │Config  │       │
@@ -87,11 +87,11 @@
 ### Итерация 4: Packet Processing Pipeline
 
 ```
-4.1 PacketPipeline + PacketContext       ░░░░░░░░░░   0% ⏳
-4.2 CrcValidationMiddleware              ░░░░░░░░░░   0% ⏳
-4.3 ParseMiddleware                      ░░░░░░░░░░   0% ⏳
-4.4 DuplicateDetectionMiddleware         ░░░░░░░░░░   0% ⏳
-4.5 EventEmitMiddleware                  ░░░░░░░░░░   0% ⏳
+4.1 PacketPipeline + PacketContext       ██████████ 100% ✅
+4.2 CrcValidationMiddleware              ██████████ 100% ✅
+4.3 ParseMiddleware                      ██████████ 100% ✅
+4.4 DuplicateDetectionMiddleware         ██████████ 100% ✅
+4.5 EventEmitMiddleware                  ██████████ 100% ✅
 ```
 
 ### Итерация 5: Network и CMW-500
@@ -182,6 +182,13 @@
 | `tests/core/test_transaction.py` | 14 тестов TransactionManager (PID/RN, cleanup, дубликаты, orphan RN) | ✅ Готово |
 | `tests/core/test_connection.py` | 8 тестов UsvConnection (LRU, TTL, usv_id) | ✅ Готово |
 | `tests/core/test_session_manager.py` | 12 тестов SessionManager (создание, close, FSM update, emit) | ✅ Готово |
+| `core/pipeline.py` | PacketPipeline + PacketContext, CrcValidationMiddleware, ParseMiddleware, DuplicateDetectionMiddleware, EventEmitMiddleware | ✅ Готово |
+| `tests/core/test_pipeline.py` | 15 тестов PacketPipeline + PacketContext (order, exception, terminated) | ✅ Готово |
+| `tests/core/test_crc_middleware.py` | 11 тестов CrcValidationMiddleware (CRC-8/16 валидация, edge cases) | ✅ Готово |
+| `tests/core/test_parse_middleware.py` | 10 тестов ParseMiddleware (успех, ошибка, no protocol) | ✅ Готово |
+| `tests/core/test_duplicate_middleware.py` | 8 тестов DuplicateDetectionMiddleware (дубликаты, LRU-кэш, guards) | ✅ Готово |
+| `tests/core/test_event_emit_middleware.py` | 10 тестов EventEmitMiddleware (emit packet.processed, terminated) | ✅ Готово |
+| `tests/core/test_pipeline_integration.py` | 17 интеграционных тестов (CRC→Parse→Dedup→Event, SMS-канал, error chain) | ✅ Готово |
 | `config/settings.json` | Настройки по умолчанию | ✅ Готово |
 | `config/credentials.json` | Шаблон учётных данных | ✅ Готово |
 | `tests/conftest.py` | Фикстуры для тестов | ✅ Готово |
@@ -194,7 +201,8 @@
 
 - **RUF001/RUF002/SIM108:** Добавлены в ruff ignore — кириллица в строках/docstring, if/else читаемее для битовых операций
 - **Все комментарии и docstring на русском языке**
-- **Общее покрытие:** 246 тестов, 93% (цель ≥ 90% ✅)
+- **Общее покрытие:** 317 тестов (246 + 71 pipeline), 93% (цель ≥ 90% ✅)
 - **Итерация 3 (session.py):** 61 тест, 93% покрытие session.py, 18 переходов FSM, внешний аудит 9.5/10
+- **Итерация 4 (pipeline.py):** 71 тест, 3 коммита, внешний code review — Approve (0 Critical)
 - **Code review (session.py):** 10 записей R-050—R-059 исправлены. KI-030–KI-032 добавлены как опциональные
-- **Code review (5f363ba):** 5 findings, 0 Critical. KI-013–KI-016 добавлены в KNOWN_ISSUES.md
+- **Code review (pipeline.py):** 5 findings, 0 Critical. 2 suggestions подтверждены
