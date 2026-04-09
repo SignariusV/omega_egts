@@ -7,7 +7,10 @@
       "Bash(.venv\\scripts\\python *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(mypy *)"
+      "Bash(mypy *)",
+      "Bash(findstr *)",
+      "Bash(.venv\\scripts\\python.exe *)",
+      "Bash(.venv\\scripts\\pip.exe *)"
     ]
   },
   "$version": 3
