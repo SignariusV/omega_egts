@@ -22,6 +22,7 @@ from .types import (
     EGTS_RFL_EVFE_MASK,
     EGTS_RFL_OBFE_MASK,
     EGTS_RFL_TMFE_MASK,
+    MAX_PACKET_SIZE,
     MAX_RECORD_SIZE,
     PACKET_FDL_OFFSET,
     PACKET_FDL_SIZE,
@@ -74,7 +75,7 @@ class Packet:
     packet_id: int
     packet_type: PacketType
     priority: Priority = Priority.LOW
-    records: list = field(default_factory=list)  # List[Record]
+    records: list["Record"] = field(default_factory=list)
 
     # Поля для RESPONSE пакетов (PT=0)
     response_packet_id: int | None = None  # RPID
@@ -95,7 +96,7 @@ class Packet:
     ena: bool = False  # Шифрование
     cmp: bool = False  # Сжатие
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Валидация после инициализации"""
         # Проверка версии протокола
         if not hasattr(self, "_skip_validation"):
@@ -127,10 +128,9 @@ class Packet:
 
         # Для RESPONSE пакетов (PT=0) добавляем RPID и PR в начало ППУ
         # Согласно ГОСТ 33465-2015, таблица 6
-        if self.packet_type == PacketType.EGTS_PT_RESPONSE:
-            if self.response_packet_id is not None and self.processing_result is not None:
-                ppu_data += self.response_packet_id.to_bytes(PACKET_PID_SIZE, "little")
-                ppu_data += bytes([self.processing_result])
+        if self.packet_type == PacketType.EGTS_PT_RESPONSE and self.response_packet_id is not None and self.processing_result is not None:
+            ppu_data += self.response_packet_id.to_bytes(PACKET_PID_SIZE, "little")
+            ppu_data += bytes([self.processing_result])
 
         # Сериализуем записи через метод to_bytes()
         for record in self.records:
@@ -173,7 +173,7 @@ class Packet:
             header.append(self.ttl or 0)  # TTL
 
         # Считаем CRC-8 заголовка
-        header_crc = crc8(header)
+        header_crc = crc8(bytes(header))
         header.append(header_crc)  # HCS
 
         # Считаем CRC-16 данных
@@ -181,6 +181,12 @@ class Packet:
 
         # Полный пакет
         packet_bytes = bytes(header) + ppu_data + data_crc.to_bytes(PACKET_SFRCS_SIZE, "little")
+
+        # Проверка максимального размера (ГОСТ 5.6.1.2)
+        if len(packet_bytes) > MAX_PACKET_SIZE:
+            raise ValueError(
+                f"Размер пакета превышает максимум: {len(packet_bytes)} > {MAX_PACKET_SIZE}"
+            )
 
         # Сохраняем байты для последующего использования
         self.raw_bytes = packet_bytes
@@ -199,8 +205,13 @@ class Packet:
             Packet: Распарсенный пакет
 
         Raises:
-            ValueError: Если CRC-8 или CRC-16 не совпадают
+            ValueError: Если CRC-8 или CRC-16 не совпадают, размер превышает максимум
         """
+        if len(data) > MAX_PACKET_SIZE:
+            raise ValueError(
+                f"Размер пакета превышает максимум: {len(data)} > {MAX_PACKET_SIZE}"
+            )
+
         if len(data) < PACKET_HEADER_MIN_SIZE:
             raise ValueError(f"Слишком маленький пакет: {len(data)} байт (минимум {PACKET_HEADER_MIN_SIZE})")
 
@@ -290,16 +301,15 @@ class Packet:
         response_packet_id = None
         processing_result = None
 
-        if packet_type == PacketType.EGTS_PT_RESPONSE:
-            if len(ppu_data) >= PACKET_RESPONSE_HEADER_SIZE:
-                response_packet_id = int.from_bytes(ppu_data[0:PACKET_PID_SIZE], "little")
-                processing_result = ppu_data[PACKET_PID_SIZE]
+        if packet_type == PacketType.EGTS_PT_RESPONSE and len(ppu_data) >= PACKET_RESPONSE_HEADER_SIZE:
+            response_packet_id = int.from_bytes(ppu_data[0:PACKET_PID_SIZE], "little")
+            processing_result = ppu_data[PACKET_PID_SIZE]
 
         # Создаем пакет
         packet = cls(
             packet_id=packet_id,
-            packet_type=packet_type,
-            priority=priority,
+            packet_type=PacketType(packet_type),
+            priority=Priority(priority),
             skid=skid,
             sender_address=sender_address,
             receiver_address=receiver_address,

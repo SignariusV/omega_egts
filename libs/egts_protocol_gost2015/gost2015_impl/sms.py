@@ -24,6 +24,7 @@ SMS используется как резервный канал передач
     egts_data = result["user_data"]
 """
 
+import random
 from typing import Any
 
 # ============================================
@@ -131,11 +132,12 @@ def _encode_phone_number(phone: str, for_smsc: bool = False) -> tuple[int, bytes
     # Байт типа адреса: бит 7 = 0, биты 6-4 = TON, бит 3 = 0, биты 2-0 = NPI
     type_byte = bytes([((ton & 0x07) << 4) | (npi & 0x0F)])
 
-    # Для SMSC длина указывается в октетах (байтах) полезных данных
+    # Для SMSC длина указывается в октетах — type_byte + закодированный номер
+    # (по GSM 03.40: SMSC Length = октеты после байта длины, включая type)
     # Для TP-DA/TP-OA длина указывается в полуоктетах (цифрах)
     if for_smsc:
-        # Длина = 1 (байт типа) + ceil(num_digits / 2)
-        address_length = 1 + (len(encoded))
+        # Длина = 1 (type_byte) + количество октетов номера
+        address_length = 1 + len(encoded)
     else:
         # Длина в полуоктетах = количеству цифр
         address_length = num_digits
@@ -156,9 +158,12 @@ def _decode_phone_number(data: bytes, length: int, ton: int, npi: int) -> str:
     Returns:
         Строка с номером телефона
     """
-    digits = []
+    digits: list[str] = []
 
     for byte in data:
+        if len(digits) >= length:
+            break
+
         # Младшие 4 бита
         digit1 = byte & 0x0F
         # Старшие 4 бита
@@ -166,7 +171,7 @@ def _decode_phone_number(data: bytes, length: int, ton: int, npi: int) -> str:
 
         if digit1 <= 9:
             digits.append(str(digit1))
-        if digit2 <= 9 and len(digits) < length:
+        if len(digits) < length and digit2 <= 9:
             digits.append(str(digit2))
 
     phone = "".join(digits)
@@ -210,7 +215,18 @@ def create_sms_pdu(
 
     Returns:
         Байты SMS PDU для отправки в модем
+
+    Raises:
+        ValueError: Если user_data превышает 140 байт при concatenated=False
     """
+    # Проверка длины данных (одно SMS — макс. 140 байт TP-UD)
+    if not concatenated and len(user_data) > 140:
+        raise ValueError(
+            f"Данные превышают 140 байт ({len(user_data)}). "
+            "Используйте concatenated=True или split_for_sms_concatenation() "
+            "для конкатенации"
+        )
+
     result = bytearray()
 
     # ============================================
@@ -219,8 +235,7 @@ def create_sms_pdu(
     if smsc_number:
         # Кодируем номер SMSC (for_smsc=True т.к. длина в октетах)
         smsc_len, smsc_encoded = _encode_phone_number(smsc_number, for_smsc=True)
-        # SMSC_AL = длина полезных данных (октеты) = smsc_len - 1 (без учета байта длины)
-        # Но smsc_len уже включает только полезные данные (тип + номер)
+        # SMSC_AL = длина SMSC_A в октетах (без учёта байта длины и type_byte)
         result.append(smsc_len)
         result.extend(smsc_encoded)
     else:
@@ -239,7 +254,7 @@ def create_sms_pdu(
     tp_mti = 0x01  # SMS-SUBMIT
 
     # Бит 6 = 0x40 - TP_UDHI (User Data Header Indicator)
-    tp_udhi = 0x40 if (concatenated or (user_data and len(user_data) > 140)) else 0x00
+    tp_udhi = 0x40 if concatenated else 0x00
     # Бит 2 = 0x04 - TP_SRR (Status Report Request)
     tp_srr = 0x04 if request_status_report else 0x00
 
@@ -330,6 +345,7 @@ def parse_sms_pdu(pdu: bytes) -> dict[str, Any]:
         - concatenated: Флаг конкатенации
         - concat_info: Информация о конкатенации (ref, total, seq)
         - status_report_requested: Запрошен ли статус отчет
+        - validity_period: Срок действия (None если не передан)
     """
     if len(pdu) < 12:
         raise ValueError(f"Слишком короткие данные SMS PDU: {len(pdu)} байт (минимум 12)")
@@ -343,6 +359,7 @@ def parse_sms_pdu(pdu: bytes) -> dict[str, Any]:
         "concatenated": False,
         "concat_info": None,
         "status_report_requested": False,
+        "validity_period": None,
     }
 
     # ============================================
@@ -378,7 +395,11 @@ def parse_sms_pdu(pdu: bytes) -> dict[str, Any]:
     tp_flags = pdu[offset]
     offset += 1
 
-    _tp_mti = tp_flags & 0x03
+    tp_mti = tp_flags & 0x03
+    # Для входящих SMS ожидаем MTI = 0 (Deliver) или 1 (Deliver Report)
+    if tp_mti not in (0, 1):
+        raise ValueError(f"Неподдерживаемый TP-MTI: {tp_mti} (ожидается 0 или 1)")
+
     tp_udhi = bool((tp_flags >> 6) & 0x01)
     tp_srr = bool((tp_flags >> 2) & 0x01)
 
@@ -415,12 +436,35 @@ def parse_sms_pdu(pdu: bytes) -> dict[str, Any]:
     # ============================================
     # TP-Data-Coding-Scheme
     # ============================================
-    offset += 1  # TP-DCS
+    tp_dcs = pdu[offset]
+    offset += 1
+    if tp_dcs != SMSDataCodingScheme.BINARY_8BIT:
+        raise ValueError(
+            f"Неподдерживаемый TP-DCS: 0x{tp_dcs:02X} (ожидается 0x{SMSDataCodingScheme.BINARY_8BIT:02X})"
+        )
 
     # ============================================
-    # TP-Validity-Period (опционально)
+    # TP-Validity-Period (опционально, зависит от TP-VPF)
     # ============================================
-    # Не обрабатываем для простоты
+    tp_vpf = (tp_flags >> 3) & 0x03
+    if tp_vpf == 0b10:
+        # Относительный формат — 1 байт (множитель 5 минут)
+        if offset < len(pdu):
+            vp_value = pdu[offset]
+            offset += 1
+            if vp_value <= 143:
+                result["validity_period"] = (vp_value + 1) * 5  # минут
+            elif vp_value <= 167:
+                result["validity_period"] = (vp_value - 143) * 60 * 12  # 12 часов
+            elif vp_value <= 196:
+                result["validity_period"] = (vp_value - 166) * 24 * 60  # дней
+            else:
+                result["validity_period"] = (vp_value - 192) * 7 * 24 * 60  # недель
+    elif tp_vpf in (0b01, 0b11) and offset + 7 <= len(pdu):
+        # Улучшенный или абсолютный формат — 7 байт (пока сохраняем сырые байты)
+        result["validity_period"] = pdu[offset : offset + 7].hex()
+        offset += 7
+    # tp_vpf == 0b00 — TP-VP отсутствует
 
     # ============================================
     # TP-User-Data-Length
@@ -490,7 +534,9 @@ def parse_sms_pdu(pdu: bytes) -> dict[str, Any]:
 
 
 def split_for_sms_concatenation(
-    data: bytes, max_part_size: int = 134
+    data: bytes,
+    max_part_size: int = 134,
+    concat_ref: int | None = None,
 ) -> list[tuple[int, int, int, bytes]]:
     """
     Разбиение данных на части для конкатенации SMS
@@ -505,6 +551,8 @@ def split_for_sms_concatenation(
     Args:
         data: Данные для разбиения (пакет EGTS)
         max_part_size: Максимальный размер данных в одной части (по умолчанию 134)
+        concat_ref: Reference number для конкатенации (0-255).
+                    Если None, генерируется случайно
 
     Returns:
         Список кортежей (concat_ref, total_parts, seq_num, part_data)
@@ -512,10 +560,9 @@ def split_for_sms_concatenation(
     if len(data) == 0:
         return []
 
-    # Генерируем случайный reference для этого сообщения
-    import random
-
-    concat_ref = random.randint(0, 255)
+    # Генерируем случайный reference или используем переданный
+    if concat_ref is None:
+        concat_ref = random.randint(0, 255)
 
     # Разбиваем данные на части
     parts = []

@@ -10,7 +10,7 @@
 - [x] EventBus — async шина с ordered/parallel handlers (итерация 1.1)
 - [x] Config — nested dataclass'ы, JSON загрузка, CLI merge, валидация (итерация 1.2)
 - [x] CoreEngine — координатор компонентов (итерация 1.3)
-- [ ] FSM авторизации (TERM_IDENTITY → AUTH_PARAMS → AUTH_INFO → RESULT_CODE)
+- [x] FSM авторизации — UsvStateMachine (7 сост., 18 переходов), TransactionManager, UsvConnection, SessionManager (итерация 3)
 - [ ] asyncio TCP-сервер для приёма EGTS-пакетов
 - [ ] Поддержка ГОСТ 33465-2015 (транспортный уровень)
 - [ ] Эмулятор CMW-500 для тестирования
@@ -50,6 +50,45 @@
 
 ### Этап 6: Реальное CMW-500 (планируется)
 - [ ] Интеграция с реальным оборудованием CMW-500 (PyVISA/SCPI)
+
+---
+
+## [Unreleased]
+
+### Итерация 3: Session Management и FSM (08.04.2026)
+
+#### Добавлено
+- `core/session.py` — единый модуль с 4 компонентами:
+  - **UsvStateMachine** — FSM с 7 состояниями и 18 переходами по ГОСТ 33465-2015
+  - **TransactionManager** — отслеживание PID↔RPID, RN↔CRN с `_remove_txn` helper
+  - **UsvConnection** — данные подключения с LRU-кэшем дубликатов (OrderedDict, MAX_SEEN_PIDS=65536)
+  - **SessionManager** — координатор с async `close_session()`, подпиской на `packet.processed` (ordered=True)
+- `tests/core/test_fsm.py` — 27 тестов: все 18 переходов, таймауты, std USV, сброс счётчика, терминальные состояния
+- `tests/core/test_transaction.py` — 14 тестов: PID/RN, cleanup, orphan RN, duplicate detection, `_remove_txn`
+- `tests/core/test_connection.py` — 8 тестов: LRU eviction, usv_id, TTL
+- `tests/core/test_session_manager.py` — 12 тестов: создание, async close_session, duplicate check, FSM update, emit
+
+#### Исправлено (code review)
+- R-050: `_last_transition` → публичный `@property last_transition`
+- R-051: `cleanup_expired` утечка `_by_rn` → итерация по оболям словарям
+- R-052: `suppress(Exception)` → `suppress(TimeoutError, OSError)`
+- R-053: `create_session` дубликат → `ValueError`
+- R-054: `_on_packet_processed` пустой `{}` → ранний возврат при отсутствии service
+- R-055: `bus: Any` → `bus: EventBus`
+- R-056: Дублирование удаления → `_remove_txn(txn)` helper
+- R-057: `on_timeout` для DISCONNECTED/ERROR → ранний возврат
+- R-058: `@state.setter` нарушал инкапсуляцию → удалён
+- R-059: `_handle_authenticating` не сбрасывал счётчик → добавлен сброс + обработка RST != 0
+
+#### Изменено
+- `pyproject.toml` — добавлен `SIM105` в ruff ignore (false positive для async)
+- `KNOWN_ISSUES.md` — добавлены KI-030–KI-032 (опциональные улучшения)
+
+#### Метрики
+- 61 тест в итерации 3
+- 93% покрытие session.py
+- ruff clean, mypy clean
+- Внешний аудит: 9.5/10
 
 ---
 
