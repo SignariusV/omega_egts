@@ -6,15 +6,47 @@
 
 ## [Unreleased]
 
+### Итерация 5: Network и CMW-500 (09.04.2026)
+
+**Ветка:** `iteration-5/network-cmw` | **Задач выполнено:** 6/6 | **Тестов:** 132 | **Покрытие:** 91–97%
+
+#### Добавлено
+- **AutoResponseMiddleware** — формирует RESPONSE (`build_response(pid, result_code=0)`) для успешно обработанных пакетов, кеширует через `conn.add_pid_response()` для обработки дубликатов (12 тестов)
+- **PacketDispatcher._build_pipeline()** — автоматическое создание pipeline со всеми middleware: CRC → Parse → AutoResponse → Dedup → EventEmit. PacketDispatcher теперь создаёт pipeline по умолчанию если не передан явно
+- **Исправление CR-008** — `SessionManager.create_session()` автоматически создаёт `protocol` через `create_protocol(self.gost_version)` если protocol не передан
+- **Исправление CR-010** — `TcpServerManager._handle_connection()` вызывает `conn.fsm.on_connect()` после создания сессии
+- **Исправление CR-011** — `TcpServerManager._on_disconnect()` вызывает `conn.fsm.on_disconnect()` перед удалением сессии
+
+#### Исправлено (внешний аудит)
+- **TcpServerManager** — asyncio TCP-сервер, приём подключений, чтение пакетов, emit `raw.packet.received` и `connection.changed` (15 тестов, 97%)
+- **Cmw500Controller** — асинхронная очередь команд, retry с экспоненциальной задержкой, SMS send/read, фоновый poll входящих SMS (39 тестов, 91%)
+- **Cmw500Emulator** — эмулятор CMW-500 с настраиваемыми задержками TCP (0.1–2с) и SMS (3–30с), handler для генерации ответов УСВ (19 тестов)
+- **PacketDispatcher** — координатор pipeline, обработка TCP и SMS пакетов, создание SMS-сессий, отправка RESPONSE (24 теста, 95%)
+- **CommandDispatcher** — отправка команд через TCP и SMS, регистрация транзакций, обработка ошибок (23 теста, 95%)
+
+#### Исправлено (внешний аудит)
+- `send_sms()` эмулятора больше не минует очередь команд — теперь проходит через `_send_scpi()` → `_handle_send_sms()`
+- `task_done()` без `join()` удалён из `_send_scpi()` эмулятора
+- Fire-and-forget `create_task()` обёрнут в `try/except RuntimeError` для защиты при закрытом event loop
+- Async handler: `handler_result = await handler_result` — теперь результат await сохраняется, а не coroutine object
+
+#### Качество кода
+- ruff: 0 ошибок
+- mypy: 0 ошибок
+- Все 120 тестов итерации 5 проходят
+
 ### Этап 1: CLI MVP (в разработке)
 - [x] EventBus — async шина с ordered/parallel handlers (итерация 1.1)
 - [x] Config — nested dataclass'ы, JSON загрузка, CLI merge, валидация (итерация 1.2)
 - [x] CoreEngine — координатор компонентов (итерация 1.3)
 - [x] FSM авторизации — UsvStateMachine (7 сост., 18 переходов), TransactionManager, UsvConnection, SessionManager (итерация 3)
 - [x] PacketPipeline — middleware-конвейер обработки пакетов (итерация 4)
-- [ ] asyncio TCP-сервер для приёма EGTS-пакетов
-- [ ] Поддержка ГОСТ 33465-2015 (транспортный уровень)
-- [ ] Эмулятор CMW-500 для тестирования
+- [x] asyncio TCP-сервер для приёма EGTS-пакетов (итерация 5.1)
+- [x] Cmw500Controller — очередь команд, retry, SMS (итерация 5.2)
+- [x] Cmw500Emulator — эмулятор CMW-500, TCP/SMS задержки (итерация 5.3)
+- [x] PacketDispatcher — координатор pipeline, TCP + SMS (итерация 5.4)
+- [x] CommandDispatcher — отправка команд TCP/SMS, транзакции (итерация 5.5)
+- [ ] Поддержка ГОСТ 33465-2015 (транспортный уровень — парсинг/валидация)
 - [ ] CLI (REPL на cmd)
 - [ ] Базовое логирование пакетов (hex + parsed)
 - [ ] pytest, покрытие ≥ 90%
@@ -51,6 +83,28 @@
 
 ### Этап 6: Реальное CMW-500 (планируется)
 - [ ] Интеграция с реальным оборудованием CMW-500 (PyVISA/SCPI)
+
+---
+
+## [Unreleased] — Архитектурные решения
+
+### SMS-канал: делегирование PDU-кодирования CMW-500 (09.04.2026)
+
+**Проблема:** ТЗ предполагает PDU-упаковку на нашей стороне (`build_sms_pdu`/`parse_sms_pdu` в протокольной библиотеке).
+
+**Решение:** CMW-500 сам кодирует/декодирует SMS PDU. Мы передаём только сырые EGTS-байты:
+- `send_sms(egts_bytes)` — CMW-500 упаковывает в PDU и шлёт подключённому УСВ
+- `read_sms()` — CMW-500 возвращает сырые EGTS-байты из принятой SMS
+- Номер получателя не нужен — CMW-500 знает, какое УСВ подключено
+
+**Последствия:**
+- `CommandDispatcher` единый для TCP и SMS — проверка `channel`, два способа отправки
+- Сценарии указывают только `channel: "sms"` (никакого `recipient`)
+- `Cmw500Controller` добавляет методы `send_sms()` и `read_sms()`
+- SMS-задержки: 3–30 с отправка, опрос `read_sms()` каждую 1–5 с
+- Таймаут транзакции SMS: 30–60 с (vs 5–10 с TCP)
+
+**Документация:** PLAN.md Задача 5.2, 5.5 | KNOWN_ISSUES.md CR-007
 
 ---
 

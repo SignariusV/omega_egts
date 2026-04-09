@@ -124,16 +124,20 @@ class EventBus:
 
 | Событие | Данные | Кто публикует | Кто подписывается |
 |---------|--------|---------------|-------------------|
-| `raw.packet.received` | `raw, channel, connection_id` | TcpServerManager, Cmw500Controller | PacketDispatcher |
-| `packet.processed` | `ctx, connection_id` | PacketDispatcher | SessionManager (ordered), LogManager, ScenarioManager |
-| `command.send` | `connection_id, packet_bytes, step_name, pid, rn, timeout` | ScenarioManager | CommandDispatcher |
-| `command.sent` | `connection_id, step_name, packet_bytes` | CommandDispatcher | ScenarioManager, LogManager |
+| `raw.packet.received` | `raw, channel (tcp/sms), connection_id` | TcpServerManager, Cmw500Controller | PacketDispatcher |
+| `packet.processed` | `ctx, connection_id, channel` | PacketDispatcher | SessionManager (ordered), LogManager, ScenarioManager |
+| `command.send` | `connection_id, packet_bytes, step_name, pid, rn, timeout, channel` | ScenarioManager | CommandDispatcher |
+| `command.sent` | `connection_id, channel, step_name, packet_bytes` | CommandDispatcher | ScenarioManager, LogManager |
 | `command.error` | `error, step_name` | CommandDispatcher | ScenarioManager, LogManager |
 | `connection.changed` | `usv_id, state, action, reason` | SessionManager | LogManager, CLI/GUI |
 | `scenario.step` | `name, status, error` | ScenarioManager | LogManager, CLI/GUI |
 | `server.started` | `port` | CoreEngine | CLI/GUI |
 | `server.stopped` | `reason` | CoreEngine | CLI/GUI |
 | `cmw.error` | `error, command` | Cmw500Controller | CLI/GUI |
+
+**Каналы (`channel`):**
+- `"tcp"` — пакет через WiFi CMW-500 (TCP-соединение, `connection_id` есть)
+- `"sms"` — пакет через SMS CMW-500 (`connection_id = None`, бо́льшие задержки)
 
 **Типы обработчиков:**
 
@@ -185,13 +189,18 @@ class Cmw500Controller:
     async def disconnect(self) -> None
     async def send_scpi(self, command: str) -> str
     async def setup_test_mode(self, ...) -> None
-    async def send_sms(self, recipient: str, data: bytes) -> None
+    async def send_sms(self, egts_bytes: bytes) -> bool        # CMW-500 сам кодирует PDU
+    async def read_sms(self) -> bytes | None                    # CMW-500 сам декодирует PDU
+    async def _poll_incoming_sms(self) -> None                  # фоновый опрос → raw.packet.received
 ```
 
 **Особенности:**
 - Асинхронная очередь команд (избегает блокировок VISA)
 - Таймаут: `CMW_SCPI_TIMEOUT` = 5 с
 - Повторы: `CMW_SCPI_RETRIES` = 3
+- **SMS:** CMW-500 сам кодирует/декодирует PDU — мы передаём только сырые EGTS-байты
+- **SMS-приём:** фоновый опрос `READ_SMS?` каждую 1–5 с, emit `raw.packet.received` с `channel="sms"`
+- **SMS-задержки:** 3–30 с отправка, таймаут транзакции 30–60 с (vs 5–10 с TCP)
 - На этапе 1 — **эмулятор** (mock), реальное железо на этапе 5
 
 ---
@@ -349,22 +358,26 @@ class StepFactory:
 
 **Файл:** `core/pipeline.py`
 
-Middleware-конвейер обработки входящих пакетов.
+Middleware-конвейер обработки входящих пакетов (TCP и SMS).
 
 ```
-Входящий байт-поток
+Входящий байт-поток (raw)
         │
         ▼
 ┌──────────────┐
-│ CRC Check    │  → проверка CRC-16, отбраковка битых
+│ CRC Check    │  → проверка CRC-8 заголовка + CRC-16 тела
 └──────┬───────┘
        ▼
 ┌──────────────┐
-│ Parse        │  → десериализация EGTS-пакета
+│ Parse        │  → десериализация EGTS-пакета → ParseResult
 └──────┬───────┘
        ▼
 ┌──────────────┐
-│ Duplicate    │  → отсев дубликатов (по PN/CID)
+│ AutoResponse │  → RESPONSE для успешных пакетов (order=3)
+└──────┬───────┘
+       ▼
+┌──────────────┐
+│ Duplicate    │  → отсев дубликатов (по PID из UsvConnection)
 └──────┬───────┘
        ▼
 ┌──────────────┐
@@ -372,23 +385,25 @@ Middleware-конвейер обработки входящих пакетов.
 └──────┬───────┘
        ▼
 ┌──────────────┐
-│ Event Emit   │  → packet.received в EventBus
+│ Event Emit   │  → packet.processed в EventBus (ВСЕГДА, даже terminated)
 └──────────────┘
         │
         ▼
-  RESPONSE (если требуется)
+  EventBus.emit("packet.processed")
 ```
 
 **Middleware:**
 
 ```python
 class Middleware(Protocol):
-    async def process(self, packet: RawPacket, next: Callable) -> ProcessedPacket | None
+    async def process(self, ctx: PacketContext, next: Callable) -> None
 
 class PacketPipeline:
-    def add_middleware(self, mw: Middleware) -> None
-    async def process(self, raw: bytes) -> None
+    def add(self, mw: Middleware, order: int) -> None
+    async def process(self, raw: bytes, channel: str, connection_id: str | None) -> PacketContext
 ```
+
+**Channel-агностицизм:** Pipeline обрабатывает TCP и SMS одинаково — различие только в `channel` и `connection_id` в контексте.
 
 ---
 

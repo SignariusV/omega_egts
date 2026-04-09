@@ -17,7 +17,15 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from core.event_bus import EventBus
-from core.pipeline import PacketContext, PacketPipeline
+from core.pipeline import (
+    AutoResponseMiddleware,
+    CrcValidationMiddleware,
+    DuplicateDetectionMiddleware,
+    EventEmitMiddleware,
+    PacketContext,
+    PacketPipeline,
+    ParseMiddleware,
+)
 from libs.egts_protocol_iface import create_protocol as create_egts_protocol
 
 if TYPE_CHECKING:
@@ -79,12 +87,12 @@ class PacketDispatcher:
         self,
         bus: EventBus,
         session_mgr: SessionManager,
-        pipeline: PacketPipeline,
+        pipeline: PacketPipeline | None = None,
         protocol: IEgtsProtocol | None = None,
     ) -> None:
         self.bus = bus
         self.session_mgr = session_mgr
-        self.pipeline = pipeline
+        self.pipeline = pipeline if pipeline is not None else self._build_pipeline()
         self.protocol = protocol
 
         # Подписка на raw.packet.received
@@ -92,6 +100,19 @@ class PacketDispatcher:
 
         # Подписка на packet.processed для отправки RESPONSE
         self.bus.on("packet.processed", self._on_packet_processed)
+
+    def _build_pipeline(self) -> PacketPipeline:
+        """Создать стандартный pipeline со всеми middleware.
+
+        Порядок: CRC → Parse → AutoResponse → Dedup → EventEmit
+        """
+        p = PacketPipeline()
+        p.add("crc", CrcValidationMiddleware(self.session_mgr), order=1)
+        p.add("parse", ParseMiddleware(self.session_mgr), order=2)
+        p.add("auto_resp", AutoResponseMiddleware(self.session_mgr), order=3)
+        p.add("dedup", DuplicateDetectionMiddleware(self.session_mgr), order=4)
+        p.add("emit", EventEmitMiddleware(self.bus), order=5)
+        return p
 
     def stop(self) -> None:
         """Отписаться от событий EventBus."""

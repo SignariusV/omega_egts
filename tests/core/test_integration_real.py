@@ -8,7 +8,6 @@
 """
 
 import asyncio
-import struct
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -16,6 +15,7 @@ import pytest
 from core.dispatcher import CommandDispatcher, PacketDispatcher
 from core.event_bus import EventBus
 from core.pipeline import (
+    AutoResponseMiddleware,
     CrcValidationMiddleware,
     DuplicateDetectionMiddleware,
     EventEmitMiddleware,
@@ -95,8 +95,9 @@ class TestRealAuthPacket:
         # CrcValidationMiddleware принимает SessionManager (для получения protocol из connection)
         pipe.add("crc", CrcValidationMiddleware(session_manager), order=1)
         pipe.add("parse", ParseMiddleware(session_manager), order=2)
-        pipe.add("dedup", DuplicateDetectionMiddleware(session_manager), order=3)
-        pipe.add("emit", EventEmitMiddleware(event_bus), order=4)
+        pipe.add("auto_resp", AutoResponseMiddleware(session_manager), order=3)
+        pipe.add("dedup", DuplicateDetectionMiddleware(session_manager), order=4)
+        pipe.add("emit", EventEmitMiddleware(event_bus), order=5)
         return pipe
 
     @pytest.fixture
@@ -121,11 +122,11 @@ class TestRealAuthPacket:
         protocol: EgtsProtocol2015,
     ):
         """Реальный AUTH-пакет от УСВ парсится без ошибок.
-        
+
         Пакет: TERM_IDENTITY + AUTH_INFO (SST=1, PT=1, PID=42)
         """
         packet_bytes = _hex_to_bytes(AUTH_USV_HEX)
-        
+
         # Парсим напрямую для проверки
         result = protocol.parse_packet(packet_bytes)
         assert result.packet is not None
@@ -183,7 +184,7 @@ class TestRealAuthPacket:
     ):
         """ RESPONSE-пакет от платформы (PT=0) парсится корректно."""
         packet_bytes = _hex_to_bytes(AUTH_RESPONSE_HEX)
-        
+
         result = protocol.parse_packet(packet_bytes)
         assert result.packet is not None
         assert result.packet.packet_type == 0  # RESPONSE
@@ -199,7 +200,7 @@ class TestRealAuthPacket:
     ):
         """Пакет команд (SST=4, PID=17) парсится корректно."""
         packet_bytes = _hex_to_bytes(COMMAND_HEX)
-        
+
         result = protocol.parse_packet(packet_bytes)
         assert result.packet is not None
         assert result.packet.packet_type == 1  # APPDATA
@@ -214,7 +215,7 @@ class TestRealAuthPacket:
     ):
         """Пакет траектории (SST=10, PID=33) парсится корректно."""
         packet_bytes = _hex_to_bytes(TRACK_HEX)
-        
+
         result = protocol.parse_packet(packet_bytes)
         assert result.packet is not None
         assert result.packet.packet_type == 1  # APPDATA
@@ -245,8 +246,9 @@ class TestRealPacketDuplicateDetection:
         # CrcValidationMiddleware принимает SessionManager (для получения protocol из connection)
         pipe.add("crc", CrcValidationMiddleware(session_manager), order=1)
         pipe.add("parse", ParseMiddleware(session_manager), order=2)
-        pipe.add("dedup", DuplicateDetectionMiddleware(session_manager), order=3)
-        pipe.add("emit", EventEmitMiddleware(event_bus), order=4)
+        pipe.add("auto_resp", AutoResponseMiddleware(session_manager), order=3)
+        pipe.add("dedup", DuplicateDetectionMiddleware(session_manager), order=4)
+        pipe.add("emit", EventEmitMiddleware(event_bus), order=5)
         return pipe
 
     @pytest.fixture
@@ -322,8 +324,9 @@ class TestRealPacketSmsChannel:
         # CrcValidationMiddleware принимает SessionManager (для получения protocol из connection)
         pipe.add("crc", CrcValidationMiddleware(session_manager), order=1)
         pipe.add("parse", ParseMiddleware(session_manager), order=2)
-        pipe.add("dedup", DuplicateDetectionMiddleware(session_manager), order=3)
-        pipe.add("emit", EventEmitMiddleware(event_bus), order=4)
+        pipe.add("auto_resp", AutoResponseMiddleware(session_manager), order=3)
+        pipe.add("dedup", DuplicateDetectionMiddleware(session_manager), order=4)
+        pipe.add("emit", EventEmitMiddleware(event_bus), order=5)
         return pipe
 
     @pytest.fixture
@@ -417,7 +420,7 @@ class TestCommandDispatcherWithRealPackets:
         conn.transaction_mgr = None
 
         with patch.object(session_manager, "get_session", return_value=conn):
-            dispatcher = CommandDispatcher(
+            CommandDispatcher(
                 bus=event_bus, session_mgr=session_manager, cmw=None
             )
 
@@ -451,7 +454,7 @@ class TestCommandDispatcherWithRealPackets:
         mock_cmw = AsyncMock()
         mock_cmw.is_connected = True
 
-        dispatcher = CommandDispatcher(
+        CommandDispatcher(
             bus=event_bus, session_mgr=session_manager, cmw=mock_cmw
         )
 

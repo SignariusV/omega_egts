@@ -5,7 +5,7 @@
 **Версия ТЗ:** 7.0 (Объединённая)
 **Методология:** TDD (Test-Driven Development)
 **Качество кода:** ruff + mypy + pytest (покрытие ≥ 90%)
-**Прогресс:** 21/36 задач выполнено (58%)
+**Прогресс:** 29/37 задач выполнено (78%)
 
 ---
 
@@ -624,6 +624,46 @@ pytest tests/ -v  # Должен показать 0 тестов, но без о
 
 ---
 
+### Задача 4.6: AutoResponseMiddleware
+
+**Суть:** Формирование RESPONSE для успешно обработанных пакетов (CR-009).
+
+**Основано на:** ТЗ Раздел 1.7 — «Ядро отправляет RESPONSE»
+
+**Что делать:**
+1. **Тесты** (`tests/core/test_auto_response_middleware.py`):
+   - Успешный пакет → response_data заполнен
+   - crc_valid=False → пропускает
+   - parsed=None → пропускает
+   - is_duplicate=True → пропускает
+   - response_data уже заполнен → не перезаписывает
+   - connection not found → пропускает
+   - protocol=None → пропускает
+   - add_pid_response вызывается
+   - Интеграция: полный pipeline + дубликат из кэша
+
+2. **Реализовать** `core/pipeline.py`:
+   - `AutoResponseMiddleware(session_mgr)` — order=3
+   - Формирует `protocol.build_response(pid, result_code=0)`
+   - Кеширует через `conn.add_pid_response(pid, response)`
+
+3. **Реализовать** `core/dispatcher.py`:
+   - `PacketDispatcher._build_pipeline()` — добавляет AutoResponseMiddleware
+   - `pipeline` параметр теперь Optional (по умолчанию создаётся через `_build_pipeline`)
+
+4. **Коммит:** `fix: исправить CR-009 — AutoResponseMiddleware`
+
+**Критерии выполнения:**
+- ✅ RESPONSE формируется для каждого успешного пакета
+- ✅ RESPONSE кешируется для дубликатов
+- ✅ 12 тестов, 96% coverage pipeline.py
+- ✅ ruff + mypy clean
+- ✅ Все 118 существующих тестов проходят
+
+**Статус:** ✅ **ВЫПОЛНЕНО** | 12 тестов, AutoResponseMiddleware order=3, _build_pipeline() в PacketDispatcher
+
+---
+
 ## Итерация 5: Network и CMW-500
 
 **Ветка:** `iteration-5/network-cmw`  
@@ -661,13 +701,26 @@ pytest tests/ -v  # Должен показать 0 тестов, но без о
 - ✅ События эмитятся
 - ✅ Тесты проходят
 
+**Статус:** ✅ **ВЫПОЛНЕНО** | 15 тестов, 97% coverage, ruff + mypy чистые
+
 ---
 
 ### Задача 5.2: Cmw500Controller с очередью команд
 
-**Суть:** Контроллер CMW-500 через SCPI с retry и очередью.
+**Суть:** Контроллер CMW-500 через SCPI с retry и очередью. Поддержка SMS (отправка + приём).
 
 **Основано на:** ТЗ Раздел 2.6.2, код Cmw500Controller
+
+**Архитектурное решение по SMS (09.04.2026):**
+CMW-500 сам кодирует/декодирует SMS PDU. Мы передаём только сырые EGTS-байты:
+- **Отправка:** `send_sms(egts_bytes)` → SCPI `CMW:GSM:SIGN:SMS:SEND` → CMW-500 сам упаковывает в PDU
+- **Приём:** `read_sms()` → SCPI `CMW:GSM:SIGN:SMS:READ?` → CMW-500 возвращает сырые EGTS-байты
+- **Номер получателя не нужен** — CMW-500 шлёт тому УСВ, которое подключено к прибору
+
+**Важно:** SMS имеет существенно бо́льшие задержки чем TCP:
+- Отправка SMS: 3–30 с (vs ~200 мс TCP)
+- Приём SMS: опрос `read_sms()` каждую 1–5 с (vs постоянный поток TCP)
+- Таймаут транзакции для SMS: 30–60 с (vs 5–10 с TCP)
 
 **Что делать:**
 1. **Тесты** (`tests/core/test_cmw500.py`):
@@ -675,101 +728,213 @@ pytest tests/ -v  # Должен показать 0 тестов, но без о
    - execute команды через очередь
    - Retry при ошибке (3 попытки)
    - Timeout команды
-   - send_sms, get_imei, get_status
+   - **send_sms** — отправка сырых EGTS-байт через SCPI
+   - **read_sms** — приём сырых EGTS-байт из принятой SMS
+   - **_poll_incoming_sms** — фоновый опрос, emit raw.packet.received
+   - get_imei, get_status
 
 2. **Реализовать** `core/cmw500.py`:
    - `CmwCommand` dataclass
    - `Cmw500Controller` с asyncio.Queue
    - `_worker_loop()`
    - `_execute_with_retry()`
-   - Предопределённые команды (GET_IMEI, SEND_SMS, ...)
+   - Предопределённые команды (GET_IMEI, SEND_SMS, READ_SMS, ...)
+   - `async send_sms(egts_bytes: bytes) -> bool` — обёртка над SEND_SMS (CMW-500 сам кодирует PDU)
+   - `async read_sms() -> bytes | None` — читает принятую SMS, возвращает сырые EGTS-байты (CMW-500 сам декодирует PDU)
+   - `async _poll_incoming_sms()` — фоновая задача: опрос READ_SMS каждую секунду, emit `raw.packet.received` с `channel="sms"`
 
-3. **Коммит:** `feat: implement Cmw500Controller with command queue and retry`
+3. **Коммит:** `feat: implement Cmw500Controller with command queue, retry, and SMS support`
 
 **Критерии выполнения:**
 - ✅ Команды выполняются через очередь
-- ✅ Retry работает
+- ✅ Retry работает (3 попытки)
+- ✅ SMS-отправка: сырые EGTS-байты → SCPI SEND
+- ✅ SMS-приём: опрос READ_SMS → emit raw.packet.received
+- ✅ Фоновый опрос SMS не блокирует другие команды
 - ✅ Тесты проходят
+
+**Статус:** ✅ **ВЫПОЛНЕНО** | 39 тестов, фоновый poll loop, fix orphan future, disconnect cleanup
 
 ---
 
 ### Задача 5.3: Cmw500Emulator
 
-**Суть:** Эмулятор CMW-500 для разработки и тестов.
+**Суть:** Эмулятор CMW-500 для разработки и тестов. Поддержка TCP и SMS.
 
 **Основано на:** ТЗ Раздел 2.6.3, код Cmw500Emulator
+
+**Архитектурное решение по SMS (09.04.2026):**
+Эмулятор имитирует поведение реального CMW-500 по SMS:
+- `send_sms(egts_bytes)` — «отправляет» пакет на подключённый УСВ (эмулирует задержку SMS)
+- `read_sms()` — возвращает ответный пакет от «УСВ» (эмулирует принятую SMS)
+- `_poll_incoming_sms()` — эмулирует входящие SMS с настраиваемой задержкой
 
 **Что делать:**
 1. **Тесты** (`tests/core/test_cmw_emulator.py`):
    - Ответы на SCPI-команды
-   - Случайные задержки (100мс-2с)
+   - Случайные задержки TCP: 100мс–2с
+   - **Случайные задержки SMS: 3–30 с** (настраиваемый диапазон)
    - Эмуляция IMEI/IMSI/RSSI
+   - **send_sms — имитация задержки, возврат OK**
+   - **read_sms — возврат «ответного» пакета от УСВ**
+   - **_poll_incoming_sms — эмуляция входящих SMS с интервалом 1–5 с**
 
 2. **Реализовать** `core/cmw500.py`:
-   - `Cmw500Emulator(Cmw500Controller)`
-   - `_send_scpi()` с random.sleep
+   - `Cmw500Emulator(Cmw500Controller)` — наследуется, переопределяет SCPI
+   - `_send_scpi()` с random.sleep (настраиваемый диапазон)
+   - **`send_sms(egts_bytes)` — случайная задержка 3–30 с, сохранение в очередь входящих**
+   - **`read_sms() -> bytes | None` — возврат ответа из очереди «входящих SMS»**
+   - **`set_incoming_sms_handler(handler)` — колбэк для эмуляции ответов УСВ**
    - Ответы на команды
 
-3. **Коммит:** `feat: implement Cmw500Emulator for development testing`
+3. **Коммит:** `feat: implement Cmw500Emulator with SMS support (delayed send, read, poll)`
 
 **Критерии выполнения:**
 - ✅ Эмулятор отвечает на команды
-- ✅ Задержки случайные
-- ✅ Тесты проходят
+- ✅ Задержки TCP случайные (100мс–2с)
+- ✅ **SMS-отправка эмулирует задержку 3–30 с**
+- ✅ **SMS-приём возвращает ответ от «УСВ»**
+- ✅ **Фоновый опрос SMS работает**
+- ✅ Тесты проходит
+
+**Статус:** ✅ **ВЫПОЛНЕНО** | 19 тестов, внешний аудит исправлен (queue-based send_sms, async handler, task_done, RuntimeError protection)
 
 ---
 
 ### Задача 5.4: PacketDispatcher
 
-**Суть:** Координатор pipeline, связывает raw packets → pipeline → packet.processed.
+**Суть:** Координатор pipeline, связывает raw packets → pipeline → packet.processed. Поддержка TCP и SMS каналов.
 
 **Основано на:** ТЗ Раздел 2.7.1, код PacketDispatcher
 
+**Архитектурное решение (09.04.2026):**
+PacketDispatcher — **channel-агностик**. Он не различает TCP и SMS:
+- `channel` передаётся из источника пакета в pipeline
+- `connection_id` для SMS = `None` (нет постоянного соединения)
+- Pipeline обрабатывает оба канала одинаково — различие только в контексте
+
 **Что делать:**
 1. **Тесты** (`tests/core/test_packet_dispatcher.py`):
-   - Подписка на raw.packet.received
+   - Подписка на `raw.packet.received`
+   - **TCP-канал:** `connection_id` передан → pipeline.process(raw, channel="tcp", connection_id="...")
+   - **SMS-канал:** `connection_id=None` → pipeline.process(raw, channel="sms", connection_id=None)
    - Вызов pipeline.process()
-   - Emit packet.processed
+   - Emit packet.processed с `channel` и `connection_id`
    - Pipeline собирается с правильным order middleware
 
 2. **Реализовать** `core/dispatcher.py`:
-   - `PacketDispatcher`
+   - `PacketDispatcher(bus, session_mgr, protocol)`
    - `_build_pipeline()` — добавляет все middleware в порядке
-   - `_on_raw_packet()`
+   - `_on_raw_packet(data: dict)`:
+     ```python
+     ctx = await self.pipeline.process(
+         raw=data["raw"],
+         channel=data["channel"],           # "tcp" или "sms"
+         connection_id=data.get("connection_id")  # str или None
+     )
+     await self.bus.emit("packet.processed", {
+         "ctx": ctx,
+         "connection_id": data.get("connection_id"),
+         "channel": data["channel"]
+     })
+     ```
 
-3. **Коммит:** `feat: implement PacketDispatcher as pipeline coordinator`
+3. **Коммит:** `feat: implement PacketDispatcher as pipeline coordinator (TCP + SMS agnostic)`
 
 **Критерии выполнения:**
-- ✅ Pipeline вызывается для каждого пакета
+- ✅ Pipeline вызывается для каждого пакета (TCP и SMS)
+- ✅ `connection_id=None` корректно передаётся для SMS
+- ✅ `channel` корректно передаётся в packet.processed
 - ✅ Тесты проходят
+
+**Статус:** ✅ **ВЫПОЛНЕНО** | 24 теста, 95% coverage, ruff + mypy чистые
 
 ---
 
-### Задача 5.5: CommandDispatcher
+### Задача 5.5: CommandDispatcher + SMS-отправка
 
-**Суть:** Отправка команд через подключение, регистрация транзакций.
+**Суть:** Отправка команд через TCP-подключение и через SMS (CMW-500), регистрация транзакций.
 
-**Основано на:** ТЗ Раздел 2.7.2, код CommandDispatcher
+**Основано на:** ТЗ Раздел 2.7.2, код CommandDispatcher + Сценарий 9 (SMS-канал)
+
+**Архитектурное решение (Вариант А — принят на 09.04.2026):**
+CommandDispatcher единый для обоих каналов. Проверка `data.get("channel", "tcp")`:
+- `"tcp"` (или отсутствует) → `conn.writer.write()` — напрямую в TCP-соединение
+- `"sms"` → `cmw.send_sms(packet_bytes)` — сырые байты EGTS в CMW-500, он сам упаковывает в PDU и шлёт подключённому УСВ
+
+**Важно:** CMW-500 знает, какое УСВ подключено — номер получателя не нужен. Мы передаём только сырые байты EGTS-пакета, CMW-500 сам кодирует PDU и отправляет SMS. Аналогично на приёме — CMW-500 возвращает сырые EGTS-байты из принятой SMS.
+
+Это сохраняет единый интерфейс `command.send` для сценариев — им не нужно знать, какой диспетчер вызывать.
 
 **Что делать:**
 1. **Тесты** (`tests/core/test_command_dispatcher.py`):
    - Подписка на command.send
-   - Запись данных в writer
-   - Регистрация транзакции
-   - Emit command.sent
-   - Emit command.error при ошибке
-   - Ошибка если connection_id не найден
+   - **TCP-канал:** запись данных в writer, регистрация транзакции, emit command.sent
+   - **SMS-канал:** вызов `cmw.send_sms(packet_bytes)`, emit command.sent
+   - Emit command.error при ошибке (оба канала)
+   - Ошибка если connection_id не найден (только для TCP)
+   - Ошибка если CMW-500 не подключён (для SMS)
 
 2. **Реализовать** `core/dispatcher.py`:
-   - `CommandDispatcher`
-   - `_on_command()` с try/except
+   - `CommandDispatcher(bus, session_mgr, cmw=None)`
+   - `_on_command()` — проверка `channel`, маршрутизация на TCP или SMS
+   - `_send_tcp()` — запись в conn.writer, регистрация транзакции
+   - `_send_sms()` — вызов `cmw.send_sms(packet_bytes)`, регистрация транзакции
+   - `_handle_error()` — emit command.error
 
-3. **Коммит:** `feat: implement CommandDispatcher for sending EGTS commands`
+3. **Добавить в Cmw500Controller** (Задача 5.2):
+   - `async send_sms(packet_bytes: bytes) -> bool` — обёртка над SEND_SMS командой (CMW-500 сам кодирует PDU)
+   - `async read_sms() -> bytes | None` — читает принятую SMS, возвращает сырые EGTS-байты (CMW-500 сам декодирует PDU)
+
+4. **Сценарий SMS (пример):**
+   ```json
+   {
+     "type": "send",
+     "channel": "sms",
+     "build": { "service": 1, "fields": { "TID": 12345 } },
+     "step_name": "auth_sms"
+   }
+   ```
+   **Никакого `recipient` — CMW-500 шлёт тому УСВ, которое подключено к прибору.**
+
+5. **Коммит:** `feat: implement CommandDispatcher with TCP and SMS channel support`
 
 **Критерии выполнения:**
-- ✅ Команды отправляются
-- ✅ Ошибки обрабатываются
+- ✅ TCP-отправка работает как раньше
+- ✅ SMS-отправка: сырые EGTS-байты → `cmw.send_sms()`
+- ✅ Приём SMS: `cmw.read_sms()` → сырые EGTS-байты → pipeline
+- ✅ Сценарии указывают только `channel: "sms"`
+- ✅ Транзакции регистрируются для обоих каналов
+- ✅ Ошибки обрабатываются корректно
 - ✅ Тесты проходят
+
+**Статус:** ✅ **ВЫПОЛНЕНО** | 23 теста, 95% coverage (совместно с PacketDispatcher), ruff + mypy чистые
+
+---
+
+### Задача 5.6: Интеграционные тесты
+
+**Суть:** Тесты взаимодействия всех реализованных компонентов — цепочка от EventBus до Pipeline, SessionManager, CommandDispatcher.
+
+**Основано на:** ТЗ Раздел 3.10 (интеграционное тестирование), архитектура EventBus
+
+**Что делать:**
+1. **Тесты** (`tests/core/test_integration_chain.py`):
+   - **TCP-пайплайн:** raw.packet.received → Pipeline (CRC→Parse→Dedup→Event) → packet.processed
+   - **Дубликаты:** повторный PID определяется через DuplicateDetectionMiddleware
+   - **SMS-канал:** channel="sms" сохраняется через pipeline
+   - **CommandDispatcher TCP:** writer.write вызывается, command.sent эмитается
+   - **CommandDispatcher SMS:** cmw.send_sms вызывается, command.sent эмитается
+   - **EventBus ordered:** последовательное выполнение handlers
+
+2. **Коммит:** `feat: add integration chain tests (pipeline + dispatchers + session)`
+
+**Критерии выполнения:**
+- ✅ Все 6 интеграционных тестов проходят
+- ✅ Цепочка компонентов подтверждена: EventBus → Pipeline → SessionManager
+- ✅ TCP и SMS каналы работают через CommandDispatcher
+
+**Статус:** ✅ **ВЫПОЛНЕНО** | 6 тестов, интеграция EventBus→Pipeline→SessionManager→CommandDispatcher подтверждена
 
 ---
 

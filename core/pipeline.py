@@ -310,6 +310,70 @@ class CrcValidationMiddleware:
 
 
 # =============================================================================
+# AutoResponseMiddleware
+# =============================================================================
+
+
+class AutoResponseMiddleware:
+    """Формирование RESPONSE для успешно обработанных пакетов.
+
+    Работает ПОСЛЕ ParseMiddleware и ПЕРЕД DuplicateDetectionMiddleware:
+    - Если crc_valid=False — пропускает (RESPONSE уже в CrcValidationMiddleware)
+    - Если parsed.packet=None — пропускает (парсинг не удался)
+    - Если is_duplicate=True — пропускает (RESPONSE из кэша в Dedup)
+    - Если response_data уже заполнен — не перезаписывает
+    - Для успешного пакета формирует RESPONSE(pid, result_code=0)
+    - Кеширует RESPONSE через conn.add_pid_response() для будущих дубликатов
+    """
+
+    def __init__(self, session_mgr: SessionManager) -> None:
+        self._session_mgr = session_mgr
+
+    async def __call__(self, ctx: PacketContext) -> None:
+        # Пропускаем если CRC невалиден — RESPONSE уже сформирован
+        if not ctx.crc_valid:
+            return
+
+        # Пропускаем если не распарсен
+        if ctx.parsed is None or ctx.parsed.packet is None:
+            return
+
+        # Пропускаем если уже дубликат — RESPONSE из кэша
+        if ctx.is_duplicate:
+            return
+
+        # Пропускаем если response_data уже заполнен
+        if ctx.response_data is not None:
+            return
+
+        conn = self._session_mgr.get_session(ctx.connection_id)
+        if conn is None:
+            logger.debug("AutoResponse: connection %s not found", ctx.connection_id)
+            return
+
+        protocol = conn.protocol
+        if protocol is None:
+            logger.debug("AutoResponse: protocol is None for %s", ctx.connection_id)
+            return
+
+        packet = ctx.parsed.packet
+        pid = packet.packet_id
+
+        # Формируем RESPONSE с result_code=0 (успешная обработка)
+        response_data = protocol.build_response(pid=pid, result_code=0)
+        ctx.response_data = response_data
+
+        # Кешируем для будущих дубликатов
+        conn.add_pid_response(pid=pid, response=response_data)
+
+        logger.debug(
+            "AutoResponse: RESPONSE для PID=%d (%d байт)",
+            pid,
+            len(response_data),
+        )
+
+
+# =============================================================================
 # DuplicateDetectionMiddleware
 # =============================================================================
 
