@@ -11,7 +11,7 @@ COMMANDS сервис EGTS (ГОСТ 33465-2015, раздел 6.7.3)
 
 from typing import Any
 
-from .._internal.types import (
+from ..types import (
     EGTS_CHARSET,
     EGTS_CMD_MIN_SIZE,
     EGTS_COMMAND_ACL_SIZE,
@@ -26,7 +26,6 @@ from .._internal.types import (
     EGTS_COMMAND_DATA_MIN_SIZE,
     EGTS_COMMAND_FLAGS_SIZE,
     EGTS_COMMAND_SID_SIZE,
-    EGTS_COMMAND_SZ_ACT_SIZE,
     EGTS_COMMAND_SZ_MASK,
     EGTS_COMMAND_SZ_SHIFT,
     EGTS_COMMAND_TYPE,
@@ -134,11 +133,21 @@ def parse_command_data(data: bytes) -> dict[str, Any]:
             f"Размер данных команды превышает максимум: {len(cd)} > {MAX_COMMAND_DATA_SIZE}"
         )
 
+    # Текстовые описания CT и CCT через try/except (не _value2member_map_)
+    try:
+        ct_text = EGTS_COMMAND_TYPE(ct).name
+    except ValueError:
+        ct_text = f"Unknown ({ct})"
+    try:
+        cct_text = EGTS_CONFIRMATION_TYPE(cct).name
+    except ValueError:
+        cct_text = f"Unknown ({cct})"
+
     return {
         "ct": ct,
-        "ct_text": EGTS_COMMAND_TYPE(ct).name if ct in EGTS_COMMAND_TYPE._value2member_map_ else f"Unknown ({ct})",
+        "ct_text": ct_text,
         "cct": cct,
-        "cct_text": EGTS_CONFIRMATION_TYPE(cct).name if cct in EGTS_CONFIRMATION_TYPE._value2member_map_ else f"Unknown ({cct})",
+        "cct_text": cct_text,
         "cid": cid,
         "sid": sid,
         "acfe": acfe,
@@ -234,10 +243,7 @@ def parse_command_details(cd: bytes) -> dict[str, Any]:
     # CCD (2 байта) - код команды
     ccd = int.from_bytes(
         cd[
-            EGTS_COMMAND_ADR_SIZE
-            + EGTS_COMMAND_SZ_ACT_SIZE : EGTS_COMMAND_ADR_SIZE
-            + EGTS_COMMAND_SZ_ACT_SIZE
-            + EGTS_COMMAND_CCD_SIZE
+            EGTS_COMMAND_ADR_SIZE + 1 : EGTS_COMMAND_ADR_SIZE + 1 + EGTS_COMMAND_CCD_SIZE
         ],
         "little",
     )
@@ -259,7 +265,7 @@ def create_command(
     cid: int,
     command_code: int,
     address: int = 0,
-    action: EGTS_PARAM_ACTION = EGTS_PARAM_ACTION.PARAMS,
+    action: EGTS_PARAM_ACTION | int = EGTS_PARAM_ACTION.PARAMS,
     data: bytes = b"",
     sid: int = 0,
     ac: bytes = b"",
@@ -274,7 +280,7 @@ def create_command(
         cid: Идентификатор команды (0-4294967295)
         command_code: Код команды (например, EGTS_GET_VERSION)
         address: Адрес команды (ADR, 0-65535)
-        action: Действие (EGTS_PARAM_ACTION)
+        action: Действие (EGTS_PARAM_ACTION или int, 0-7)
         data: Данные команды (DT, макс. 255 байт)
         sid: Идентификатор отправителя (0-4294967295)
         ac: Код авторизации (макс. 255 байт)
@@ -300,6 +306,15 @@ def create_command(
         raise ValueError(f"Код авторизации не может превышать 255 байт, получено {len(ac)}")
     if not (0 <= sz <= 31):
         raise ValueError(f"SZ должен быть в диапазоне 0-31, получен {sz}")
+
+    # SZ-валидация для ACT=2 (установка значения): len(data) == 2^SZ
+    # ГОСТ 33465 таблица 30: SZ определяет требуемый объём памяти 2^SZ
+    act_value = action if isinstance(action, int) else action.value
+    if sz > 0 and act_value == 2 and len(data) != (1 << sz):
+        expected = 1 << sz
+        raise ValueError(
+            f"Для SZ={sz} и ACT=2 (установка значения) ожидается {expected} байт данных, получено {len(data)}"
+        )
 
     # Формируем тело команды: ADR + SZ + ACT + CCD + DT
     cmd_body = address.to_bytes(EGTS_COMMAND_ADR_SIZE, "little")
@@ -408,12 +423,21 @@ def create_message(
         except ValueError as err:
             raise ValueError(f"Неизвестная кодировка: {chs}") from err
 
+    # BINARY — не текстовая кодировка, требует bytes
+    if chs in (EGTS_CHARSET.BINARY, EGTS_CHARSET.BINARY_ALT):
+        raise ValueError(
+            "BINARY кодировка (CHS=2/4) требует bytes-данных. "
+            "Используйте create_command() с data=bytes напрямую."
+        )
+
     # Выбор кодировки
+    # UCS2 (ГОСТ) = UTF-16-LE без BOM. UCS-2 — подмножество UTF-16 без суррогатных пар.
+    # Для eCall/VIN все символы из BMP (Basic Multilingual Plane), поэтому utf-16-le корректен.
     encoding_map = {
         EGTS_CHARSET.CP1251: "cp1251",
         EGTS_CHARSET.ASCII: "ascii",
         EGTS_CHARSET.LATIN1: "latin-1",
-        EGTS_CHARSET.UCS2: "utf-16-le",
+        EGTS_CHARSET.UCS2: "utf-16-le",  # UCS-2 ⊂ UTF-16, все символы в BMP
     }
 
     encoding = encoding_map.get(chs, "cp1251")

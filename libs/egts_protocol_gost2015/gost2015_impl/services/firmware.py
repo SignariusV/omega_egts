@@ -38,17 +38,12 @@ FIRMWARE сервис EGTS (ГОСТ 33465-2015, раздел 6.7.4)
 
 from typing import Any
 
-from .._internal.crc import crc16
-from .._internal.types import (
+from ..crc import crc16
+from ..types import (
     EGTS_MAX_OBJECT_DATA_SIZE,
     EGTS_MAX_PARTS,
-    # Константы FIRMWARE сервиса
-    EGTS_OBJECT_ATTRIBUTE,
-    EGTS_OBJECT_TYPE,
     EGTS_ODH_MAX_SIZE,
-    # ODH размеры
     EGTS_ODH_MIN_SIZE,
-    EGTS_TARGET_MODULE_TYPE,
 )
 
 # ============================================
@@ -57,25 +52,22 @@ from .._internal.types import (
 
 
 # Типы объектов (OT - Object Type)
-# Используется EGTS_OBJECT_TYPE из types.py
-OBJECT_TYPES = {
-    EGTS_OBJECT_TYPE.FIRMWARE: "Прошивка (firmware)",
-    EGTS_OBJECT_TYPE.CONFIG: "Конфигурация (config)",
+OBJECT_TYPES: dict[int, str] = {
+    0: "Прошивка (firmware)",
+    1: "Конфигурация (config)",
 }
 
 # Типы модулей (MT - Module Type)
-# Используется EGTS_TARGET_MODULE_TYPE из types.py
-MODULE_TYPES = {
-    EGTS_TARGET_MODULE_TYPE.PERIPHERAL: "Периферийное оборудование",
-    EGTS_TARGET_MODULE_TYPE.MAIN_DEVICE: "УСВ (основной модуль)",
+MODULE_TYPES: dict[int, str] = {
+    0: "Периферийное оборудование",
+    1: "УСВ (основной модуль)",
 }
 
 # Атрибуты объектов (OA - Object Attribute)
-# Используется EGTS_OBJECT_ATTRIBUTE из types.py
-OBJECT_ATTRIBUTES = {
-    EGTS_OBJECT_ATTRIBUTE.STANDARD: "Стандартное обновление",
-    EGTS_OBJECT_ATTRIBUTE.CRITICAL: "Критическое обновление",
-    EGTS_OBJECT_ATTRIBUTE.CONFIG: "Конфигурация",
+OBJECT_ATTRIBUTES: dict[int, str] = {
+    0: "Стандартное обновление",
+    1: "Критическое обновление",
+    2: "Конфигурация",
 }
 
 # Максимальные размеры (импортированы из types.py)
@@ -204,10 +196,14 @@ def create_odh(
     result.extend((whole_signature & 0xFFFF).to_bytes(2, "little"))
 
     # FN (0-64 байта) - имя файла (опционально)
+    # Максимум 63 байта: OA(1)+OT+MT(1)+CMI(1)+VER(2)+WOS(2)=7 + FN(63) + D(1) = 71 = EGTS_ODH_MAX_SIZE
     if file_name:
         fn_bytes = file_name.encode("cp1251")
-        if len(fn_bytes) > 64:
-            fn_bytes = fn_bytes[:64]
+        if len(fn_bytes) > 63:
+            raise ValueError(
+                f"Имя файла слишком длинное: {len(fn_bytes)} байт (максимум 63). "
+                f"Файл: {file_name!r}"
+            )
         result.extend(fn_bytes)
 
     # D (1 байт) - разделитель (всегда 0x00)
@@ -338,16 +334,19 @@ def parse_service_full_data(data: bytes) -> dict[str, Any]:
         )
 
     # Находим разделитель ODH (0x00)
-    # Минимальный ODH: OA(1)+OT+MT(1)+CMI(1)+VER(2)+WOS(2)+D(1) = 8 байт
-    # Разделитель находится на позиции 7 (8-й байт, 0-based индекс)
+    # ODH структура: OA(1) + OT+MT(1) + CMI(1) + VER(2) + WOS(2) + FN(0-64) + D(1)
+    # Минимальный ODH: 8 байт, разделитель на позиции 7
+    # С FN: разделитель после FN, но не позже EGTS_ODH_MAX_SIZE
+    # Поиск ограничен EGTS_ODH_MAX_SIZE — байт 0x00 из OD не попадёт в диапазон
     delimiter_pos = -1
-    for i in range(7, min(len(data), EGTS_ODH_MAX_SIZE + 1)):
+    odh_search_limit = min(len(data), EGTS_ODH_MAX_SIZE)
+    for i in range(7, odh_search_limit):
         if data[i] == 0x00:
             delimiter_pos = i
             break
 
     if delimiter_pos == -1:
-        raise ValueError("Не найден разделитель ODH")
+        raise ValueError("Не найден разделитель ODH (0x00)")
 
     # ODH включает разделитель
     odh_end = delimiter_pos + 1
@@ -556,11 +555,11 @@ def parse_service_part_data(data: bytes) -> dict[str, Any]:
         Dict с полями: id, pn, epq, odh, od, odh_parsed, is_first_part
 
     Raises:
-        ValueError: Если размер данных меньше 6 байт
+        ValueError: Если размер данных меньше минимального
     """
-    if len(data) < 8:  # Минимум: 6 байт заголовка + 1 байт OD + 1 байт разделитель
+    if len(data) < 7:  # Минимум: 6 байт заголовка (ID+PN+EPQ) + 1 байт OD
         raise ValueError(
-            f"Слишком маленькие данные: {len(data)} байт (минимум 8)"
+            f"Слишком маленькие данные: {len(data)} байт (минимум 7)"
         )
 
     offset = 0
@@ -579,18 +578,30 @@ def parse_service_part_data(data: bytes) -> dict[str, Any]:
 
     is_first_part = part_number == 1
 
+    # Проверка pn <= epq по ГОСТ 33465 (таблица 36, примечание)
+    if part_number > total_parts:
+        raise ValueError(
+            f"Номер части ({part_number}) больше общего количества ({total_parts})"
+        )
+
+    # Для первой части минимум: 6 + 1 (ODH минимум 7 + разделитель) + 1 (OD) = 8
+    # Для остальных частей минимум: 6 + 1 (OD) = 7
+    if is_first_part and len(data) < 8:
+        raise ValueError(
+            f"Слишком маленькие данные для первой части: {len(data)} байт (минимум 8)"
+        )
+
     # ODH (только для первой части)
     odh: bytes | None = None
     odh_parsed: dict[str, Any] | None = None
 
     if is_first_part:
-        # Находим разделитель ODH (0x00) - последний байт ODH
+        # Находим разделитель ODH (0x00) — последний байт ODH
         # ODH структура: OA(1) + OT+MT(1) + CMI(1) + VER(2) + WOS(2) + FN(0-64) + D(1)
-        # Разделитель находится на позиции 7 (8-й байт) для минимального ODH без FN
+        # Поиск ограничен EGTS_ODH_MAX_SIZE — байт 0x00 из OD не попадёт в диапазон
         delimiter_pos = -1
-        # Начинаем поиск после обязательных полей: OA(1)+OT+MT(1)+CMI(1)+VER(2)+WOS(2) = 7 байт
-        # Разделитель D находится минимум на 8-й позиции (0-based индекс 7)
-        for i in range(offset + 7, min(len(data), offset + EGTS_ODH_MAX_SIZE + 1)):
+        odh_search_limit = min(len(data), offset + EGTS_ODH_MAX_SIZE)
+        for i in range(offset + 7, odh_search_limit):
             if data[i] == 0x00:
                 delimiter_pos = i
                 break
@@ -683,20 +694,37 @@ def split_firmware_to_parts(
     data_size_first = max_part_size - overhead_first
     data_size_other = max_part_size - overhead_other
 
-    # Используем минимальный размер для всех частей
-    data_size = min(data_size_first, data_size_other)
-    if data_size < 1:
-        raise ValueError("Слишком маленький max_part_size")
+    if data_size_first < 1 or data_size_other < 1:
+        raise ValueError(
+            f"Слишком маленький max_part_size={max_part_size}: "
+            f"первая часть вмещает {data_size_first} байт данных, "
+            f"остальные — {data_size_other} байт"
+        )
 
-    # Разбиваем данные на части
-    parts_data = []
+    # Разбиваем данные с учётом разного размера первой и остальных частей
+    parts_data: list[bytes] = []
     offset = 0
+
+    # Первая часть (может вместить больше данных из-за ODH)
+    if len(firmware_binary) > 0:
+        end = min(offset + data_size_first, len(firmware_binary))
+        parts_data.append(firmware_binary[offset:end])
+        offset = end
+
+    # Остальные части
     while offset < len(firmware_binary):
-        end = min(offset + data_size, len(firmware_binary))
+        end = min(offset + data_size_other, len(firmware_binary))
         parts_data.append(firmware_binary[offset:end])
         offset = end
 
     total_parts = len(parts_data)
+
+    # Проверка: не больше EGTS_MAX_PARTS (65535)
+    if total_parts > EGTS_MAX_PARTS:
+        raise ValueError(
+            f"Слишком много частей: {total_parts} > {EGTS_MAX_PARTS}. "
+            f"Увеличьте max_part_size (текущий: {max_part_size})"
+        )
 
     # Создаем сериализованные подзаписи
     result = []
@@ -731,30 +759,45 @@ def split_firmware_to_parts(
     return result
 
 
-def assemble_parts(parts: list[bytes]) -> tuple[bytes, dict[str, Any]]:
+def assemble_parts(
+    parts: list[bytes],
+    expected_crc: int | None = None,
+) -> tuple[bytes, dict[str, Any]]:
     """
     Сборка частей в целую сущность
 
     Args:
         parts: Список байтов частей (данные OD из SERVICE_PART_DATA)
+        expected_crc: Ожидаемая CRC16 сигнатура (опционально, для проверки)
 
     Returns:
         Tuple[bytes, dict]:
             - bytes: Собранная сущность
-            - dict: Метаданные (size, crc16 если есть ODH)
+            - dict: Метаданные (size, crc_valid если указана expected_crc)
 
     Raises:
-        ValueError: Если части некорректны
+        ValueError: Если части некорректны или CRC не совпадает
     """
     if not parts:
         raise ValueError("Пустой список частей")
 
-    # Просто конкатенируем данные
+    # Конкатенируем данные
     assembled = b"".join(parts)
 
-    metadata = {
+    metadata: dict[str, Any] = {
         "size": len(assembled),
     }
+
+    # Проверка CRC16 сигнатуры (если указана expected_crc)
+    if expected_crc is not None:
+        calculated_crc = calculate_crc16_ccitt(assembled)
+        metadata["crc_valid"] = calculated_crc == expected_crc
+        metadata["calculated_crc"] = calculated_crc
+        if not metadata["crc_valid"]:
+            raise ValueError(
+                f"CRC16 не совпадает: ожидается {expected_crc:#06x}, "
+                f"получен {calculated_crc:#06x}"
+            )
 
     return assembled, metadata
 
