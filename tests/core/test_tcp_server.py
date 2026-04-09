@@ -3,9 +3,42 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import AsyncIterator
+
+import pytest
 
 from core.event_bus import EventBus
 from core.tcp_server import TcpServerManager
+
+# ---------------------------------------------------------------------------
+# Фикстуры
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+async def bus() -> EventBus:
+    """Создать EventBus для каждого теста."""
+    return EventBus()
+
+
+@pytest.fixture
+async def server(bus: EventBus) -> AsyncIterator[TcpServerManager]:
+    """Создать и запустить сервер, гарантированно остановить после теста.
+
+    Эта фикстура гарантирует, что сервер будет остановлен даже при
+    отмене теста или возникновении ошибки.
+    """
+    srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
+    await srv.start()
+    try:
+        yield srv
+    finally:
+        try:
+            await srv.stop()
+        except Exception:
+            # Если сервер уже остановлен — игнорируем
+            pass
+
 
 # ---------------------------------------------------------------------------
 # Вспомогательные функции
@@ -44,58 +77,61 @@ def _build_egts_packet(pid: int = 1, body: bytes = b"\x00") -> bytes:
 class TestTcpServerStartStop:
     """Тесты запуска и остановки TcpServerManager."""
 
-    async def test_start_opens_socket(self) -> None:
+    async def test_start_opens_socket(self, server: TcpServerManager) -> None:
         """start() открывает TCP-сокет на заданном порту."""
-        bus = EventBus()
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
-        await srv.start()
-        try:
-            assert srv.is_running is True
-            assert srv.server is not None
-            # Проверяем, что сокет действительно слушает
-            socks = srv.server.sockets
-            assert socks is not None
-            assert len(socks) > 0
-        finally:
-            await srv.stop()
+        assert server.is_running is True
+        assert server.server is not None
+        socks = server.server.sockets
+        assert socks is not None
+        assert len(socks) > 0
 
-    async def test_stop_closes_socket(self) -> None:
+    async def test_stop_closes_socket(self, bus: EventBus) -> None:
         """stop() закрывает TCP-сокет."""
-        bus = EventBus()
         srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
         await srv.start()
         await srv.stop()
         assert srv.is_running is False
         assert srv.server is None
 
-    async def test_start_idempotent(self) -> None:
+    async def test_start_idempotent(self, server: TcpServerManager) -> None:
         """Повторный start() не создаёт второй сервер."""
-        bus = EventBus()
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
-        await srv.start()
-        try:
-            first_server = srv.server
-            await srv.start()  # повторный вызов
-            assert srv.server is first_server
-        finally:
-            await srv.stop()
+        first_server = server.server
+        await server.start()  # повторный вызов
+        assert server.server is first_server
 
-    async def test_stop_without_start_is_noop(self) -> None:
+    async def test_stop_without_start_is_noop(self, bus: EventBus) -> None:
         """stop() без start() не вызывает ошибок."""
-        bus = EventBus()
         srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
         await srv.stop()  # не должно выбросить
         assert srv.is_running is False
 
-    async def test_start_after_stop(self) -> None:
+    async def test_start_after_stop(self, bus: EventBus) -> None:
         """Можно start() → stop() → start() снова."""
-        bus = EventBus()
         srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
         await srv.start()
         await srv.stop()
         await srv.start()
         try:
             assert srv.is_running is True
+        finally:
+            await srv.stop()
+
+    async def test_start_emits_server_started(self, bus: EventBus) -> None:
+        """start() эмитит server.started с фактическим портом."""
+        events: list[dict] = []
+
+        async def capture(data: dict) -> None:
+            events.append(data)
+
+        bus.on("server.started", capture)
+
+        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
+        await srv.start()
+        try:
+            assert len(events) >= 1
+            assert events[0]["port"] == srv.actual_port
+            assert srv.actual_port is not None
+            assert srv.actual_port > 0
         finally:
             await srv.stop()
 
@@ -108,9 +144,8 @@ class TestTcpServerStartStop:
 class TestTcpServerConnections:
     """Тесты приёма подключений и обработки клиентов."""
 
-    async def test_accept_connection_emits_event(self) -> None:
+    async def test_accept_connection_emits_event(self, bus: EventBus, server: TcpServerManager) -> None:
         """При подключении клиента эмитится connection.changed."""
-        bus = EventBus()
         received_events: list[dict[str, object]] = []
 
         async def capture(data: dict[str, object]) -> None:
@@ -118,25 +153,20 @@ class TestTcpServerConnections:
 
         bus.on("connection.changed", capture)
 
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
-        await srv.start()
-        try:
-            port = srv.actual_port
-            _reader, writer = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
-            await asyncio.sleep(0.1)  # даём серверу обработать
+        port = server.actual_port
+        assert port is not None
+        _reader, writer = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.1)
 
-            assert len(received_events) >= 1
-            event_data = received_events[0]
-            assert event_data["action"] == "connected"
-            assert "connection_id" in event_data
-        finally:
-            writer.close()
-            await writer.wait_closed()
-            await srv.stop()
+        assert len(received_events) >= 1
+        event_data = received_events[0]
+        assert event_data["action"] == "connected"
+        assert "connection_id" in event_data
+        writer.close()
+        await writer.wait_closed()
 
-    async def test_client_disconnect_emits_event(self) -> None:
+    async def test_client_disconnect_emits_event(self, bus: EventBus, server: TcpServerManager) -> None:
         """При отключении клиента эмитится connection.changed с action=disconnected."""
-        bus = EventBus()
         received_events: list[dict[str, object]] = []
 
         async def capture(data: dict[str, object]) -> None:
@@ -144,24 +174,19 @@ class TestTcpServerConnections:
 
         bus.on("connection.changed", capture)
 
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
-        await srv.start()
-        try:
-            port = srv.actual_port
-            _reader, writer = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
-            await asyncio.sleep(0.05)
-            writer.close()
-            await writer.wait_closed()
-            await asyncio.sleep(0.3)  # даём серверу обнаружить отключение
+        port = server.actual_port
+        assert port is not None
+        _reader, writer = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.05)
+        writer.close()
+        await writer.wait_closed()
+        await asyncio.sleep(0.3)
 
-            disconnect_events = [e for e in received_events if e.get("action") == "disconnected"]
-            assert len(disconnect_events) >= 1
-        finally:
-            await srv.stop()
+        disconnect_events = [e for e in received_events if e.get("action") == "disconnected"]
+        assert len(disconnect_events) >= 1
 
-    async def test_connection_id_is_stored(self) -> None:
+    async def test_connection_id_is_stored(self, server: TcpServerManager) -> None:
         """connection_id клиента сохраняется в session_mgr через create_session."""
-        bus = EventBus()
         created_sessions: list[str] = []
 
         class MockSessionMgr:
@@ -177,22 +202,17 @@ class TestTcpServerConnections:
                 return stub
 
         mock_session_mgr = MockSessionMgr()
+        server.session_mgr = mock_session_mgr  # type: ignore[assignment]
 
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0, session_mgr=mock_session_mgr)  # type: ignore[arg-type]
-        await srv.start()
-        try:
-            port = srv.actual_port
-            assert port is not None
-            _reader, writer = await _connect_to_server("127.0.0.1", port)
-            await asyncio.sleep(0.1)
+        port = server.actual_port
+        assert port is not None
+        _reader, writer = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.1)
 
-            # Проверяем, что сессия создана через create_session
-            assert len(created_sessions) >= 1
-            assert len(mock_session_mgr.connections) >= 1
-        finally:
-            writer.close()
-            await writer.wait_closed()
-            await srv.stop()
+        assert len(created_sessions) >= 1
+        assert len(mock_session_mgr.connections) >= 1
+        writer.close()
+        await writer.wait_closed()
 
 
 # ---------------------------------------------------------------------------
@@ -203,9 +223,8 @@ class TestTcpServerConnections:
 class TestTcpServerReadData:
     """Тесты чтения данных и отправки событий."""
 
-    async def test_read_data_emits_raw_packet(self) -> None:
+    async def test_read_data_emits_raw_packet(self, bus: EventBus, server: TcpServerManager) -> None:
         """Прочитанные данные эмитятся как raw.packet.received."""
-        bus = EventBus()
         received_packets: list[dict[str, object]] = []
 
         async def capture(data: dict[str, object]) -> None:
@@ -213,31 +232,26 @@ class TestTcpServerReadData:
 
         bus.on("raw.packet.received", capture)
 
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
-        await srv.start()
-        try:
-            port = srv.actual_port
-            _reader, writer = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
-            await asyncio.sleep(0.05)
+        port = server.actual_port
+        assert port is not None
+        _reader, writer = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.05)
 
-            raw_data = _build_egts_packet(pid=42, body=b"\x01\x02\x03")
-            writer.write(raw_data)
-            await writer.drain()
-            await asyncio.sleep(0.3)
+        raw_data = _build_egts_packet(pid=42, body=b"\x01\x02\x03")
+        writer.write(raw_data)
+        await writer.drain()
+        await asyncio.sleep(0.3)
 
-            assert len(received_packets) >= 1
-            event_data = received_packets[0]
-            assert event_data["raw"] == raw_data
-            assert event_data["channel"] == "tcp"
-            assert "connection_id" in event_data
-        finally:
-            writer.close()
-            await writer.wait_closed()
-            await srv.stop()
+        assert len(received_packets) >= 1
+        event_data = received_packets[0]
+        assert event_data["raw"] == raw_data
+        assert event_data["channel"] == "tcp"
+        assert "connection_id" in event_data
+        writer.close()
+        await writer.wait_closed()
 
-    async def test_multiple_packets_emitted_separately(self) -> None:
+    async def test_multiple_packets_emitted_separately(self, bus: EventBus, server: TcpServerManager) -> None:
         """Несколько пакетов эмитятся отдельно."""
-        bus = EventBus()
         received_packets: list[dict[str, object]] = []
 
         async def capture(data: dict[str, object]) -> None:
@@ -245,26 +259,22 @@ class TestTcpServerReadData:
 
         bus.on("raw.packet.received", capture)
 
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0, read_buffer_size=16)
-        await srv.start()
-        try:
-            port = srv.actual_port
-            _reader, writer = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
-            await asyncio.sleep(0.05)
+        port = server.actual_port
+        assert port is not None
+        _reader, writer = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.05)
 
-            # Отправляем два пакета подряд
-            pkt1 = _build_egts_packet(pid=1)
-            pkt2 = _build_egts_packet(pid=2)
-            writer.write(pkt1 + pkt2)
-            await writer.drain()
-            await asyncio.sleep(0.5)
+        # Отправляем два пакета подряд
+        pkt1 = _build_egts_packet(pid=1)
+        pkt2 = _build_egts_packet(pid=2)
+        writer.write(pkt1 + pkt2)
+        await writer.drain()
+        await asyncio.sleep(0.5)
 
-            # Может быть 1 или 2 события — зависит от обработки буфера
-            assert len(received_packets) >= 1
-        finally:
-            writer.close()
-            await writer.wait_closed()
-            await srv.stop()
+        # Может быть 1 или 2 события — зависит от обработки буфера
+        assert len(received_packets) >= 1
+        writer.close()
+        await writer.wait_closed()
 
 
 # ---------------------------------------------------------------------------
@@ -275,37 +285,32 @@ class TestTcpServerReadData:
 class TestTcpServerErrors:
     """Тесты обработки ошибок."""
 
-    async def test_connection_error_handling(self) -> None:
+    async def test_connection_error_handling(self, bus: EventBus, server: TcpServerManager) -> None:
         """Ошибка чтения от клиента не роняет сервер."""
-        bus = EventBus()
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
-        await srv.start()
-        try:
-            port = srv.actual_port
-            _reader, writer = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
-            await asyncio.sleep(0.05)
-            writer.close()
-            await writer.wait_closed()
+        port = server.actual_port
+        assert port is not None
+        _reader, writer = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.05)
+        writer.close()
+        await writer.wait_closed()
 
-            # Сервер должен продолжить работу
-            assert srv.is_running is True
+        # Сервер должен продолжить работу
+        assert server.is_running is True
 
-            # Можем подключиться снова
-            _reader2, writer2 = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
-            await asyncio.sleep(0.05)
-            writer2.close()
-            await writer2.wait_closed()
-        finally:
-            await srv.stop()
+        # Можем подключиться снова
+        _reader2, writer2 = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.05)
+        writer2.close()
+        await writer2.wait_closed()
 
-    async def test_stop_closes_active_connections(self) -> None:
+    async def test_stop_closes_active_connections(self, bus: EventBus) -> None:
         """stop() закрывает активные подключения."""
-        bus = EventBus()
         srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
         await srv.start()
         try:
             port = srv.actual_port
-            _reader, writer = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
+            assert port is not None
+            _reader, writer = await _connect_to_server("127.0.0.1", port)
             await asyncio.sleep(0.05)
 
             await srv.stop()
@@ -328,9 +333,8 @@ class TestTcpServerErrors:
 class TestTcpServerEventBus:
     """Тесты интеграции TcpServerManager с EventBus."""
 
-    async def test_emits_connection_changed_on_connect(self) -> None:
+    async def test_emits_connection_changed_on_connect(self, bus: EventBus, server: TcpServerManager) -> None:
         """connection.changed эмитится с правильными данными."""
-        bus = EventBus()
         received_events: list[tuple[str, dict[str, object]]] = []
 
         async def capture(data: dict[str, object]) -> None:
@@ -338,25 +342,20 @@ class TestTcpServerEventBus:
 
         bus.on("connection.changed", capture)
 
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
-        await srv.start()
-        try:
-            port = srv.actual_port
-            _reader, writer = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
-            await asyncio.sleep(0.1)
+        port = server.actual_port
+        assert port is not None
+        _reader, writer = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.1)
 
-            connect_events = [e for e in received_events if e[1].get("action") == "connected"]
-            assert len(connect_events) >= 1
-            event_data = connect_events[0][1]
-            assert "connection_id" in event_data
-        finally:
-            writer.close()
-            await writer.wait_closed()
-            await srv.stop()
+        connect_events = [e for e in received_events if e[1].get("action") == "connected"]
+        assert len(connect_events) >= 1
+        event_data = connect_events[0][1]
+        assert "connection_id" in event_data
+        writer.close()
+        await writer.wait_closed()
 
-    async def test_connection_id_in_all_events(self) -> None:
+    async def test_connection_id_in_all_events(self, bus: EventBus, server: TcpServerManager) -> None:
         """Все события содержат один и тот же connection_id для одного подключения."""
-        bus = EventBus()
         received_events: list[tuple[str, dict[str, object]]] = []
 
         async def capture(name: str, data: dict[str, object]) -> None:
@@ -365,26 +364,22 @@ class TestTcpServerEventBus:
         bus.on("connection.changed", lambda d: asyncio.create_task(capture("connection.changed", d)))
         bus.on("raw.packet.received", lambda d: asyncio.create_task(capture("raw.packet.received", d)))
 
-        srv = TcpServerManager(bus=bus, host="127.0.0.1", port=0)
-        await srv.start()
-        try:
-            port = srv.actual_port
-            _reader, writer = await _connect_to_server("127.0.0.1", port)  # type: ignore[arg-type]
-            await asyncio.sleep(0.05)
+        port = server.actual_port
+        assert port is not None
+        _reader, writer = await _connect_to_server("127.0.0.1", port)
+        await asyncio.sleep(0.05)
 
-            raw_data = _build_egts_packet(pid=1)
-            writer.write(raw_data)
-            await writer.drain()
-            await asyncio.sleep(0.2)
+        raw_data = _build_egts_packet(pid=1)
+        writer.write(raw_data)
+        await writer.drain()
+        await asyncio.sleep(0.2)
 
-            writer.close()
-            await writer.wait_closed()
-            await asyncio.sleep(0.2)
+        writer.close()
+        await writer.wait_closed()
+        await asyncio.sleep(0.2)
 
-            # Собираем все connection_id
-            conn_ids = {data.get("connection_id") for _, data in received_events if data.get("connection_id")}
-            # Все события одного подключения имеют один connection_id
-            # (минимум 1: connect или packet)
-            assert len(conn_ids) >= 1
-        finally:
-            await srv.stop()
+        # Собираем все connection_id
+        conn_ids = {data.get("connection_id") for _, data in received_events if data.get("connection_id")}
+        # Все события одного подключения имеют один connection_id
+        # (минимум 1: connect или packet)
+        assert len(conn_ids) >= 1
