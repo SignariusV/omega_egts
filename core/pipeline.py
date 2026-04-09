@@ -24,14 +24,16 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Protocol
 
+from core.event_bus import EventBus
 from core.session import SessionManager
 from libs.egts_protocol_iface import (
     EGTS_PC_DATACRC_ERROR,
     EGTS_PC_HEADERCRC_ERROR,
     PACKET_HEADER_MIN_SIZE,
 )
+from libs.egts_protocol_iface.models import ParseResult
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +52,7 @@ class PacketContext:
         raw: Сырые байты пакета (не изменяется)
         connection_id: Идентификатор подключения
         channel: Канал получения — "tcp" или "sms"
-        parsed: Распарсенный пакет (заполняется ParseMiddleware)
+        parsed: Результат парсинга ParseResult (заполняется ParseMiddleware)
         crc8_valid: CRC-8 заголовка корректна
         crc16_valid: CRC-16 тела корректна
         crc_valid: Обе CRC корректны (агрегированный флаг)
@@ -64,7 +66,7 @@ class PacketContext:
     raw: bytes
     connection_id: str
     channel: str = "tcp"
-    parsed: dict[str, Any] | None = None
+    parsed: ParseResult | None = None
     crc8_valid: bool = False
     crc16_valid: bool = False
     crc_valid: bool = False
@@ -148,6 +150,9 @@ class PacketPipeline:
         - ctx.terminated=True (до вызова middleware)
         - Исключении в middleware (ошибка записывается в ctx.errors)
 
+        EventEmitMiddleware (если добавлен) вызывается всегда — даже при
+        terminated=True — для обеспечения 100% логирования пакетов.
+
         Args:
             ctx: Контекст пакета
 
@@ -157,7 +162,17 @@ class PacketPipeline:
         if ctx.terminated:
             return ctx
 
+        # Разделяем EventEmitMiddleware и остальные
+        event_mw = None
+        regular_mw = []
         for entry in self._middlewares:
+            if isinstance(entry.middleware, EventEmitMiddleware):
+                event_mw = entry
+            else:
+                regular_mw.append(entry)
+
+        # Выполняем обычные middleware
+        for entry in regular_mw:
             if ctx.terminated:
                 break
             try:
@@ -166,6 +181,14 @@ class PacketPipeline:
                 ctx.errors.append(f"{entry.name}: {e!s}")
                 ctx.terminated = True
                 break
+
+        # EventEmitMiddleware вызывается всегда (даже при terminated)
+        if event_mw is not None:
+            try:
+                await event_mw.middleware(ctx)
+            except Exception as e:
+                # Ошибка в EventEmitMiddleware логируется, но не прерывает
+                ctx.errors.append(f"{event_mw.name}: {e!s}")
 
         return ctx
 
@@ -282,7 +305,181 @@ class CrcValidationMiddleware:
             return
 
         # Всё ок
-        ctx.crc8_valid = True
-        ctx.crc16_valid = True
         ctx.crc_valid = True
         logger.debug("CRC check passed for connection %s", ctx.connection_id)
+
+
+# =============================================================================
+# DuplicateDetectionMiddleware
+# =============================================================================
+
+
+class DuplicateDetectionMiddleware:
+    """Обнаружение дубликатов PID через LRU-кэш UsvConnection.
+
+    Работает ПОСЛЕ ParseMiddleware и CrcValidationMiddleware:
+    - Если crc_valid=False — пропускает (пакет с ошибкой)
+    - Если parsed.packet=None — пропускает (ждёт ParseMiddleware)
+    - Если ctx.is_duplicate=True — уже обработан, пропускает
+    - Если PID уже в кэше — дубликат: ctx.is_duplicate=True,
+      ctx.response_data из кэша, ctx.terminated=True
+    - Иначе — продолжает обработку
+    """
+
+    def __init__(self, session_mgr: SessionManager) -> None:
+        self._session_mgr = session_mgr
+
+    async def __call__(self, ctx: PacketContext) -> None:
+        """Проверить PID на дубликат, заполнить is_duplicate,
+        response_data (при дубликате), terminated."""
+        # Пропускаем если CRC невалиден — пакет с ошибкой не дубликат
+        if not ctx.crc_valid:
+            return
+
+        # Пропускаем если ещё не распарсен — ждём ParseMiddleware
+        if ctx.parsed is None or ctx.parsed.packet is None:
+            return
+
+        # Уже помечен как дубликат — не обрабатываем повторно
+        if ctx.is_duplicate:
+            return
+
+        conn = self._session_mgr.get_session(ctx.connection_id)
+        if conn is None:
+            logger.debug("Dedup: connection %s not found, skipping", ctx.connection_id)
+            return
+
+        pid = ctx.parsed.packet.packet_id
+        cached_response = conn.get_response(pid)
+
+        if cached_response is not None:
+            # Дубликат — RESPONSE уже отправлялся ранее
+            logger.info("Duplicate packet PID=%d from %s", pid, ctx.connection_id)
+            ctx.is_duplicate = True
+            ctx.response_data = cached_response
+            ctx.terminated = True
+            return
+
+        # Первый пакет — просто логируем. PID добавляется в кэш
+        # после формирования RESPONSE (на уровне сервисной обработки).
+        logger.debug("First seen PID=%d from %s", pid, ctx.connection_id)
+
+
+# =============================================================================
+# ParseMiddleware
+# =============================================================================
+
+
+class ParseMiddleware:
+    """Парсинг EGTS-пакетов через protocol.
+
+    Получает protocol из UsvConnection через SessionManager.
+    При успешном парсинге заполняет ctx.parsed ParseResult.
+    При ошибке — записывает ошибку в ctx.errors и устанавливает terminated=True.
+
+    ctx.parsed — ParseResult с полями:
+        - packet: Packet (распарсенный пакет)
+        - errors: list[str] (ошибки парсинга)
+        - warnings: list[str] (предупреждения)
+        - extra: dict (дополнительные поля: service, tid, imei, imsi)
+    """
+
+    def __init__(self, session_mgr: SessionManager) -> None:
+        self._session_mgr = session_mgr
+
+    async def __call__(self, ctx: PacketContext) -> None:
+        """Распарсить EGTS-пакет и заполнить ctx.parsed.
+
+        При ошибке парсинга:
+        - ctx.terminated = True
+        - ctx.errors.append(...)
+        """
+        raw = ctx.raw
+
+        # Получить connection через публичный метод SessionManager
+        conn = self._session_mgr.get_session(ctx.connection_id)
+        if conn is None:
+            logger.warning("Parse: connection %s not found", ctx.connection_id)
+            ctx.errors.append(f"Connection {ctx.connection_id} not found")
+            ctx.terminated = True
+            return
+
+        protocol = conn.protocol
+        if protocol is None:
+            logger.warning("Parse: protocol is None for connection %s", ctx.connection_id)
+            ctx.errors.append("Protocol not available")
+            ctx.terminated = True
+            return
+
+        # Вызов парсинга
+        try:
+            parse_result = protocol.parse_packet(raw)
+        except Exception as e:
+            logger.warning("Parse exception for connection %s: %s", ctx.connection_id, e)
+            ctx.errors.append(f"Parse exception: {e!s}")
+            ctx.terminated = True
+            return
+
+        # Проверка успешности парсинга
+        if not parse_result.is_success:
+            # Полный провал — пакет не распарсен
+            error_msg = "; ".join(parse_result.errors) if parse_result.errors else "Unknown parse error"
+            logger.warning(
+                "Parse failed for connection %s: %s", ctx.connection_id, error_msg
+            )
+            ctx.errors.extend(parse_result.errors)
+            ctx.terminated = True
+            return
+
+        # Частичный успех или полный успех — сохраняем ParseResult
+        ctx.parsed = parse_result
+        logger.debug(
+            "Parse successful for connection %s (packet_type=%s)",
+            ctx.connection_id,
+            parse_result.packet.packet_type if parse_result.packet else None,
+        )
+
+
+# =============================================================================
+# EventEmitMiddleware
+# =============================================================================
+
+
+class EventEmitMiddleware:
+    """Публикация события packet.processed после обработки.
+
+    Всегда эмитит событие packet.processed — даже при terminated=True
+    или ошибках (для полного логирования 100% пакетов).
+
+    Данные события:
+        - ctx: PacketContext (полный контекст обработки)
+        - connection_id: идентификатор подключения
+        - channel: канал получения (tcp/sms)
+        - parsed: распарсенный пакет (или None)
+        - crc_valid: флаг валидности CRC
+        - is_duplicate: флаг дубликата
+        - terminated: флаг прерывания цепочки
+    """
+
+    def __init__(self, bus: EventBus) -> None:
+        self._bus = bus
+
+    async def __call__(self, ctx: PacketContext) -> None:
+        """Эмитить событие packet.processed с полным контекстом."""
+        event_data = {
+            "ctx": ctx,
+            "connection_id": ctx.connection_id,
+            "channel": ctx.channel,
+            "parsed": ctx.parsed,
+            "crc_valid": ctx.crc_valid,
+            "is_duplicate": ctx.is_duplicate,
+            "terminated": ctx.terminated,
+        }
+
+        await self._bus.emit("packet.processed", event_data)
+        logger.debug(
+            "Emitted packet.processed for connection %s (terminated=%s, crc_valid=%s)",
+            ctx.connection_id,
+            ctx.terminated,
+            ctx.crc_valid,
+        )
