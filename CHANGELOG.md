@@ -6,6 +6,17 @@
 
 ## [Unreleased]
 
+### Итерация 6: LogManager и Credentials (10.04.2026)
+
+**Ветка:** `iteration-6/logging-credentials` | **Задач выполнено:** 1/2 | **Тестов:** 23 | **Покрытие logger.py:** 93%
+
+#### Добавлено
+- **LogManager** — подписчик на 3 события EventBus: `packet.processed`, `connection.changed`, `scenario.step`
+- **Буферизация + сортировка по timestamp** — решает CR-002 (нарушение порядка логов при parallel-обработке)
+- **JSONL-файлы** — одна записи на строку, именование по дате `YYYY-MM-DD.jsonl`
+- **Логирование пакетов** — hex + parsed данные + crc_valid + is_duplicate + terminated + errors
+- **flush()** — сброс буфера на диск, сортировка, очистка буфера
+
 ### Итерация 5: Network и CMW-500 (09.04.2026)
 
 **Ветка:** `iteration-5/network-cmw` | **Задач выполнено:** 6/6 | **Тестов:** 132 | **Покрытие:** 91–97%
