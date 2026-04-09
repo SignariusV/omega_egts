@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-design-yellow.svg)](.)
+[![Status](https://img.shields.io/badge/status-development-green.svg)](.)
 
 **Серверный тестер устройств/систем вызова экстренных оперативных служб (УСВ)** — программный комплекс для испытаний УСВ на соответствие требованиям **ГОСТ 33465** (редакции 2015, 2023) и **ГОСТ 33464**.
 
@@ -18,11 +18,13 @@
 
 ## Статус
 
-> ✅ **Итерация 4 завершена!** PacketPipeline с 4 middleware готов:
-> CRC-валидация, парсинг, обнаружение дубликатов, публикация событий.
-> 54 теста, интеграция с 51 реальным EGTS-пакетом.
+> ✅ **Итерация 5 завершена!** Network + CMW-500 готовы:
+> TcpServerManager (TCP-сервер), Cmw500Controller (очередь команд + SMS),
+> Cmw500Emulator (эмулятор с задержками), PacketDispatcher и CommandDispatcher (TCP + SMS каналы).
+> 120 тестов, покрытие 91–97%, ruff + mypy чистые.
 >
-> Следующий этап: TCP-сервер + CMW-500 + сценарии (Этап 5).
+> **Прогресс:** 28/36 задач (78%)
+> Следующий этап: LogManager + Credentials + Packet Source (Этап 6).
 
 ## Быстрый старт
 
