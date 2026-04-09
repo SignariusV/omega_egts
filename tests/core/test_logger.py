@@ -11,9 +11,10 @@
 - start/stop (подписка/отписка)
 """
 
+import asyncio
 import json
 import time
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -36,8 +37,16 @@ def mock_bus():
 
 @pytest.fixture
 def log_manager(mock_bus, tmp_path):
-    """LogManager с моком EventBus и временной директорией."""
-    return LogManager(bus=mock_bus, log_dir=tmp_path)
+    """LogManager с моком EventBus и временной директорией.
+
+    Отключает фоновый авто-sflush чтобы не мешал тестам.
+    """
+    with patch("core.logger.asyncio.create_task", return_value=MagicMock()):
+        lm = LogManager(
+            bus=mock_bus, log_dir=tmp_path,
+            flush_interval=999, flush_batch_size=9999,
+        )
+    return lm
 
 
 @pytest.fixture
@@ -105,12 +114,14 @@ class TestLogManagerInit:
     def test_creates_log_dir(self, mock_bus, tmp_path):
         """LogManager создаёт директорию логов если не существует."""
         log_dir = tmp_path / "subdir" / "logs"
-        LogManager(bus=mock_bus, log_dir=log_dir)
+        with patch("core.logger.asyncio.create_task", return_value=MagicMock()):
+            LogManager(bus=mock_bus, log_dir=log_dir)
         assert log_dir.exists()
 
     def test_subscribes_on_init(self, mock_bus, tmp_path):
         """LogManager подписывается на 3 события при инициализации."""
-        LogManager(bus=mock_bus, log_dir=tmp_path)
+        with patch("core.logger.asyncio.create_task", return_value=MagicMock()):
+            LogManager(bus=mock_bus, log_dir=tmp_path)
 
         # 3 вызова on — по одному на каждое событие
         on_calls = mock_bus.on.call_args_list
@@ -121,12 +132,14 @@ class TestLogManagerInit:
         assert "connection.changed" in event_names
         assert "scenario.step" in event_names
 
-    def test_stop_unsubscribes(self, mock_bus, tmp_path):
-        """stop() отписывается от всех событий."""
-        lm = LogManager(bus=mock_bus, log_dir=tmp_path)
+    @pytest.mark.asyncio
+    async def test_stop_unsubscribes(self, mock_bus, tmp_path):
+        """stop() отписывается от всех событий и сбрасывает буфер."""
+        with patch("core.logger.asyncio.create_task", return_value=MagicMock()):
+            lm = LogManager(bus=mock_bus, log_dir=tmp_path)
         mock_bus.off.reset_mock()  # сбросить вызовы из __init__
 
-        lm.stop()
+        await lm.stop()
 
         off_calls = mock_bus.off.call_args_list
         assert len(off_calls) == 3
@@ -147,15 +160,15 @@ class TestPacketProcessed:
 
     @pytest.mark.asyncio
     async def test_logs_packet_hex(self, log_manager, sample_packet_processed):
-        """В лог записывается hex-представление пакета."""
+        """В лог записывается hex-представление пакета (без пробелов)."""
         await log_manager._on_packet_processed(sample_packet_processed)
 
         # Проверяем buffer
         assert len(log_manager._buffer) == 1
         entry = log_manager._buffer[0]
         assert "hex" in entry
-        # Hex должен содержать представление сырых байтов
-        assert "010001000000A1B2C3D4" in entry["hex"].upper().replace(" ", "")
+        # Hex без пробелов: 010001000000A1B2C3D4
+        assert "010001000000A1B2C3D4" in entry["hex"]
 
     @pytest.mark.asyncio
     async def test_logs_parsed_data(self, log_manager):
@@ -442,7 +455,7 @@ class TestBufferFlush:
             channel="tcp",
             crc_valid=True,
         )
-        ctx1.timestamp = 100.0  # более ранний
+        ctx1.timestamp = 100.0  # позже
 
         ctx2 = PacketContext(
             raw=b"\x02",
@@ -450,7 +463,7 @@ class TestBufferFlush:
             channel="tcp",
             crc_valid=True,
         )
-        ctx2.timestamp = 50.0  # более поздний в буфере, но раньше по времени
+        ctx2.timestamp = 50.0  # раньше
 
         await log_manager._on_packet_processed({
             "ctx": ctx1,
@@ -475,9 +488,9 @@ class TestBufferFlush:
         lines = [json.loads(line) for line in log_file.read_text().strip().splitlines()]
 
         # Первый — с timestamp=50.0 (conn-2, раньше)
-        assert lines[0]["connection_id"] == "conn-2"
+        assert lines[0]["timestamp"] == pytest.approx(50.0)
         # Второй — с timestamp=100.0 (conn-1, позже)
-        assert lines[1]["connection_id"] == "conn-1"
+        assert lines[1]["timestamp"] == pytest.approx(100.0)
 
     @pytest.mark.asyncio
     async def test_flush_clears_buffer(self, log_manager, sample_packet_processed):
@@ -570,11 +583,100 @@ class TestFileNaming:
         assert expected_file.exists()
 
     @pytest.mark.asyncio
+    async def test_stop_flushes_before_unsubscribe(self, mock_bus, tmp_path):
+        """stop() сбрасывает буфер перед отпиской."""
+        from core.pipeline import PacketContext
+
+        with patch("core.logger.asyncio.create_task", return_value=MagicMock()):
+            lm = LogManager(bus=mock_bus, log_dir=tmp_path)
+
+        ctx = PacketContext(
+            raw=b"\x01",
+            connection_id="conn-1",
+            channel="tcp",
+            crc_valid=True,
+        )
+        await lm._on_packet_processed({
+            "ctx": ctx, "connection_id": "conn-1", "channel": "tcp",
+            "crc_valid": True, "is_duplicate": False, "terminated": False,
+        })
+
+        # Буфер не пустой
+        assert len(lm._buffer) == 1
+
+        await lm.stop()
+
+        # Файл должен существовать (stop() вызвал flush)
+        from datetime import date
+        today = date.today().isoformat()
+        expected_file = tmp_path / f"{today}.jsonl"
+        assert expected_file.exists()
+
+    @pytest.mark.asyncio
+    async def test_auto_flush_loop(self, mock_bus, tmp_path):
+        """Авто-sflush сбрасывает буфер при превышении batch_size."""
+        from core.pipeline import PacketContext
+
+        with patch("core.logger.asyncio.create_task", return_value=MagicMock()):
+            lm = LogManager(
+                bus=mock_bus, log_dir=tmp_path,
+                flush_interval=0.1, flush_batch_size=3,
+            )
+        # Запускаем авто-sflush вручную (т.к. create_task был замокан)
+        lm._flush_task = asyncio.create_task(lm._auto_flush_loop())
+
+        # Добавляем 3 записи (порог)
+        for i in range(3):
+            ctx = PacketContext(
+                raw=bytes([i + 1]),
+                connection_id=f"conn-{i}",
+                channel="tcp",
+                crc_valid=True,
+            )
+            await lm._on_packet_processed({
+                "ctx": ctx, "connection_id": f"conn-{i}", "channel": "tcp",
+                "crc_valid": True, "is_duplicate": False, "terminated": False,
+            })
+
+        # Ждём авто-sflush
+        await asyncio.sleep(0.3)
+
+        from datetime import date
+        today = date.today().isoformat()
+        log_file = tmp_path / f"{today}.jsonl"
+
+        # Файл должен появиться
+        assert log_file.exists(), "Авто-sflush не создал файл"
+
+        await lm.stop()
+
+    @pytest.mark.asyncio
+    async def test_stop_cancels_flush_task(self, tmp_path):
+        """stop() отменяет фоновую задачу автосброса."""
+        mock_bus = MagicMock()
+        mock_bus.emit = AsyncMock()
+        mock_bus.on = MagicMock()
+        mock_bus.off = MagicMock()
+
+        lm = LogManager(
+            bus=mock_bus, log_dir=tmp_path,
+            flush_interval=999, flush_batch_size=9999,
+        )
+        assert lm._flush_task is not None
+        assert not lm._flush_task.done()
+
+        await lm.stop()
+
+        assert lm._flush_task is None
+        assert lm._running is False
+
+    @pytest.mark.asyncio
     async def test_append_to_existing_file(self, mock_bus, tmp_path):
         """При повторном flush в тот же день — данные дописываются."""
         from datetime import date
 
-        lm = LogManager(bus=mock_bus, log_dir=tmp_path)
+        with patch("core.logger.asyncio.create_task", return_value=MagicMock()):
+            lm = LogManager(bus=mock_bus, log_dir=tmp_path)
 
         from core.pipeline import PacketContext
 

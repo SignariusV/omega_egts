@@ -9,16 +9,20 @@
 Буферизация с сортировкой по timestamp решает проблему CR-002
 (нарушение порядка при parallel-обработке EventBus).
 
+Автоматический сброс буфера:
+- По порогу (``flush_batch_size`` записей)
+- По интервалу (``flush_interval`` секунд) — фоновая задача
+
 Пример использования::
 
     lm = LogManager(bus=event_bus, log_dir=Path("./logs"))
-    # ... работа системы ...
-    await lm.flush()  # записать буфер на диск
-    lm.stop()         # отписаться от событий
+    # ... работа системы (фоновый авто-sflush работает автоматически) ...
+    await lm.stop()  # сбрасывает буфер и отписывается
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -31,38 +35,79 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Параметры автосброса по умолчанию
+_DEFAULT_FLUSH_INTERVAL = 5.0  # секунд
+_DEFAULT_FLUSH_BATCH_SIZE = 1000  # записей
+
 
 class LogManager:
     """Подписчик на события, логирует 100% пакетов.
 
-    Буферизует записи и сбрасывает на диск по запросу (flush).
+    Буферизует записи и сбрасывает на диск по запросу (flush)
+    или автоматически (по порогу и интервалу).
     Записи сортируются по timestamp при записи — порядок гарантирован
     даже при parallel-обработке событий (решение CR-002).
 
     Args:
         bus: EventBus для подписки на события
         log_dir: Директория для файлов логов
+        flush_interval: Интервал автосброса в секундах (по умолчанию 5.0)
+        flush_batch_size: Порог записей для автосброса (по умолчанию 1000)
     """
 
-    def __init__(self, bus: EventBus, log_dir: Path) -> None:
+    def __init__(
+        self,
+        bus: EventBus,
+        log_dir: Path,
+        *,
+        flush_interval: float = _DEFAULT_FLUSH_INTERVAL,
+        flush_batch_size: int = _DEFAULT_FLUSH_BATCH_SIZE,
+    ) -> None:
         self._bus = bus
         self._log_dir = Path(log_dir)
         self._log_dir.mkdir(parents=True, exist_ok=True)
         self._buffer: list[dict[str, Any]] = []
+        self._flush_interval = flush_interval
+        self._flush_batch_size = flush_batch_size
+        self._running = False
+        self._flush_task: asyncio.Task[None] | None = None
 
         # Подписка на события
         self._bus.on("packet.processed", self._on_packet_processed)
         self._bus.on("connection.changed", self._on_connection_changed)
         self._bus.on("scenario.step", self._on_scenario_step)
 
-        logger.info("LogManager инициализирован, log_dir=%s", self._log_dir)
+        # Запуск фоновой задачи автосброса
+        self._running = True
+        self._flush_task = asyncio.create_task(self._auto_flush_loop())
 
-    def stop(self) -> None:
-        """Отписаться от событий EventBus."""
+        logger.info(
+            "LogManager инициализирован, log_dir=%s, flush_interval=%.1f, batch_size=%d",
+            self._log_dir,
+            self._flush_interval,
+            self._flush_batch_size,
+        )
+
+    async def stop(self) -> None:
+        """Остановить LogManager: сбросить буфер и отписаться от событий."""
+        # Сбросить оставшиеся логи
+        await self.flush()
+
+        # Остановить фоновую задачу
+        self._running = False
+        if self._flush_task is not None and not self._flush_task.done():
+            self._flush_task.cancel()
+            try:
+                await self._flush_task
+            except asyncio.CancelledError:
+                pass
+            self._flush_task = None
+
+        # Отписаться от событий
         self._bus.off("packet.processed", self._on_packet_processed)
         self._bus.off("connection.changed", self._on_connection_changed)
         self._bus.off("scenario.step", self._on_scenario_step)
-        logger.info("LogManager: отписался от событий")
+        logger.info("LogManager: остановлен, буфер сброшен")
 
     async def flush(self) -> None:
         """Сбросить буфер на диск.
@@ -75,7 +120,7 @@ class LogManager:
             return
 
         # Сортировка по timestamp (решение CR-002)
-        self._buffer.sort(key=lambda entry: entry.get("_sort_ts", 0))
+        self._buffer.sort(key=lambda entry: entry.get("timestamp", 0))
 
         # Файл по дате
         today_str = date.today().isoformat()  # YYYY-MM-DD
@@ -83,13 +128,27 @@ class LogManager:
 
         with open(log_file, "a", encoding="utf-8") as f:
             for entry in self._buffer:
-                # Убираем служебное поле _sort_ts перед записью
-                entry.pop("_sort_ts", None)
                 f.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")
 
         count = len(self._buffer)
         self._buffer.clear()
-        logger.info("LogManager: записано %d записей в %s", count, log_file)
+        logger.debug("LogManager: записано %d записей в %s", count, log_file)
+
+    async def _auto_flush_loop(self) -> None:
+        """Фоновая задача: автосброс буфера по интервалу или порогу.
+
+        Проверяет буфер каждые ``flush_interval`` секунд.
+        Сбрасывает если количество записей >= ``flush_batch_size``.
+        """
+        while self._running:
+            try:
+                await asyncio.sleep(self._flush_interval)
+                if len(self._buffer) >= self._flush_batch_size:
+                    await self.flush()
+            except asyncio.CancelledError:
+                break
+            except Exception:
+                logger.exception("LogManager: ошибка в цикле автосброса")
 
     # ====================================================================
     # Обработчики событий
@@ -107,25 +166,16 @@ class LogManager:
         if ctx is None:
             return
 
-        raw_hex = ctx.raw.hex(" ").upper() if ctx.raw else ""
+        raw_hex = ctx.raw.hex().upper() if ctx.raw else ""
 
+        # Извлечение parsed данных: поддерживаем ParseResult и dict
         parsed_data: dict[str, Any] | None = None
         if ctx.parsed is not None:
-            # Извлекаем service, tid и т.д. из parsed
-            if hasattr(ctx.parsed, "extra"):
-                parsed_data = getattr(ctx.parsed, "extra", None)
-            if parsed_data is None and hasattr(ctx.parsed, "packet"):
-                packet = getattr(ctx.parsed, "packet", None)
-                if packet is not None:
-                    parsed_data = {
-                        "packet_type": getattr(packet, "packet_type", None),
-                        "packet_id": getattr(packet, "packet_id", None),
-                    }
+            parsed_data = self._extract_parsed_data(ctx.parsed)
 
         entry: dict[str, Any] = {
             "log_type": "packet",
-            "timestamp": time.time(),
-            "_sort_ts": ctx.timestamp,
+            "timestamp": ctx.timestamp,
             "connection_id": ctx.connection_id,
             "channel": ctx.channel,
             "hex": raw_hex,
@@ -152,8 +202,7 @@ class LogManager:
         """
         entry: dict[str, Any] = {
             "log_type": "connection",
-            "timestamp": time.time(),
-            "_sort_ts": data.get("timestamp", time.monotonic()),
+            "timestamp": data.get("timestamp", time.monotonic()),
             "connection_id": data.get("connection_id"),
             "state": data.get("state"),
             "prev_state": data.get("prev_state"),
@@ -174,8 +223,7 @@ class LogManager:
         """
         entry: dict[str, Any] = {
             "log_type": "scenario",
-            "timestamp": time.time(),
-            "_sort_ts": data.get("timestamp", time.monotonic()),
+            "timestamp": data.get("timestamp", time.monotonic()),
             "scenario_name": data.get("scenario_name"),
             "step_name": data.get("step_name"),
             "step_type": data.get("step_type"),
@@ -190,3 +238,29 @@ class LogManager:
             entry["step_name"],
             entry["result"],
         )
+
+    @staticmethod
+    def _extract_parsed_data(parsed: object) -> dict[str, Any] | None:
+        """Извлечь данные из ParseResult для логирования.
+
+        Поддерживает:
+        - ParseResult с полями packet, extra
+        - dict (legacy формат из SessionManager)
+        """
+        # dict — legacy формат из SessionManager._on_packet_processed
+        if isinstance(parsed, dict):
+            return parsed
+
+        result: dict[str, Any] = {}
+
+        # Извлечение packet info
+        if hasattr(parsed, "packet") and parsed.packet is not None:
+            packet = parsed.packet
+            result["packet_type"] = getattr(packet, "packet_type", None)
+            result["packet_id"] = getattr(packet, "packet_id", None)
+
+        # Извлечение extra (tid, imei, imsi, service)
+        if hasattr(parsed, "extra") and parsed.extra is not None:
+            result.update(parsed.extra)
+
+        return result if result else None
