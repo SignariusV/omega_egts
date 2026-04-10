@@ -275,7 +275,8 @@ class TestSmsEmulation:
             elapsed = time.monotonic() - start
 
             # sms_delay_min=0.05, sms_delay_max=0.1
-            assert 0.05 <= elapsed <= 0.2  # небольшой допуск
+            # На Windows таймер может быть менее точным — допуск 40мс
+            assert 0.03 <= elapsed <= 0.25  # небольшой допуск
         finally:
             await emulator.disconnect()
 
