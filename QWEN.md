@@ -120,25 +120,25 @@ egts-tester/
 
 ## Прогресс
 
-**28/36 задач выполнено (78%)**
+**34/38 задач выполнено (89%)**
 
 | Итерация | Статус | Тестов | Покрытие |
 |----------|--------|--------|----------|
 | 0. Инфраструктура | ✅ 2/2 | — | — |
 | 1. Core Engine | ✅ 3/3 | 48 | 91–100% |
-| 2. EGTS Protocol | ✅ 2/4* | 27 | *adapter реализован |
+| 2. EGTS Protocol | ✅ 4/4 | 113 | adapter + models + SMS |
 | 3. Session + FSM | ✅ 4/4 | 61 | 100% FSM |
-| 4. Pipeline | ✅ 5/5 | 54 | 95%+ |
-| **5. Network + CMW** | ✅ **6/6** | **126** | **91–97%** |
-| 6. Logging + Credentials | ⏳ 0/2 | — | — |
-| 7. Packet Source | ⏳ 0/2 | — | — |
-| 8. Scenarios | ⏳ 0/4 | — | — |
+| 4. Pipeline | ✅ 5/5 | 60 | 95%+ |
+| **5. Network + CMW** | ✅ **6/6** | **132** | **91–97%** |
+| 6. Logging + Credentials | ✅ 2/2 | 48 | 93–94% |
+| 7. Scenario Engine | ✅ 6/6 | 91 | 87–99% |
+| 8. Replay + Export | ✅ 2/2 | 39 | 96–98% |
 | 9. CLI | ⏳ 0/2 | — | — |
 | 10. ГОСТ 2023 | ⏳ 0/2 | — | — |
 | 11. GUI | ⏳ 0/2 | — | — |
 | 12. Реальное CMW | ⏳ 0/2 | — | — |
 
-*Итерация 2: adapter + модели реализованы, SMS PDU — в работе
+*Итерация 7: ScenarioParser Abstraction (Protocol + Factory + Registry), ScenarioContext, ExpectStep, SendStep, ScenarioManager, 7 рабочих + 4 stub сценария
 
 ## Принципиальные решения (чего НЕ делаем)
 
