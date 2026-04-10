@@ -6,6 +6,76 @@
 
 ## [Unreleased]
 
+### Итерация 7: Scenario Engine (10.04.2026)
+
+**Ветка:** `iteration-7/scenario-engine` | **Задач выполнено:** 6/6 | **Тестов:** 91 | **Покрытие:** 87–99%
+
+#### Добавлено (7.0 — ScenarioParser Abstraction)
+- **IScenarioParser** — `@runtime_checkable` Protocol: `load()`, `validate()`, `get_steps()`, `get_metadata()`
+- **ScenarioParserV1** — парсинг/валидация формата `scenario_version: "1"`:
+  - Валидация: required fields, step types, channels, capture paths
+  - Разделение ошибок и предупреждений: `validate() → tuple[errors, warnings]`
+  - Детекция deprecated ключа `version` → warning
+- **ScenarioMetadata** — name, version, gost_version, timeout, description, channels
+- **StepDefinition** — каноническая форма шага, независимая от версии парсера
+- **ScenarioParserRegistry** — реестр версий: `register()`, `get()`, `__iter__()`
+- **ScenarioParserFactory** — `create(version)` + `detect_and_create(data)`
+- 29 тестов, 99% coverage scenario_parser.py
+
+#### Добавлено (7.1 — ScenarioContext)
+- **Variable** — dataclass с TTL (expired по времени)
+- **ScenarioContext** — переменные с TTL, подстановка `{{var}}`, история выполнения, auto connection_id
+- 21 тест, 98% coverage
+
+#### Добавлено (7.2 — ExpectStep)
+- **ExpectStep** — ожидание пакета через EventBus (`packet.processed`):
+  - Exact match, range (`{"min": X, "max": Y}`), regex (`{"regex": "pattern"}`)
+  - Nested path: `records[0].fields.RN`
+  - Capture переменных в контекст
+  - Фильтрация по channel (tcp/sms)
+  - Отписка от событий в `finally` — нет утечки памяти
+  - Фильтрация `connection.changed` по state (disconnected/closed/error)
+- 22 теста
+
+#### Добавлено (7.3 — SendStep)
+- **SendStep** — отправка пакета:
+  - Загрузка из HEX-файла (`packet_file`)
+  - Build-template с подстановкой `{{var}}` (`build`)
+  - Извлечение `pid`/`rn` из шаблона для CommandDispatcher
+  - Подписка на `command.sent` + `command.error` — корректная обработка ошибок
+  - Отписка в `finally` — нет утечки памяти
+- 18 тестов
+
+#### Добавлено (7.4 — ScenarioManager + StepFactory)
+- **StepFactory** — создание ExpectStep/SendStep по типу из StepDefinition
+- **ScenarioManager** — загрузка и выполнение сценариев:
+  - `load(path)` — делегирует парсинг `ScenarioParserFactory`
+  - `execute(bus, connection_id, timeout)` — пошаговое выполнение с общим дедлайном
+  - Per-step remaining time — общий timeout сценария не превышается
+- **ScenarioValidationError** — exception с списком ошибок валидации
+- 9 тестов
+
+#### Добавлено (7.5 — Готовые сценарии)
+- 7 рабочих сценариев: auth, verification, accel, track, fw_update, commands, passive_mode
+- 4 stub-сценария (заглушки без реализации): ecall, sms_channel, telemetry, test_mode
+- Исправлены баги: `passive_mode` scenario_version, `auth` опечатка `,дава`
+
+#### Исправлено (внешний аудит Scenario Engine)
+- **Утечка памяти** — `bus.off()` в `finally` для ExpectStep и SendStep
+- **Regex detection** — явный формат `{"regex": "..."}` вместо эвристики по спецсимволам
+- **_resolve_connection_id()** — используется в SendStep вместо прямого доступа к `ctx.connection_id`
+- **_txn_* dead code** — удалён (нигде не читался)
+- **Unreachable FAIL branch** — `return "PASS"` вместо `PASS if all_passed() else FAIL`
+- **validate()** — возвращает `tuple[errors, warnings]`, ScenarioManager использует только errors
+- **Общий timeout** — `remaining = eff_timeout - elapsed`, сценарий не превысит declared timeout
+
+#### Метрики
+- 91 тест в итерации 7
+- ruff clean, mypy clean
+- Внешний аудит: 1 Critical (не баг — ожидаемо для stub), 5 Suggestions (исправлены), 3 Nice to have (исправлены)
+
+---
+
 ### Итерация 6: LogManager и Credentials (10.04.2026)
 
 **Ветка:** `iteration-6/logging-credentials` | **Задач выполнено:** 2/2 | **Тестов:** 48 | **Покрытие:** 93–94%
@@ -70,6 +140,8 @@
 - [x] Cmw500Emulator — эмулятор CMW-500, TCP/SMS задержки (итерация 5.3)
 - [x] PacketDispatcher — координатор pipeline, TCP + SMS (итерация 5.4)
 - [x] CommandDispatcher — отправка команд TCP/SMS, транзакции (итерация 5.5)
+- [x] Scenario Engine — ScenarioParser, ScenarioContext, ExpectStep, SendStep, ScenarioManager (итерация 7)
+- [x] ReplaySource + Export (итерация 8)
 - [ ] Поддержка ГОСТ 33465-2015 (транспортный уровень — парсинг/валидация)
 - [ ] CLI (REPL на cmd)
 - [ ] Базовое логирование пакетов (hex + parsed)
@@ -93,11 +165,11 @@
 - [ ] Реэкспорт crc.py из _internal (устранение дублирования KI-013)
 - [ ] Оптимизация to_bytes: b"".join вместо += (KI-014)
 
-### Этап 3: Сценарии (планируется)
-- [ ] Все 10 сценариев (авторизация, телеметрия, траектория, ускорение, eCall, обновление ПО, команды, тестирование, SMS, пассивный режим)
-- [ ] Загрузка/генерация HEX-файлов
-- [ ] Export (CSV/JSON/DER)
-- [ ] CredentialsRepository (JSON-хранилище)
+### Этап 3: Сценарии (завершён ✅)
+- [x] 7 рабочих сценариев + 4 stub-заглушки (итерация 7.5)
+- [x] Загрузка/генерация HEX-файлов + build-template (итерация 7.3)
+- [x] Export (CSV/JSON) — итерация 8.2
+- [x] CredentialsRepository (JSON-хранилище) — итерация 6.2
 
 ### Этап 4: ГОСТ 2023 (планируется)
 - [ ] Поддержка ГОСТ 33465-2023

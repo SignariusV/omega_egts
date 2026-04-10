@@ -299,46 +299,146 @@ class TransactionManager:
 
 ---
 
+### ScenarioParserFactory + IScenarioParser
+
+**Файл:** `core/scenario_parser.py`
+
+Абстракция над форматом сценариев — аналог `IEgtsProtocol` для ГОСТ.
+
+```python
+@runtime_checkable
+class IScenarioParser(Protocol):
+    def load(self, data: dict) -> ScenarioMetadata: ...
+    def validate(self, data: dict) -> list[str]: ...
+    def get_steps(self) -> list[StepDefinition]: ...
+    def get_metadata(self) -> ScenarioMetadata: ...
+```
+
+**Зачем:** Сценарии эволюционируют. V1 — `type`, `channel`, `checks`, `capture`. V2 может добавить `loops`, `conditions`, `parallel_steps`. Без абстракции добавление V2 потребует переписывания `ScenarioManager`.
+
+**Архитектура:**
+
+```
+IScenarioParser (Protocol)
+    ├── ScenarioParserV1   ← текущий формат (scenario_version: "1")
+    ├── ScenarioParserV2   ← будущий формат (loops, conditions)
+    └── ScenarioParserV3
+
+ScenarioParserRegistry → register("1", V1), get("1")
+ScenarioParserFactory   → читает scenario_version → создаёт парсер
+ScenarioManager         → работает только с IScenarioParser
+```
+
+**ScenarioParserV1** — парсинг текущего формата:
+
+```python
+class ScenarioParserV1:
+    def validate(self, data: dict) -> list[str]:
+        # steps exists, type ∈ {send,expect,wait,check},
+        # channel ∈ {tcp,sms,None}, capture paths valid
+    def load(self, data: dict) -> ScenarioMetadata:
+        # name, version, gost_version, timeout, description, channels
+    def get_steps(self) -> list[StepDefinition]:
+        # type, name, channel, timeout, checks, capture, packet_file, build
+```
+
+**ScenarioMetadata** — метаданные сценария:
+```python
+@dataclass
+class ScenarioMetadata:
+    name: str
+    version: str          # "1", "2", ...
+    gost_version: str     # "2015", "2023"
+    timeout: float        # общий таймаут
+    description: str | None
+    channels: list[str]   # ["tcp", "sms"]
+```
+
+**StepDefinition** — нормализованное определение шага:
+```python
+@dataclass
+class StepDefinition:
+    name: str
+    type: str             # send, expect, wait, check
+    channel: str | None   # tcp, sms, None
+    timeout: float | None
+    checks: dict[str, Any]  # field → expected_value
+    capture: dict[str, str]  # var_name → nested_path
+    packet_file: str | None
+    build: dict[str, Any] | None
+    extra: dict[str, Any]   # доп. поля версии
+```
+
+**ScenarioParserRegistry** — реестр версий:
+```python
+class ScenarioParserRegistry:
+    def register(self, version: str, parser_cls: type[IScenarioParser]) -> None
+    def get(self, version: str) -> type[IScenarioParser]
+    # Расширение без изменений в Factory:
+    #   registry.register("2", ScenarioParserV2)
+```
+
+**ScenarioParserFactory** — создание по версии:
+```python
+class ScenarioParserFactory:
+    def __init__(self, registry: ScenarioParserRegistry): ...
+    def create(self, version: str) -> IScenarioParser: ...
+    def detect_and_create(self, data: dict) -> IScenarioParser:
+        # Читает data["scenario_version"] → create(version)
+```
+
+---
+
 ### ScenarioManager
 
 **Файл:** `core/scenario.py`
 
-Загрузка и выполнение сценариев из JSON.
+Загрузка и выполнение сценариев из scenario.json через `ScenarioParserFactory`.
+
+**Важно:** `ScenarioManager` **не парсит JSON напрямую**. Он делегирует парсинг factory:
 
 ```python
 class ScenarioManager:
-    def load(self, path: str) -> None
-    def get_scenario(self, scenario_id: str) -> Scenario
-    async def execute(self, scenario_id: str) -> ScenarioResult
+    def __init__(self, bus: EventBus, parser_factory: ScenarioParserFactory,
+                 step_factory: StepFactory): ...
+
+    def load(self, path: Path) -> None:
+        data = json.loads(path.read_text())
+        parser = self._parser_factory.detect_and_create(data)
+        errors = parser.validate(data)
+        if errors:
+            raise ScenarioValidationError(errors)
+        self._metadata = parser.load(data)
+        self._steps = parser.get_steps()
+
+    async def execute(self) -> ScenarioResult: ...
 ```
 
-**Структура сценария (JSON):**
+**Структура сценария (V1, JSON):**
 
 ```json
 {
-  "id": "auth_v1",
-  "name": "Авторизация v1",
+  "name": "Передача профиля ускорения",
+  "scenario_version": "1",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 60,
+  "description": "Платформа запрашивает профиль ускорения через SMS",
+  "channels": ["tcp", "sms"],
   "steps": [
     {
-      "id": "step_1",
-      "action": "send",
-      "packet_type": "TERM_IDENTITY",
-      "data": {"term_code": "TEST001"},
-      "expect": {
-        "packet_type": "AUTH_PARAMS",
-        "timeout": 5
-      }
+      "name": "SMS-запрос профиля ускорения",
+      "type": "send",
+      "channel": "sms",
+      "packet_file": "packets/platform/accel_data_request.hex",
+      "timeout": 10
     },
     {
-      "id": "step_2",
-      "action": "send",
-      "packet_type": "AUTH_INFO",
-      "data": {"auth_data": "..."},
-      "expect": {
-        "packet_type": "RESULT_CODE",
-        "result": "success",
-        "timeout": 5
-      }
+      "name": "Данные профиля ускорения",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"service": 2, "subrecord_type": "EGTS_SR_ACCEL_DATA"},
+      "capture": {"accel_points_count": "data.points_count"},
+      "timeout": 30
     }
   ]
 }
@@ -348,9 +448,17 @@ class ScenarioManager:
 
 ```python
 class StepFactory:
-    def create_step(self, step_def: dict) -> Step
-    # Типы шагов: send, expect, wait, check, log
+    def create_step(self, step_def: StepDefinition) -> Step:
+        # type="send" → SendStep
+        # type="expect" → ExpectStep
+        # type="wait" → WaitStep
+        # type="check" → CheckStep
 ```
+
+**Добавление новой версии формата (V2):**
+1. Создать `ScenarioParserV2(IScenarioParser)`
+2. `registry.register("2", ScenarioParserV2)`
+3. **Никаких изменений в ScenarioManager**
 
 ---
 
@@ -705,7 +813,8 @@ egts-tester/
 │   ├── tcp_server.py              # TcpServerManager
 │   ├── cmw500.py                  # Cmw500Controller
 │   ├── session.py                 # SessionManager + UsvConnection + FSM + TransactionManager
-│   ├── scenario.py                # ScenarioManager + StepFactory
+│   ├── scenario.py                # ScenarioManager + StepFactory + ExpectStep + SendStep
+│   ├── scenario_parser.py         # IScenarioParser + V1 + Registry + Factory
 │   ├── packet_source.py           # Загрузка/генерация пакетов
 │   ├── pipeline.py                # PacketPipeline + Middleware
 │   ├── logger.py                  # LogManager

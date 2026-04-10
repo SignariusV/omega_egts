@@ -10,7 +10,7 @@
       "name": "Идентификация терминала",
       "type": "expect",
       "channel": "tcp",
-      "packet_type": "EGTS_SR_TERM_IDENTITY",дава
+      "packet_type": "EGTS_SR_TERM_IDENTITY",
       "timeout": 6,
       "capture": {
         "tid": "data.TID",

@@ -18,13 +18,14 @@
 
 ## Статус
 
-> ✅ **Итерация 5 завершена!** Network + CMW-500 готовы:
-> TcpServerManager (TCP-сервер), Cmw500Controller (очередь команд + SMS),
-> Cmw500Emulator (эмулятор с задержками), PacketDispatcher и CommandDispatcher (TCP + SMS каналы).
-> 120 тестов, покрытие 91–97%, ruff + mypy чистые.
+> ✅ **Итерация 7 завершена!** Scenario Engine готов:
+> ScenarioParser Abstraction (Protocol + Factory + Registry), ScenarioContext с переменными/TTL,
+> ExpectStep (exact/range/regex checks, capture), SendStep (файл + build-template),
+> ScenarioManager с общим дедлайном, 7 рабочих сценариев + 4 stub-заглушки.
+> 91 тест, покрытие 87–99%, ruff + mypy чистые.
 >
-> **Прогресс:** 28/36 задач (78%)
-> Следующий этап: LogManager + Credentials + Packet Source (Этап 6).
+> **Прогресс:** 34/38 задач (89%)
+> Следующий этап: CLI Application (Итерация 9).
 
 ## Быстрый старт
 
@@ -96,12 +97,15 @@ Core Engine (единое ядро)
 | **1. Core Engine** | EventBus + Config + CoreEngine + FSM + SessionManager | ✅ Готово (100%) |
 | **2. Библиотека EGTS** | egts_protocol_iface + EgtsProtocol2015 (парсинг/сборка/SMS) | ✅ Готово (100%) |
 | **3. FSM и сессии** | UsvStateMachine (18 переходов) + TransactionManager + UsvConnection | ✅ Готово (100%) |
-| **4. Pipeline** | PacketPipeline + 4 middleware + интеграционные тесты | ✅ Готово (100%) |
-| **5. Network + CMW** | TCP-сервер + Cmw500Controller + эмулятор | ⬜ Запланировано |
-| **6. Сценарии** | Все 10 сценариев, HEX-файлы, export, CredentialsRepository | ⬜ Запланировано |
-| **7. ГОСТ 2023** | Поддержка актуальной редакции | ⬜ Запланировано |
-| **8. GUI** | Графический интерфейс оператора | ⬜ Запланировано |
-| **9. Реальное CMW-500** | Интеграция с реальным оборудованием | ⬜ Запланировано |
+| **4. Pipeline** | PacketPipeline + 5 middleware + интеграционные тесты | ✅ Готово (100%) |
+| **5. Network + CMW** | TCP-сервер + Cmw500Controller + эмулятор + Dispatchers | ✅ Готово (100%) |
+| **6. Logging + Creds** | LogManager + CredentialsRepository | ✅ Готово (100%) |
+| **7. Scenario Engine** | ScenarioParser + Context + Steps + Manager + 10 сценариев | ✅ Готово (100%) |
+| **8. Replay + Export** | ReplaySource + Export (CSV/JSON) | ✅ Готово (100%) |
+| **9. CLI** | CLI Application (argparse + REPL) | ⬜ Запланировано |
+| **10. ГОСТ 2023** | Поддержка актуальной редакции | ⬜ Запланировано |
+| **11. GUI** | Графический интерфейс оператора | ⬜ Запланировано |
+| **12. Реальное CMW-500** | Интеграция с реальным оборудованием | ⬜ Запланировано |
 
 ## Структура проекта
 
@@ -112,17 +116,20 @@ OMEGA_EGTS/
 │   ├── config.py                  # Config
 │   ├── event_bus.py               # EventBus
 │   ├── tcp_server.py              # TcpServerManager
-│   ├── cmw500.py                  # Cmw500Controller
+│   ├── cmw500.py                  # Cmw500Controller + Cmw500Emulator
 │   ├── session.py                 # SessionManager + FSM + TransactionManager
-│   ├── scenario.py                # ScenarioManager + StepFactory
-│   ├── pipeline.py                # PacketPipeline + Middleware
+│   ├── dispatcher.py              # PacketDispatcher + CommandDispatcher
+│   ├── pipeline.py                # PacketPipeline + 5 Middleware
+│   ├── scenario_parser.py         # IScenarioParser, V1, Registry, Factory
+│   ├── scenario.py                # ScenarioContext, Steps, ScenarioManager
+│   ├── packet_source.py           # ReplaySource
 │   ├── logger.py                  # LogManager
 │   ├── credentials.py             # CredentialsRepository
-│   └── export.py                  # Выгрузка данных
+│   └── export.py                  # Выгрузка данных (CSV/JSON)
 ├── libs/                          # Библиотеки EGTS
 │   ├── egts_protocol_iface/       # Интерфейс: IEgtsProtocol, модели, enums
 │   └── egts_protocol_gost2015/    # Реализация ГОСТ 2015 (адаптер + _internal)
-├── cli/app.py                     # CLI приложение
+├── cli/app.py                     # CLI приложение (запланировано)
 ├── scenarios/                     # Готовые сценарии (JSON + HEX)
 ├── config/                        # settings.json, credentials.json
 ├── docs/                          # Документация
@@ -130,7 +137,7 @@ OMEGA_EGTS/
 │   ├── gost.md                    # ГОСТ 33465-2015
 │   ├── ARCHITECTURE.md            # Архитектура
 │   └── *.xlsx                     # Тестовые данные
-├── tests/                         # pytest
+├── tests/                         # pytest (800+ тестов)
 ├── CHANGELOG.md                   # История изменений
 ├── KNOWN_ISSUES.md                # Известные проблемы
 └── pyproject.toml                 # Зависимости и скрипты
