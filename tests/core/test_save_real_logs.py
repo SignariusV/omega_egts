@@ -169,7 +169,8 @@ async def test_save_real_logs_to_project():
         if lt == "packet":
             crc = "OK" if entry["crc_valid"] else "ERR"
             dup = " DUP" if entry.get("is_duplicate") else ""
-            pid = entry.get("parsed", {}).get("packet_id", "?")
+            parsed = entry.get("parsed") or {}
+            pid = parsed.get("packet_id", "?")
             hex_preview = entry.get("hex", "")[:60]
             print(f"\n  [{i+1:3d}] PACKET  crc={crc}{dup}  PID={pid}")
             print(f"        hex: {hex_preview}...")
