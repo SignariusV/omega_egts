@@ -1,13 +1,13 @@
 # Прогресс реализации — OMEGA_EGTS
 
-**Обновлено:** 10.04.2026 | **Ветка:** `iteration-9/cli` | **Коммит:** `6d18c47`
+**Обновлено:** 10.04.2026 | **Ветка:** `iteration-10/e2e` | **Коммит:** `e76c19d`
 
 ---
 
 ## 📊 Общий прогресс
 
 ```
-█████████████████████████████████████████░ 90% (35/39 задач)
+██████████████████████████████████████████ 97% (38/39 задач)
 ```
 
 ---
@@ -153,10 +153,22 @@
 ### Итерация 10: Интеграция и релиз
 
 ```
-10.1 Интеграционные тесты E2E            ░░░░░░░░░░   0% ⏳
+10.1 Интеграционные тесты E2E            ██████████ 100% ✅
 10.2 Финальные проверки и документация   ░░░░░░░░░░   0% ⏳
 10.3 Финальный релиз (v1.0.0)            ░░░░░░░░░░   0% ⏳
 ```
+
+**Реализовано:**
+- `tests/core/test_e2e_integration.py` — 10 E2E тестов:
+  - CoreEngine + Cmw500Emulator + TcpServer полный цикл
+  - AUTH → pipeline → FSM → RESPONSE
+  - AUTH → COMMAND последовательность
+  - Определение дубликатов в реальном времени
+  - SMS-канал через эмулятор
+  - Логирование, сценарии, replay, export
+  - API статуса (get_status, cmw_status)
+- 921 тест total, 89% coverage, ruff clean
+- **Статус:** 10.1 ✅ завершена | Коммит: `e76c19d`
 
 ---
 
@@ -189,7 +201,8 @@
 | `core/export.py` | export_csv, export_json, export_scenario_results_csv/json | ✅ Готово |
 | `cli/app.py` | CLI: 9 команд + REPL (cmd.Cmd), _with_engine, _resolve_scenario_path | ✅ Готово |
 | `tests/cli/test_cli.py` | 43 теста CLI, ruff + mypy clean | ✅ Готово |
-| `tests/core/test_*.py` | 884 теста (841 core + 43 cli), покрытие 89–100% | ✅ Готово |
+| `tests/core/test_e2e_integration.py` | 10 E2E тестов, 89% coverage, ruff clean | ✅ Готово |
+| `tests/core/test_*.py` | 921 тест total, покрытие 88–100% | ✅ Готово |
 | `scenarios/*/scenario.json` | 10 готовых сценариев + verification | ✅ Готово |
 | `config/settings.json` | Настройки по умолчанию | ✅ Готово |
 | `config/credentials.json` | Шаблон учётных данных | ✅ Готово |
@@ -200,8 +213,9 @@
 
 - **RUF001/RUF002/SIM108:** Добавлены в ruff ignore — кириллица в строках/docstring
 - **Все комментарии и docstring на русском языке**
+- **Итерация 10.1 (завершена):** 10 E2E интеграционных тестов — CoreEngine + Cmw500Emulator + TCP + SMS + FSM + Pipeline + Scenario + Replay + Export. 921 тест total, 89% coverage, ruff clean
 - **Итерация 9 (завершена):** CLI — 9 команд (start/stop/status/cmw-status/run-scenario/replay/batch/export/monitor) + REPL (cmd.Cmd). `_with_engine()` для DRY, `_resolve_scenario_path()` для абсолютных путей, `monitor` sync-функция. 43 теста, ruff + mypy clean
-- **Общее покрытие:** 884 теста, ≥ 90% для нового кода, 0 failing
+- **Общее покрытие:** 921 тест, ≥ 90% для нового кода, 0 failing
 - **Итерация 7 (завершена):** ScenarioParser (29 тестов, 99%), ScenarioContext (21 тест, 98%), ExpectStep (22 теста), SendStep (18 тестов), ScenarioManager (9 тестов). 7 рабочих сценариев + 4 stub-заглушки. Внешний аудит: 5 Suggestions + 3 Nice to have — все исправлены
 - **Итерация 8 (завершена):** ReplaySource (21 тест, 98%) + Export (18 тестов, 96%)
 - **Итерация 6 (завершена):** LogManager (23 теста, 93%) + CredentialsRepository (25 тестов, 94%)
