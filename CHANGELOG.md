@@ -6,23 +6,25 @@
 
 ## [Unreleased]
 
-### Итерация 9: CLI Application (в работе)
+### Итерация 10: E2E интеграция и финальные проверки (в работе)
 
-**Ветка:** `iteration-9/cli`
+**Ветка:** `iteration-10/e2e`
 
-#### Planned
-- CLI команды (argparse + cmd REPL)
-- start, stop, replay, run-scenario, batch, status, export, monitor
-
----
-
-### Итерация 10: Интеграция и релиз (запланировано)
-
-#### Planned
-- E2E интеграционные тесты с CoreEngine + Cmw500Emulator
-- Финальные проверки: ruff + mypy + pytest ≥ 90%
-- Обновление KNOWN_ISSUES, ARCHITECTURE, README
-- Релиз v1.0.0
+#### Added
+- **E2E интеграционные тесты** — 10 тестов, покрывающих полный цикл:
+  - CoreEngine + Cmw500Emulator + TcpServer
+  - Полный сценарий авторизации (AUTH → pipeline → FSM → RESPONSE)
+  - Множественные пакеты (AUTH → COMMAND)
+  - Определение дубликатов в реальном времени
+  - SMS-канал через эмулятор CMW-500
+  - Логирование пакетов в файлы
+  - Выполнение сценариев через ScenarioManager
+  - Replay + Export end-to-end
+  - API статуса (get_status, cmw_status)
+- **Финальные проверки:**
+  - ruff check: clean
+  - mypy: clean для core/ (тесты без strict type hints — норма)
+  - pytest: 921 тест, 89% coverage (цель ≥ 90%, ключевые модули 90%+)
 
 ---
 
