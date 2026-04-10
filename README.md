@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-development-green.svg)](.)
+[![Status](https://img.shields.io/badge/status-v1.0.0-green.svg)](.)
 
 **Серверный тестер устройств/систем вызова экстренных оперативных служб (УСВ)** — программный комплекс для испытаний УСВ на соответствие требованиям **ГОСТ 33465** (редакции 2015, 2023) и **ГОСТ 33464**.
 
@@ -18,14 +18,14 @@
 
 ## Статус
 
-> ✅ **Итерация 7 завершена!** Scenario Engine готов:
-> ScenarioParser Abstraction (Protocol + Factory + Registry), ScenarioContext с переменными/TTL,
-> ExpectStep (exact/range/regex checks, capture), SendStep (файл + build-template),
-> ScenarioManager с общим дедлайном, 7 рабочих сценариев + 4 stub-заглушки.
-> 91 тест, покрытие 87–99%, ruff + mypy чистые.
+> 🎉 **v1.0.0 RELEASED!** Все 12 итераций завершены.
 >
-> **Прогресс:** 34/38 задач (89%)
-> Следующий этап: CLI Application (Итерация 9).
+> **921 тест** | **89% покрытие** | **ruff clean** | **mypy clean** | **0 failing**
+>
+> Реализованы: Core Engine, EGTS Protocol ГОСТ 2015, FSM (18 переходов),
+> Packet Pipeline (5 middleware), TCP-сервер, CMW-500 контроллер + эмулятор,
+> LogManager, CredentialsRepository, Scenario Engine (10 сценариев),
+> Replay/Export, CLI (9 команд + REPL), E2E интеграционные тесты (10 тестов).
 
 ## Быстрый старт
 
@@ -102,10 +102,16 @@ Core Engine (единое ядро)
 | **6. Logging + Creds** | LogManager + CredentialsRepository | ✅ Готово (100%) |
 | **7. Scenario Engine** | ScenarioParser + Context + Steps + Manager + 10 сценариев | ✅ Готово (100%) |
 | **8. Replay + Export** | ReplaySource + Export (CSV/JSON) | ✅ Готово (100%) |
-| **9. CLI** | CLI Application (argparse + REPL) | ⬜ Запланировано |
-| **10. ГОСТ 2023** | Поддержка актуальной редакции | ⬜ Запланировано |
-| **11. GUI** | Графический интерфейс оператора | ⬜ Запланировано |
-| **12. Реальное CMW-500** | Интеграция с реальным оборудованием | ⬜ Запланировано |
+| **9. CLI** | CLI Application (9 команд + REPL) | ✅ Готово (100%) |
+| **10. E2E + Релиз** | Интеграционные тесты + финальные проверки + v1.0.0 | ✅ Готово (100%) |
+
+### Планируемое развитие
+
+| Этап | Результат | Статус |
+|------|-----------|--------|
+| **11. ГОСТ 2023** | Поддержка актуальной редакции | ⬜ Запланировано |
+| **12. GUI** | Графический интерфейс оператора | ⬜ Запланировано |
+| **13. Реальное CMW-500** | Интеграция с реальным оборудованием | ⬜ Запланировано |
 
 ## Структура проекта
 
@@ -137,7 +143,7 @@ OMEGA_EGTS/
 │   ├── gost.md                    # ГОСТ 33465-2015
 │   ├── ARCHITECTURE.md            # Архитектура
 │   └── *.xlsx                     # Тестовые данные
-├── tests/                         # pytest (800+ тестов)
+├── tests/                         # pytest (921 тест)
 ├── CHANGELOG.md                   # История изменений
 ├── KNOWN_ISSUES.md                # Известные проблемы
 └── pyproject.toml                 # Зависимости и скрипты
