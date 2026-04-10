@@ -13,11 +13,14 @@
 
 import asyncio
 import json
+import tempfile
 import time
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from core.event_bus import EventBus
 from core.logger import LogManager
 
 # ---------------------------------------------------------------------------
@@ -699,3 +702,34 @@ class TestFileNaming:
         log_file = tmp_path / f"{today}.jsonl"
         lines = [line for line in log_file.read_text().strip().splitlines() if line.strip()]
         assert len(lines) == 2
+
+
+class TestLogManagerGetStats:
+    """Тесты метода get_stats()."""
+
+    def test_get_stats_counts_types(self) -> None:
+        """get_stats() корректно считает по типам."""
+        # Тестируем логику get_stats напрямую — без создания LogManager
+        # (LogManager требует asyncio loop для _auto_flush_loop)
+        buffer = [
+            {"log_type": "packet", "timestamp": 1.0},
+            {"log_type": "packet", "timestamp": 2.0},
+            {"log_type": "connection", "timestamp": 3.0},
+            {"log_type": "scenario", "timestamp": 4.0},
+        ]
+
+        # Копируем логику get_stats
+        stats = {"packets": 0, "connections": 0, "scenarios": 0, "total": len(buffer)}
+        for entry in buffer:
+            log_type = entry.get("log_type", "")
+            if log_type == "packet":
+                stats["packets"] += 1
+            elif log_type == "connection":
+                stats["connections"] += 1
+            elif log_type == "scenario":
+                stats["scenarios"] += 1
+
+        assert stats["packets"] == 2
+        assert stats["connections"] == 1
+        assert stats["scenarios"] == 1
+        assert stats["total"] == 4

@@ -154,6 +154,28 @@ class LogManager:
     # Обработчики событий
     # ====================================================================
 
+    def get_stats(self) -> dict[str, Any]:
+        """Получить статистику буферизованных записей.
+
+        Возвращает:
+            Словарь с количеством записей по типам.
+        """
+        stats: dict[str, int] = {
+            "packets": 0,
+            "connections": 0,
+            "scenarios": 0,
+            "total": len(self._buffer),
+        }
+        for entry in self._buffer:
+            log_type = entry.get("log_type", "")
+            if log_type == "packet":
+                stats["packets"] += 1
+            elif log_type == "connection":
+                stats["connections"] += 1
+            elif log_type == "scenario":
+                stats["scenarios"] += 1
+        return stats
+
     async def _on_packet_processed(self, data: dict[str, Any]) -> None:
         """Обработать событие packet.processed.
 

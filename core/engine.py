@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from contextlib import suppress
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from core.config import Config
@@ -68,35 +69,69 @@ class CoreEngine:
         if self._started:
             return
 
-        # TODO: заменить заглушки на реальную инициализацию
-        # Локальные импорты будут добавлены здесь, когда компоненты появятся,
-        # чтобы избежать циклических зависимостей.
+        # Локальные импорты — избегаем циклических зависимостей
+        from core.cmw500 import Cmw500Controller
+        from core.dispatcher import CommandDispatcher, PacketDispatcher
+        from core.logger import LogManager
+        from core.session import SessionManager
+        from core.tcp_server import TcpServerManager
 
         try:
             # 1. SessionManager
-            # self.session_mgr = SessionManager(bus=self.bus, gost_version=self.config.gost_version)
+            self.session_mgr = SessionManager(
+                bus=self.bus, gost_version=self.config.gost_version
+            )
 
             # 2. LogManager
-            # self.log_mgr = LogManager(bus=self.bus, log_dir=self.config.logging.dir)
+            self.log_mgr = LogManager(
+                bus=self.bus, log_dir=Path(self.config.logging.dir)
+            )
 
             # 3. ScenarioManager
-            # self.scenario_mgr = ScenarioManager(bus=self.bus, session_mgr=self.session_mgr)
+            from core.scenario import ScenarioManager as _ScenarioManager
+            from core.scenario_parser import (
+                ScenarioParserFactory as _ParserFactory,
+            )
+            from core.scenario_parser import (
+                ScenarioParserRegistry as _ParserRegistry,
+            )
+            from core.scenario_parser import (
+                ScenarioParserV1 as _ParserV1,
+            )
+
+            registry = _ParserRegistry()
+            registry.register("1", _ParserV1)
+            parser_factory = _ParserFactory(registry=registry)
+            self.scenario_mgr = _ScenarioManager(parser_factory=parser_factory)
 
             # 4. PacketDispatcher
-            # self.packet_dispatcher = PacketDispatcher(bus=self.bus, session_mgr=self.session_mgr)
+            self.packet_dispatcher = PacketDispatcher(
+                bus=self.bus, session_mgr=self.session_mgr
+            )
 
-            # 5. CommandDispatcher
-            # self.command_dispatcher = CommandDispatcher(bus=self.bus, session_mgr=self.session_mgr)
+            # 5. CommandDispatcher (cmw пока None — CMW создаётся на шаге 7)
+            # SMS-команды станут доступны после подключения CMW
+            self.command_dispatcher = CommandDispatcher(
+                bus=self.bus, session_mgr=self.session_mgr
+            )
 
-            # 6. TcpServerManager
-            # self.tcp_server = TcpServerManager(
-            #     bus=self.bus, host=self.config.tcp_host, port=self.config.tcp_port,
-            # )
-            # await self.tcp_server.start()
+            # 6. TcpServerManager — передаём session_mgr для создания сессий
+            self.tcp_server = TcpServerManager(
+                bus=self.bus,
+                host=self.config.tcp_host,
+                port=self.config.tcp_port,
+                session_mgr=self.session_mgr,
+            )
+            await self.tcp_server.start()
 
-            # 7. Cmw500Controller
-            # self.cmw500 = Cmw500Controller(bus=self.bus, ip=self.config.cmw500.ip)
-            # await self.cmw500.connect()
+            # 7. Cmw500Controller (опционально — если задан IP)
+            if self.config.cmw500.ip is not None:
+                self.cmw500 = Cmw500Controller(
+                    bus=self.bus, ip=self.config.cmw500.ip
+                )
+                await self.cmw500.connect()
+                # Обновляем cmw в CommandDispatcher для SMS-канала
+                self.command_dispatcher.cmw = self.cmw500
 
             self._started = True
             await self.bus.emit(
@@ -138,10 +173,19 @@ class CoreEngine:
                 await self.tcp_server.stop()
             self.tcp_server = None
 
+        # Диспетчеры отписываются от EventBus
+        if self.packet_dispatcher is not None:
+            with suppress(Exception):
+                self.packet_dispatcher.stop()
+            self.packet_dispatcher = None
+
+        if self.command_dispatcher is not None:
+            with suppress(Exception):
+                self.command_dispatcher.stop()
+            self.command_dispatcher = None
+
         # Остальные компоненты не требуют явной остановки —
         # они просто перестают получать события через EventBus.
-        self.packet_dispatcher = None
-        self.command_dispatcher = None
         self.scenario_mgr = None
         self.log_mgr = None
         self.session_mgr = None
@@ -159,3 +203,176 @@ class CoreEngine:
             f"CoreEngine(state={state}, port={self.config.tcp_port}, "
             f"cmw={cmw_status}, gost={self.config.gost_version})"
         )
+
+    # ===== API для CLI (задача 9.0) =====
+
+    async def get_status(self) -> dict[str, Any]:
+        """Полный статус системы для команды ``status``.
+
+        Возвращает словарь с:
+        - ``running`` — запущен ли CoreEngine
+        - ``port`` — TCP порт
+        - ``gost_version`` — версия ГОСТ
+        - ``tcp_server`` — "running"/"stopped"
+        - ``cmw500`` — "connected"/"disconnected"
+        - ``session_mgr``, ``log_mgr``, ``scenario_mgr`` — созданы ли
+        - ``cmw_details`` — данные от CMW-500 (если подключён)
+        """
+        result: dict[str, Any] = {
+            "running": self.is_running,
+            "port": self.config.tcp_port,
+            "gost_version": self.config.gost_version,
+            "tcp_server": "running" if self.tcp_server is not None else "stopped",
+            "cmw500": "connected" if self.cmw500 is not None else "disconnected",
+            "session_mgr": self.session_mgr is not None,
+            "log_mgr": self.log_mgr is not None,
+            "scenario_mgr": self.scenario_mgr is not None,
+        }
+
+        # Дополнить деталями от CMW-500
+        if self.cmw500 is not None and self.is_running:
+            try:
+                cmw_details = await self.cmw500.get_status()
+                result["cmw_details"] = cmw_details
+            except Exception:
+                result["cmw_details"] = None
+
+        return result
+
+    async def cmw_status(self) -> dict[str, Any]:
+        """Статус CMW-500 для команды ``cmw-status``.
+
+        Возвращает:
+        - ``connected`` — подключён ли
+        - ``status`` — ответ CMW-500 (строка SCPI)
+        - ``error`` — сообщение об ошибке
+        """
+        if self.cmw500 is None:
+            return {
+                "connected": False,
+                "error": "CMW-500 не инициализирован (вызовите start)",
+            }
+
+        try:
+            status = await self.cmw500.get_status()
+            return {"connected": True, "status": status}
+        except Exception as exc:
+            return {"connected": False, "error": str(exc)}
+
+    async def run_scenario(
+        self, scenario_path: str, connection_id: str | None = None
+    ) -> dict[str, Any]:
+        """Запустить сценарий для команды ``run-scenario``.
+
+        Параметры:
+            scenario_path: путь к директории сценария (scenario.json + HEX).
+            connection_id: идентификатор подключения (None — автоопределение).
+
+        Возвращает:
+            Словарь с результатами: name, status, steps_total, steps_passed, error.
+        """
+        if not self.is_running:
+            raise RuntimeError("CoreEngine не запущен (вызовите start)")
+
+        if self.scenario_mgr is None:
+            return {"status": "error", "error": "ScenarioManager не инициализирован"}
+
+        try:
+            self.scenario_mgr.load(Path(scenario_path))
+            result = await self.scenario_mgr.execute(
+                bus=self.bus,
+                connection_id=connection_id,
+                timeout=self.config.timeouts.egts_sl_not_auth_to,
+            )
+            history = self.scenario_mgr.context.history
+            return {
+                "name": self.scenario_mgr.metadata.name,
+                "status": result,
+                "steps_total": len(history),
+                "steps_passed": sum(1 for h in history if h.status == "PASS"),
+            }
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+
+    async def replay(
+        self, log_path: str, scenario_path: str | None = None
+    ) -> dict[str, Any]:
+        """Replay JSONL-лога через pipeline для команды ``replay``.
+
+        Параметры:
+            log_path: путь к файлу JSONL
+            scenario_path: опционально — сценарий для валидации (пока игнорируется)
+
+        Возвращает:
+            Словарь с processed, skipped_duplicates, errors.
+        """
+        if not self.is_running:
+            raise RuntimeError("CoreEngine не запущен (вызовите start)")
+
+        from core.packet_source import ReplaySource
+
+        replay_source = ReplaySource(
+            bus=self.bus,
+            log_file=log_path,
+        )
+
+        result = await replay_source.replay()
+        return result
+
+    async def export(
+        self, data_type: str, fmt: str, output_path: str
+    ) -> dict[str, Any]:
+        """Выгрузка данных для команды ``export``.
+
+        Параметры:
+            data_type: тип данных (packets, scenarios, connections)
+            fmt: формат (csv, json)
+            output_path: путь к файлу вывода
+
+        Возвращает:
+            Словарь с rows, file.
+        """
+        if not self.is_running:
+            raise RuntimeError("CoreEngine не запущен (вызовите start)")
+
+        from core.export import export_csv, export_json
+
+        # Нормализация: CLI использует мн.ч. ("packets"), LogManager — ед.ч. ("packet")
+        log_type_map = {
+            "packets": "packet",
+            "connections": "connection",
+            "scenarios": "scenario",
+        }
+        log_type_filter = log_type_map.get(data_type, data_type)
+
+        if fmt == "csv":
+            result: dict[str, Any] = export_csv(
+                log_dir=self.config.logging.dir,
+                output_path=output_path,
+                log_type_filter=log_type_filter,
+            )
+            return result
+        elif fmt == "json":
+            result = export_json(
+                log_dir=self.config.logging.dir,
+                output_path=output_path,
+                log_type_filter=log_type_filter,
+            )
+            return result
+        else:
+            raise ValueError(f"Неподдерживаемый формат экспорта: {fmt}")
+
+    async def get_log_stats(self) -> dict[str, Any]:
+        """Статистика лог-файлов.
+
+        Возвращает:
+            Словарь с packets, connections, running.
+        """
+        if self.log_mgr is None:
+            return {"packets": 0, "connections": 0, "running": False}
+
+        try:
+            stats = self.log_mgr.get_stats()
+            return {**stats, "running": True}
+        except Exception:
+            return {"packets": 0, "connections": 0, "running": True}
