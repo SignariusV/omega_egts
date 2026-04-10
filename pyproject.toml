@@ -121,6 +121,7 @@ ignore = [
     "RUF003", # ambiguous characters in comments — разрешаем кириллицу в комментариях
     "RUF043", # metacharacters in match — упрощение для pytest.match
     "SIM105", # contextlib.suppress — не работает с async (false positive для await)
+    "UP037",  # quoted annotations — нужны для TYPE_CHECKING импортов
 ]
 
 [tool.ruff.lint.isort]

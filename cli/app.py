@@ -25,10 +25,26 @@ import asyncio
 import json
 import sys
 from cmd import Cmd
+from collections.abc import Awaitable, Callable, Coroutine
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
+
+if TYPE_CHECKING:
+    from core.engine import CoreEngine
+
+_HandlerFn = Callable[[Any], Awaitable[int]]
 
 # Точка входа для pyproject.toml
+
+# Базовая директория проекта (OMEGA_EGTS/)
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _resolve_scenario_path(scenario_name: str) -> str:
+    """Разрешить путь к сценарию: имя → scenarios/<name>/, полный путь → as-is."""
+    if "/" in scenario_name or "\\" in scenario_name:
+        return scenario_name
+    return str(BASE_DIR / "scenarios" / scenario_name)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -180,6 +196,23 @@ def _format_export_result(data: dict[str, Any]) -> str:
     return f"Экспортировано {data.get('rows', 0)} записей → {data.get('file', 'unknown')}"
 
 
+# ===== Утилиты =====
+
+
+async def _with_engine(fn: _HandlerFn) -> int:
+    """Создать CoreEngine, запустить, выполнить fn(engine), остановить."""
+    from core.config import Config
+    from core.engine import CoreEngine
+    from core.event_bus import EventBus
+
+    engine = CoreEngine(config=Config(), bus=EventBus())
+    await engine.start()
+    try:
+        return await fn(engine)
+    finally:
+        await engine.stop()
+
+
 # ===== Асинхронные обработчики =====
 
 
@@ -274,43 +307,27 @@ async def _cmd_cmw_status(args: argparse.Namespace) -> int:
 
 async def _cmd_run_scenario(args: argparse.Namespace) -> int:
     """Обработать команду run-scenario."""
-    from core.config import Config
-    from core.engine import CoreEngine
-    from core.event_bus import EventBus
 
-    config = Config()
-    bus = EventBus()
-    engine = CoreEngine(config=config, bus=bus)
-
-    await engine.start()
-    try:
+    async def _fn(engine: "CoreEngine") -> int:
         result = await engine.run_scenario(
             args.scenario_path,
             connection_id=args.connection_id,
         )
         print(_format_scenario_result(result))
         return 0 if result.get("status") == "PASS" else 1
-    finally:
-        await engine.stop()
+
+    return await _with_engine(_fn)
 
 
 async def _cmd_replay(args: argparse.Namespace) -> int:
     """Обработать команду replay."""
-    from core.config import Config
-    from core.engine import CoreEngine
-    from core.event_bus import EventBus
 
-    config = Config()
-    bus = EventBus()
-    engine = CoreEngine(config=config, bus=bus)
-
-    await engine.start()
-    try:
+    async def _fn(engine: "CoreEngine") -> int:
         result = await engine.replay(args.log_path, args.scenario)
         print(_format_replay_result(result))
         return 0
-    finally:
-        await engine.stop()
+
+    return await _with_engine(_fn)
 
 
 async def _cmd_batch(args: argparse.Namespace) -> int:
@@ -328,11 +345,7 @@ async def _cmd_batch(args: argparse.Namespace) -> int:
 
     try:
         for scenario_name in args.scenarios:
-            # Поддержка имён и полных путей
-            if "/" in scenario_name or "\\" in scenario_name:
-                scenario_path = scenario_name
-            else:
-                scenario_path = f"scenarios/{scenario_name}/"
+            scenario_path = _resolve_scenario_path(scenario_name)
             print(f"\n▶ Запуск сценария: {scenario_name}")
             result = await engine.run_scenario(scenario_path)
             results.append({"name": scenario_name, **result})
@@ -352,25 +365,23 @@ async def _cmd_batch(args: argparse.Namespace) -> int:
 
 async def _cmd_export(args: argparse.Namespace) -> int:
     """Обработать команду export."""
-    from core.config import Config
-    from core.engine import CoreEngine
-    from core.event_bus import EventBus
 
-    config = Config()
-    bus = EventBus()
-    engine = CoreEngine(config=config, bus=bus)
-
-    await engine.start()
-    try:
+    async def _fn(engine: "CoreEngine") -> int:
         result = await engine.export(args.data_type, args.format, args.output)
         print(_format_export_result(result))
         return 0
-    finally:
-        await engine.stop()
+
+    return await _with_engine(_fn)
 
 
-async def _cmd_monitor(args: argparse.Namespace) -> int:
-    """Обработать команду monitor — запустить REPL."""
+def _cmd_monitor(_args: argparse.Namespace) -> int:
+    """Обработать команду monitor — запустить REPL.
+
+    НЕ async-функция: cmdloop() блокирует поток, а внутри REPL
+    используется отдельный event loop через _run(). Если вызвать
+    через asyncio.run() — run_until_complete() упадёт с
+    RuntimeError: event loop уже запущен.
+    """
     cli = EGTSTesterCLI()
     cli.cmdloop()
     return 0
@@ -412,8 +423,16 @@ class EGTSTesterCLI(Cmd):
             self._engine = CoreEngine(config=self._config, bus=self._bus)
 
     def _run(self, coro: Any) -> Any:
-        """Запустить async-корутину в REPL."""
-        return asyncio.get_event_loop().run_until_complete(coro)
+        """Запустить async-корутину в REPL.
+
+        Каждый вызов создаёт новый event loop — это необходимо,
+        т.к. cmdloop() блокирует поток и не может быть async-контекстом.
+        """
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
 
     def do_start(self, arg: str) -> None:
         """Запустить сервер: start [--port PORT] [--gost VERSION] [--cmw IP]"""
@@ -429,7 +448,11 @@ class EGTSTesterCLI(Cmd):
         i = 0
         while i < len(parts):
             if parts[i] == "--port" and i + 1 < len(parts):
-                port = int(parts[i + 1])
+                try:
+                    port = int(parts[i + 1])
+                except ValueError:
+                    print(f"Ошибка: --port должен быть целым числом, получено '{parts[i + 1]}'")
+                    return
                 i += 2
             elif parts[i] == "--gost" and i + 1 < len(parts):
                 gost = parts[i + 1]
@@ -599,7 +622,7 @@ def main() -> None:
         sys.exit(0)
 
     # Маппинг команд на обработчики
-    handlers = {
+    async_handlers: dict[str, Callable[[argparse.Namespace], Awaitable[int]]] = {
         "start": _cmd_start,
         "stop": _cmd_stop,
         "status": _cmd_status,
@@ -608,13 +631,24 @@ def main() -> None:
         "replay": _cmd_replay,
         "batch": _cmd_batch,
         "export": _cmd_export,
+    }
+    sync_handlers: dict[str, Callable[[argparse.Namespace], int]] = {
         "monitor": _cmd_monitor,
     }
 
-    handler = handlers.get(args.command)
+    # sync-команды
+    if args.command in sync_handlers:
+        sys.exit(sync_handlers[args.command](args))
+
+    # async-команды
+    handler = async_handlers.get(args.command)
     if handler is None:
         parser.print_help()
         sys.exit(1)
 
-    exit_code = asyncio.run(handler(args))
+    try:
+        exit_code: int = asyncio.run(cast("Coroutine[Any, Any, int]", handler(args)))
+    except Exception as exc:
+        print(f"Ошибка: {exc}", file=sys.stderr)
+        exit_code = 1
     sys.exit(exit_code)
