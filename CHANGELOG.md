@@ -6,6 +6,49 @@
 
 ## [Unreleased]
 
+### Итерация 7: Scenario Engine (в разработке)
+
+**Ветка:** `iteration-7/scenarios` | **Задач:** 6/6 (0 выполнено)
+
+#### Архитектурное решение: версионирование форматов сценариев
+
+Аналогично EGTS-протоколу (`IEgtsProtocol` → `EgtsProtocol2015`/`EgtsProtocol2023`),
+формат сценариев абстрагирован через `IScenarioParser` (Protocol + Factory + Registry).
+
+**Проблема:** Сценарии будут эволюционировать — V1 (type, channel, checks, capture) → V2 (loops, conditions, parallel_steps) → V3. Без абстракции добавление новой версии потребует переписывания монолитного `ScenarioManager`.
+
+**Решение:**
+```
+IScenarioParser (Protocol)
+    ├── ScenarioParserV1   ← текущий формат (scenario_version: "1")
+    ├── ScenarioParserV2   ← будущий формат
+    └── ScenarioParserV3
+
+ScenarioParserRegistry → register("1", V1) → get("1")
+ScenarioParserFactory   → читает scenario_version → создаёт парсер
+ScenarioManager         → работает только с IScenarioParser
+```
+
+**Добавление V2** — только `ScenarioParserV2` + `registry.register("2", V2)`. **Никаких изменений в ScenarioManager.**
+
+#### Запланировано (7.0 — ScenarioParser Abstraction)
+- **IScenarioParser** — Protocol: `load()`, `validate()`, `get_steps()`, `get_metadata()`
+- **ScenarioParserV1** — парсинг текущего формата: type, channel, checks, capture, packet_file, build
+- **ScenarioMetadata** — name, version, gost_version, timeout, description, channels
+- **StepDefinition** — нормализованное определение шага для любого парсера
+- **ScenarioParserRegistry** — реестр версий, расширяемый без изменений в Factory
+- **ScenarioParserFactory** — `create(version)` + `detect_and_create(data)`
+- Валидация сценария до выполнения: required fields, step types, channels, capture paths
+
+#### Запланировано (7.1–7.5)
+- **ScenarioContext** — переменные с TTL, шаблоны {{var}}, auto connection_id
+- **ExpectStep** — ожидание пакета с проверкой полей (exact, regex, range, nested paths)
+- **SendStep** — отправка из файла или build-template, регистрация транзакции
+- **ScenarioManager** — загрузка через parser_factory, выполнение через StepFactory
+- **10 готовых сценариев** — auth, telemetry, track, accel, ecall, fw_update, commands, test_mode, sms_channel, passive_mode
+
+---
+
 ### Итерация 6: LogManager и Credentials (10.04.2026)
 
 **Ветка:** `iteration-6/logging-credentials` | **Задач выполнено:** 2/2 | **Тестов:** 48 | **Покрытие:** 93–94%
