@@ -27,6 +27,17 @@
   - pytest: 921 тест, 89% coverage (ключевые модули 90%+)
   - Исправлен flaky test `test_sms_delay_is_within_bounds` (Windows timing)
 
+#### Fixed
+- **Ложное определение дубликатов в pipeline** — порядок middleware изменён:
+  `CRC(1) → Parse(2) → Dedup(2.5) → AutoResponse(3) → EventEmit(5)`.
+  Раньше AutoResponse добавлял PID в кэш _до_ Dedup, поэтому первый пакет
+  определялся как дубликат (находил RESPONSE, который только что сам добавил).
+  Теперь Dedup проверяет кэш _до_ того как AutoResponse его заполнит.
+- **`connection_id: null` в логах FSM** — `SessionManager._on_packet_processed()`
+  теперь включает `connection_id` в событие `connection.changed`.
+- **RESPONSE не логируется** — `LogManager._on_packet_processed()` теперь записывает
+  `response_hex` (hex RESPONSE-пакета) из `ctx.response_data`.
+
 ---
 
 ## [1.0.0] — 2026-04-10

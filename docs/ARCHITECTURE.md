@@ -601,11 +601,11 @@ Middleware-конвейер обработки входящих пакетов (
 └──────┬───────┘
        ▼
 ┌──────────────┐
-│ AutoResponse │  order=3 → RESPONSE для успешных + кеш в UsvConnection
+│ Dedup        │  order=2.5 → отсев дубликатов по PID из кэша UsvConnection
 └──────┬───────┘
        ▼
 ┌──────────────┐
-│ Dedup        │  order=4 → отсев дубликатов по PID из кэша UsvConnection
+│ AutoResponse │  order=3 → RESPONSE для успешных + кеш в UsvConnection
 └──────┬───────┘
        ▼
 ┌──────────────┐
@@ -623,11 +623,16 @@ def _build_pipeline(self) -> PacketPipeline:
     p = PacketPipeline()
     p.add("crc",      CrcValidationMiddleware(session_mgr),   order=1)
     p.add("parse",    ParseMiddleware(session_mgr),            order=2)
+    p.add("dedup",    DuplicateDetectionMiddleware(session_mgr), order=2.5)
     p.add("auto_resp", AutoResponseMiddleware(session_mgr),   order=3)
-    p.add("dedup",    DuplicateDetectionMiddleware(session_mgr), order=4)
     p.add("emit",     EventEmitMiddleware(bus),                order=5)
     return p
 ```
+
+**Почему Dedup перед AutoResponse:** AutoResponse формирует RESPONSE и добавляет
+PID в кэш `_seen_pids`. Если Dedup идёт после — он находит этот же PID и помечает
+первый пакет как дубликат. Dedup должен проверить кэш _до_ того как AutoResponse
+его заполнит.
 
 **PacketContext (данные конвейера):**
 

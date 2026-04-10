@@ -784,6 +784,7 @@ class SessionManager:
                 await self.bus.emit(
                     "connection.changed",
                     {
+                        "connection_id": conn.connection_id,
                         "usv_id": conn.usv_id,
                         "state": new_state.value,
                         "action": "state_transition",

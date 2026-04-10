@@ -208,6 +208,10 @@ class LogManager:
             "errors": list(ctx.errors) if ctx.errors else [],
         }
 
+        # RESPONSE (если сформирован)
+        if ctx.response_data is not None:
+            entry["response_hex"] = ctx.response_data.hex().upper()
+
         self._buffer.append(entry)
         logger.debug(
             "LogManager: packet conn=%s channel=%s crc=%s dup=%s",

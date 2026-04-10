@@ -317,7 +317,7 @@ class CrcValidationMiddleware:
 class AutoResponseMiddleware:
     """Формирование RESPONSE для успешно обработанных пакетов.
 
-    Работает ПОСЛЕ ParseMiddleware и ПЕРЕД DuplicateDetectionMiddleware:
+    Работает ПОСЛЕ DuplicateDetectionMiddleware:
     - Если crc_valid=False — пропускает (RESPONSE уже в CrcValidationMiddleware)
     - Если parsed.packet=None — пропускает (парсинг не удался)
     - Если is_duplicate=True — пропускает (RESPONSE из кэша в Dedup)
