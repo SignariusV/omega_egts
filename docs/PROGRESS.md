@@ -1,13 +1,13 @@
 # Прогресс реализации — OMEGA_EGTS
 
-**Обновлено:** 10.04.2026 | **Ветка:** `iteration-9/cli` | **Коммит:** `2703c21`
+**Обновлено:** 10.04.2026 | **Ветка:** `iteration-9/cli` | **Коммит:** `6d18c47`
 
 ---
 
 ## 📊 Общий прогресс
 
 ```
-████████████████████████████████████████░░ 87% (34/39 задач)
+█████████████████████████████████████████░ 90% (35/39 задач)
 ```
 
 ---
@@ -16,7 +16,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                 CLI / REPL  ░░░░░░░░░░ 0% (Итерация 9)          │
+│              CLI / REPL  ██████████ 100% (Итерация 9 ✅)         │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
                            ▼
@@ -139,8 +139,16 @@
 ### Итерация 9: CLI Application
 
 ```
-9.1 CLI команды (argparse + REPL)        ░░░░░░░░░░   0% ⏳
+9.1 CLI команды (argparse + REPL)        ██████████ 100% ✅
 ```
+
+**Реализовано:**
+- `cli/app.py` — 9 команд: start, stop, status, cmw-status, run-scenario, replay, batch, export, monitor
+- `_with_engine()` — единый bootstrap для Config+EventBus+CoreEngine
+- `_resolve_scenario_path()` — абсолютные пути относительно корня проекта
+- REPL (cmd.Cmd) — 6 команд: start, stop, status, cmw-status, run-scenario, replay, export, exit, quit
+- `monitor` вынесен из asyncio.run() (sync-функция) — предотвращение RuntimeError
+- 43 теста, ruff + mypy clean
 
 ### Итерация 10: Интеграция и релиз
 
@@ -179,7 +187,9 @@
 | `core/scenario.py` | ScenarioContext, ExpectStep, SendStep, ScenarioManager, StepFactory | ✅ Готово |
 | `core/packet_source.py` | ReplaySource (JSONL replay через pipeline) | ✅ Готово |
 | `core/export.py` | export_csv, export_json, export_scenario_results_csv/json | ✅ Готово |
-| `tests/core/test_*.py` | 841 тест, покрытие 89–100% | ✅ Готово |
+| `cli/app.py` | CLI: 9 команд + REPL (cmd.Cmd), _with_engine, _resolve_scenario_path | ✅ Готово |
+| `tests/cli/test_cli.py` | 43 теста CLI, ruff + mypy clean | ✅ Готово |
+| `tests/core/test_*.py` | 884 теста (841 core + 43 cli), покрытие 89–100% | ✅ Готово |
 | `scenarios/*/scenario.json` | 10 готовых сценариев + verification | ✅ Готово |
 | `config/settings.json` | Настройки по умолчанию | ✅ Готово |
 | `config/credentials.json` | Шаблон учётных данных | ✅ Готово |
@@ -190,7 +200,8 @@
 
 - **RUF001/RUF002/SIM108:** Добавлены в ruff ignore — кириллица в строках/docstring
 - **Все комментарии и docstring на русском языке**
-- **Общее покрытие:** 841 тест, ≥ 90% для нового кода, 0 failing
+- **Итерация 9 (завершена):** CLI — 9 команд (start/stop/status/cmw-status/run-scenario/replay/batch/export/monitor) + REPL (cmd.Cmd). `_with_engine()` для DRY, `_resolve_scenario_path()` для абсолютных путей, `monitor` sync-функция. 43 теста, ruff + mypy clean
+- **Общее покрытие:** 884 теста, ≥ 90% для нового кода, 0 failing
 - **Итерация 7 (завершена):** ScenarioParser (29 тестов, 99%), ScenarioContext (21 тест, 98%), ExpectStep (22 теста), SendStep (18 тестов), ScenarioManager (9 тестов). 7 рабочих сценариев + 4 stub-заглушки. Внешний аудит: 5 Suggestions + 3 Nice to have — все исправлены
 - **Итерация 8 (завершена):** ReplaySource (21 тест, 98%) + Export (18 тестов, 96%)
 - **Итерация 6 (завершена):** LogManager (23 теста, 93%) + CredentialsRepository (25 тестов, 94%)

@@ -1061,7 +1061,7 @@ egts-tester/
 │   └── egts_protocol_gost2015/    # Реализация ГОСТ 33465-2015
 │       ├── adapter.py             # Маппинг gost2015_impl ↔ iface
 │       └── gost2015_impl/         # Парсер, сборщик, CRC, SMS, сервисы
-├── cli/app.py                     # CLI приложение (Итерация 9 — в работе)
+├── cli/app.py                     # CLI приложение (9 команд + REPL cmd.Cmd)
 ├── scenarios/                     # 10 готовых сценариев (JSON + HEX)
 ├── config/                        # settings.json, credentials.json
 ├── data/                          # Тестовые данные (траектории, профили, MSD)
@@ -1088,7 +1088,11 @@ egts-tester/
     │   ├── test_replay.py         # ✅ 21 тест, 98%
     │   ├── test_export.py         # ✅ 18 тестов, 96%
     │   └── test_integration_chain.py # ✅ 6 интеграционных
+    ├── cli/
+    │   └── test_cli.py            # ✅ 43 теста, ruff + mypy clean
     └── libs/
         ├── egts_protocol_iface/   # ✅ 73 теста, 100%
         └── egts_protocol_gost2015/ # ✅ 59 тестов (адаптер)
 ```
+
+**Итого:** 884 теста, 90%+ coverage, 0 failing
