@@ -1,0 +1,79 @@
+{
+  "name": "Верификация (TCP)",
+  "scenario_version": "1",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 30,
+  "description": "Верификация УСВ через TCP-канал: APN, адрес сервера, запрос UNIT_ID",
+  "channels": ["tcp"],
+  "steps": [
+    {
+      "name": "Настройка GPRS/APN",
+      "type": "send",
+      "channel": "tcp",
+      "packet_type": "COMMAND_DATA",
+      "packet_file": "scenarios/verification_tcp/packets/platform/gprs_apn.hex",
+      "timeout": 10,
+      "description": "Отправка настроек GPRS/APN (internet) по TCP"
+    },
+    {
+      "name": "Подтверждение APN",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "COMMAND_DATA",
+      "timeout": 10,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 0
+      },
+      "description": "УСВ подтверждает приём настроек APN"
+    },
+    {
+      "name": "Настройка адреса сервера",
+      "type": "send",
+      "channel": "tcp",
+      "packet_type": "COMMAND_DATA",
+      "packet_file": "scenarios/verification_tcp/packets/platform/server_address.hex",
+      "timeout": 10,
+      "description": "Отправка адреса и порта сервера (200.20.2.171:9090) по TCP"
+    },
+    {
+      "name": "Подтверждение адреса",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "COMMAND_DATA",
+      "timeout": 10,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 1
+      },
+      "description": "УСВ подтверждает приём адреса сервера"
+    },
+    {
+      "name": "Запрос UNIT_ID",
+      "type": "send",
+      "channel": "tcp",
+      "packet_type": "COMMAND_DATA",
+      "packet_file": "scenarios/verification_tcp/packets/platform/unit_id.hex",
+      "timeout": 10,
+      "description": "Запрос идентификатора устройства по TCP"
+    },
+    {
+      "name": "Ответ с UNIT_ID",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "COMMAND_DATA",
+      "timeout": 10,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 2
+      },
+      "capture": {
+        "unit_id": "data"
+      },
+      "description": "УСВ возвращает UNIT_ID"
+    }
+  ]
+}
