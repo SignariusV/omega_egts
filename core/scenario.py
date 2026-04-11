@@ -429,6 +429,8 @@ class SendStep:
             "channel": self.channel,
             "step_name": self.name,
         }
+        if conn_id is not None:
+            emit_data["connection_id"] = conn_id
         if pid is not None:
             emit_data["pid"] = pid
         if rn is not None:

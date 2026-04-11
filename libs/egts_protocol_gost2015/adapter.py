@@ -90,8 +90,19 @@ class EgtsProtocol2015(IEgtsProtocol):
         if iface_packet.records:
             rec = iface_packet.records[0]
             extra["service"] = rec.service_type
+            extra["rst"] = rec.rst_service_type
             if rec.subrecords:
-                extra["subrecord_type"] = rec.subrecords[0].subrecord_type
+                sub = rec.subrecords[0]
+                extra["subrecord_type"] = sub.subrecord_type
+
+                # RECORD_RESPONSE SRD: CRN (2 байта) + RST (1 байт) — ГОСТ 33465 таблица 18
+                if sub.subrecord_type == "EGTS_SR_RECORD_RESPONSE" and isinstance(sub.data, bytes):
+                    srd = sub.data
+                    if len(srd) >= 3:
+                        crn = int.from_bytes(srd[0:2], "little")
+                        rst = srd[2]
+                        extra["confirmed_record_number"] = crn
+                        extra["record_status"] = rst
 
         return ParseResult(
             packet=iface_packet,
@@ -262,8 +273,19 @@ class EgtsProtocol2015(IEgtsProtocol):
         self, internal: InternalSubrecord
     ) -> IfaceSubrecord:
         """InternalSubrecord → IfaceSubrecord."""
+        from .gost2015_impl.types import SubrecordType
+
+        # Конвертируем int → "EGTS_SR_TERM_IDENTITY" для ExpectStep матчинга
+        srt = internal.subrecord_type
+        subrecord_type_str: int | str = srt
+        if isinstance(srt, int):
+            try:
+                subrecord_type_str = SubrecordType(srt).name
+            except ValueError:
+                subrecord_type_str = srt  # Неизвестный тип — оставляем int
+
         return IfaceSubrecord(
-            subrecord_type=internal.subrecord_type,
+            subrecord_type=subrecord_type_str,
             data=internal.data,
             raw_data=internal.raw_data,
         )

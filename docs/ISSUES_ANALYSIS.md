@@ -2,7 +2,7 @@
 
 Известные проблемы, причины их появления, решения и извлечённые уроки.
 
-**Обновлено:** 11.04.2026 | **ISSUE-003 добавлена:** ScenarioManager не выполняет SendStep
+**Обновлено:** 11.04.2026 | **ISSUE-003 решена**, **ISSUE-004 открыта:** FSM не переходит AUTHENTICATING → AUTHORIZED
 
 ---
 
@@ -219,37 +219,103 @@ def parse_packet(self, data: bytes, **kwargs: object) -> ParseResult:
 
 ---
 
-## ISSUE-003: ScenarioManager не выполняет SendStep после PASS ExpectStep
+## ISSUE-003: ScenarioManager не выполняет сценарий авторизации
 
-**Статус:** ⚠️ Частично решена | **Дата обнаружения:** 11.04.2026
+**Статус:** ✅ Решена | **Дата обнаружения:** 11.04.2026 | **Дата решения:** 11.04.2026
 
 | Мета-инфо | Значение |
 |-----------|----------|
-| **Выявлено на коммите** | `4b6eb67` (debug/manual-testing) — `test_auth_scenario_full.py` — интеграционный тест FAIL |
-| **Решено на коммите** | pending — юнит-тесты PASS, интеграционный FAIL из-за отсутствия CommandDispatcher |
-| **Тест обнаружения** | `tests/integration/test_auth_scenario_full.py` — сценарий зависает, нет `[КОМАНДА]` |
-| **Тест локализации** | `tests/core/test_issue003_sendstep_with_real_file.py` — **юнит-тест PASS**: ExpectStep→SendStep→command.send работает |
-| **Тест подтверждения решения** | `tests/core/test_issue003_scenario_execution.py` (4 теста PASS) + `test_issue003_sendstep_with_real_file.py` (1 тест PASS) |
+| **Выявлено на коммите** | `4b6eb67` (debug/manual-testing) — `test_auth_scenario_full.py` FAIL |
+| **Решено на коммите** | pending — 4 исправления + парсинг SRD RECORD_RESPONSE |
+| **Тест обнаружения** | `tests/integration/test_auth_scenario_full.py` — сценарий застревает, нет `[КОМАНДА]` |
+| **Тест локализации** | 8 тестов изоляции: `test_issue003_*.py` (4 core + 2 libs + 2 integration) |
+| **Тест подтверждения** | `test_auth_scenario.py` — 4/4 PASS; `test_auth_scenario_full.py` — 6/6 шагов PASS |
 
-### Результаты изоляции
+### Хронология исправлений
 
-**5 юнит-тестов — все PASS:**
+| # | Исправление | Файл | Что сделано | Результат |
+|---|-------------|------|-------------|-----------|
+| 1 | **Record.from_bytes() не парсит subrecords** | `record.py` | Добавлен вызов `parse_subrecords()` после сохранения `_raw_data` | ✅ `subrecords` заполнен |
+| 2 | **SubrecordType int → str** | `adapter.py` | `_map_subrecord_to_iface()` конвертирует `int` → `"EGTS_SR_TERM_IDENTITY"` | ✅ ExpectStep матчит по строке |
+| 3 | **SendStep без connection_id** | `scenario.py` | `emit_data["connection_id"] = conn_id` | ✅ CommandDispatcher получает connection_id |
+| 4 | **Парсинг RECORD_RESPONSE SRD** | `adapter.py` | Извлечение CRN + RST из SRD подзаписи → `extra["record_status"]` | ✅ `extra["record_status"] = 0` (EGTS_PC_OK) |
+| 5 | **Сценарий auth/scenario.json** | `scenarios/auth/scenario.json` | `"rst": 0` → `"record_status": 0` | ✅ Шаг 6 PASS |
 
-| Тест | Результат |
+### Финальная цепочка данных
+
+```
+adapter.parse_packet(raw)
+  ├─ Record.from_bytes() → subrecords=[Subrecord(subrecord_type=1, ...)]  ✅
+  ├─ _map_subrecord_to_iface() → subrecord_type="EGTS_SR_TERM_IDENTITY"   ✅
+  ├─ RECORD_RESPONSE SRD → extra["record_status"] = 0                     ✅
+  └─ SendStep.execute() → emit_data={"connection_id": "...", ...}         ✅
+```
+
+### Результат интеграционного теста
+
+```
+[СЦЕНАРИЙ] Результат: PASS
+  Идентификация терминала: PASS
+  Подтверждение TERM_IDENTITY: PASS
+  Данные транспортного средства: PASS
+  Подтверждение VEHICLE_DATA: PASS
+  Результат аутентификации: PASS
+  Подтверждение результата: PASS
+```
+
+### Реализованное решение
+
+**Изменённые файлы:**
+
+| Файл | Изменение |
 |------|-----------|
-| `test_expect_step_passes_when_service_matches` | ✅ PASS — ExpectStep возвращает PASS при `extra={'service': 1}` |
-| `test_scenario_manager_executes_send_after_expect` | ✅ PASS — ScenarioManager переходит от ExpectStep к SendStep |
-| `test_send_step_with_packet_file_builds_packet` | ✅ PASS — SendStep._build_packet() загружает HEX |
-| `test_send_step_with_nonexistent_file_raises_error` | ✅ PASS — FileNotFoundError при отсутствии файла |
-| `test_send_step_with_existing_file_emits_command_send` | ✅ PASS — command.send эмитится, PASS возвращается |
+| `libs/egts_protocol_gost2015/gost2015_impl/record.py` | `from_bytes()` вызывает `parse_subrecords()` |
+| `libs/egts_protocol_gost2015/adapter.py` | `_map_subrecord_to_iface()` → `SubrecordType(srt).name`; парсинг RECORD_RESPONSE SRD → `extra["record_status"]`, `extra["confirmed_record_number"]` |
+| `core/scenario.py` | `SendStep.execute()` → `emit_data["connection_id"] = conn_id` |
+| `scenarios/auth/scenario.json` | `"rst": 0` → `"record_status": 0` |
+| `tests/libs/egts_protocol_gost2015/test_issue003_subrecords_empty.py` | 2 теста |
+| `tests/core/test_issue003_expectstep_missing_subrecord.py` | 3 теста |
+| `tests/core/test_issue003_scenario_execution.py` | 4 теста |
+| `tests/core/test_issue003_sendstep_with_real_file.py` | 1 тест |
 
-**Ключевое подтверждение:**
+---
+
+## ISSUE-004: FSM не переходит AUTHENTICATING → AUTHORIZED после успешной авторизации
+
+**Статус:** 🔴 Открыта | **Дата обнаружения:** 11.04.2026
+
+| Мета-инфо | Значение |
+|-----------|----------|
+| **Выявлено на коммите** | pending — `test_auth_scenario_full.py` FAIL после решения ISSUE-003 |
+| **Решено на коммите** | ❌ Не решено |
+| **Тест обнаружения** | `tests/integration/test_auth_scenario_full.py` — assertion `assert "authorized" in states_lower` FAIL |
+| **Тест локализации** | ❌ Требуется |
+| **Тест подтверждения решения** | ❌ Не создан |
+
+### Описание
+
+После успешного выполнения всех 6 шагов сценария авторизации, FSM остаётся в состоянии `authenticating`:
+
 ```
-[ТЕСТ] History: [('Expect TermIdentity', 'PASS'), ('Send Response', 'PASS')]
+[ТЕСТ] FSM состояния: ['CONNECTED', 'authenticating']
+Ожидалось: ['CONNECTED', 'authenticating', 'AUTHORIZED'] или ['CONNECTED', 'authenticating', 'RUNNING']
 ```
 
-### Вывод
+**Сценарий PASS** — все пакеты обработаны, RESPONSE отправлены, но FSM не получил переход `AUTHENTICATING → AUTHORIZED`.
 
-**ScenarioManager и SendStep работают корректно.** Проблема в `test_auth_scenario_full.py`:
-- Интеграционный тест **не поднимает CommandDispatcher** — SendStep эмитит `command.send`, но никто не отправляет пакет и не отвечает `command.sent`
-- SendStep ждёт `command.sent` → timeout → ERROR
+### Возможные причины
+
+| Гипотеза | Проверка |
+|----------|----------|
+| `SessionManager._on_packet_processed()` не вызывает `fsm.on_result_code_sent()` | Проверить что RESULT_CODE пакет триггерит переход |
+| `on_result_code_sent(0)` не вызывается при отправке RESULT_CODE | Проверить `AutoResponseMiddleware` или `CommandDispatcher` |
+| FSM ждёт `EGTS_SR_RESULT_CODE` но получает RESPONSE | Проверить что сервис RESULT_CODE распознаётся |
+| Переход требует `service=9` (RESULT_CODE), но FSM видит `service=1` | Проверить что RESULT_CODE пакет имеет правильный service |
+
+### Рекомендуемое решение
+
+1. Добавить отладку в `SessionManager._on_packet_processed()`:
+   - Проверить что `on_result_code_sent(0)` вызывается при RESULT_CODE
+   - Проверить FSM переходы после каждого пакета
+2. Создать юнит-тест: FSM AUTHENTICATING + RESULT_CODE(0) → AUTHORIZED
+3. Если FSM не получает `on_result_code_sent()` — добавить вызов в `CommandDispatcher` или `SessionManager`

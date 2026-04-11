@@ -232,9 +232,7 @@ class Record:
         rst_service_type = data[offset]
         offset += 1
 
-        # Данные записи (RD) - подзаписи
-        # Примечание: парсинг подзаписей будет реализован отдельно
-        # Пока просто сохраняем байты
+        # Данные записи (RD) — подзаписи
         record_data = data[offset : offset + rl]
 
         record = cls(
@@ -249,8 +247,13 @@ class Record:
             rpp=rpp,
         )
 
-        # Сохраняем сырые данные подзаписей для последующего парсинга
+        # Сохраняем сырые данные подзаписей для обратной совместимости
         record._raw_data = record_data
+
+        # Парсим подзаписи сразу — ГОСТ 33465 SRT/SRL/SRD
+        from .subrecord import parse_subrecords
+
+        record.subrecords = parse_subrecords(record_data, ServiceType(service_type))
 
         return record
 

@@ -6,6 +6,47 @@
 
 ## [Unreleased]
 
+### Итерация 12: Сценарий авторизации PASS (завершена)
+
+**Ветка:** `debug/manual-testing` | **Коммит:** pending
+
+#### Fixed
+- **`Record.from_bytes()` не парсил subrecords** — добавлен вызов `parse_subrecords()`
+  после сохранения `_raw_data`. Все записи теперь имеют заполненные subrecords.
+- **`Subrecord.subrecord_type` был int** — `_map_subrecord_to_iface()` конвертирует
+  `int` → `"EGTS_SR_TERM_IDENTITY"` через `SubrecordType(srt).name`.
+- **`SendStep` не передавал `connection_id`** — добавлен `emit_data["connection_id"] = conn_id`
+  в `SendStep.execute()`. CommandDispatcher теперь получает connection_id для TCP.
+- **`extra` не содержал `record_status`** — парсинг SRD подзаписи RECORD_RESPONSE
+  (CRN + RST по ГОСТ 33465 таблица 18). `extra["record_status"] = 0` (EGTS_PC_OK).
+- **Сценарий auth/scenario.json** — `"rst": 0` → `"record_status": 0` (путаница
+  rst_service_type ≠ record_status исправлена).
+
+#### Added
+- **10 новых тестов** для ISSUE-003:
+  - `test_issue003_subrecords_empty.py` — 2 теста (subrecords заполнен, extra имеет subrecord_type)
+  - `test_issue003_expectstep_missing_subrecord.py` — 3 теста (ExpectStep с/без subrecord_type)
+  - `test_issue003_scenario_execution.py` — 4 теста (ScenarioManager, SendStep)
+  - `test_issue003_sendstep_with_real_file.py` — 1 тест (SendStep с реальным HEX)
+- **Парсинг RECORD_RESPONSE SRD** — `extra["confirmed_record_number"]` и `extra["record_status"]`
+  извлекаются из SRD подзаписи (CRN 2 байта + RST 1 байт).
+
+#### Результат
+
+| Параметр | До | После |
+|----------|-----|-------|
+| Сценарий авторизации | ❌ FAIL (застревал) | ✅ **PASS (6/6 шагов)** |
+| `subrecords` | `[]` | `[Subrecord(...)]` |
+| `extra["subrecord_type"]` | `None` | `"EGTS_SR_TERM_IDENTITY"` |
+| `extra["record_status"]` | отсутствует | `0` (EGTS_PC_OK) |
+| Тесты | 939 | **949 (943 PASS)** |
+
+#### Открытые проблемы
+- **ISSUE-004:** FSM не переходит `AUTHENTICATING → AUTHORIZED` после успешной авторизации.
+  Сценарий PASS, но FSM остаётся в `authenticating`. Требуется вызов `fsm.on_result_code_sent(0)`.
+
+---
+
 ### RESPONSE с RECORD_RESPONSE (ГОСТ 33465-2015, раздел 6.7.2.1)
 
 **Дата:** 11.04.2026
