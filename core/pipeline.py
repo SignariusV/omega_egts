@@ -33,7 +33,7 @@ from libs.egts_protocol_iface import (
     EGTS_PC_HEADERCRC_ERROR,
     PACKET_HEADER_MIN_SIZE,
 )
-from libs.egts_protocol_iface.models import ParseResult
+from libs.egts_protocol_iface.models import ParseResult, ResponseRecord, Subrecord
 
 logger = logging.getLogger(__name__)
 
@@ -359,8 +359,32 @@ class AutoResponseMiddleware:
         packet = ctx.parsed.packet
         pid = packet.packet_id
 
-        # Формируем RESPONSE с result_code=0 (успешная обработка)
-        response_data = protocol.build_response(pid=pid, result_code=0)
+        # Если пакет содержит записи — формируем RESPONSE с RECORD_RESPONSE
+        incoming_records = packet.records or []
+        if incoming_records:
+            response_records = []
+            for rec in incoming_records:
+                # RECORD_RESPONSE: CRN(2) + RST(1)
+                crn_rst = rec.record_id.to_bytes(2, "little") + bytes([0])
+                record_resp = Subrecord(
+                    subrecord_type=0x00,  # EGTS_SR_RECORD_RESPONSE
+                    data=crn_rst,
+                )
+                response_record = ResponseRecord(
+                    rn=rec.record_id,
+                    service=rec.service_type,
+                    subrecords=[record_resp],
+                    rsod=True,
+                )
+                response_records.append(response_record)
+
+            response_data = protocol.build_response(
+                pid=pid, result_code=0, records=response_records
+            )
+        else:
+            # Минимальный RESPONSE без записей
+            response_data = protocol.build_response(pid=pid, result_code=0)
+
         ctx.response_data = response_data
 
         # Кешируем для будущих дубликатов

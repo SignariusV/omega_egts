@@ -184,3 +184,122 @@ class TestFactoryIntegration:
         proto = create_protocol("2015")
         assert proto.calculate_crc8(b"test") == 191
         assert proto.calculate_crc16(b"test") == 8134
+
+
+# =============================================================================
+# Тесты build_response с records
+# =============================================================================
+
+
+class TestBuildResponseWithRecords:
+    """Тесты RESPONSE с RECORD_RESPONSE записями."""
+
+    def setup_method(self) -> None:
+        from libs.egts_protocol_gost2015.adapter import EgtsProtocol2015
+        from libs.egts_protocol_iface.models import ResponseRecord, Subrecord
+
+        self.protocol = EgtsProtocol2015()
+        self.ResponseRecord = ResponseRecord
+        self.Subrecord = Subrecord
+
+    def test_minimal_response_without_records(self) -> None:
+        """Минимальный RESPONSE без записей (старое поведение)."""
+        data = self.protocol.build_response(pid=42, result_code=0)
+        assert len(data) > 0
+        # RESPONSE: PRV=1, HL=11
+        assert data[0] == 0x01  # PRV
+        hl = data[3]
+        assert hl == 11
+        # PT на смещении 9 (PRV+SKID+FLAGS+HL+HE+FDL+PID = 1+1+1+1+1+2+2 = 9)
+        pt = data[9]
+        assert pt == 0x00  # PT=0 (RESPONSE)
+        # FDL должен быть 3 (RPID=2 + PR=1)
+        fdl = int.from_bytes(data[5:7], "little")
+        assert fdl == 3
+
+    def test_response_with_record_response(self) -> None:
+        """RESPONSE с одной RECORD_RESPONSE записью."""
+        crn_rst = (73).to_bytes(2, "little") + bytes([0])  # CRN=73, RST=0
+        subrec = self.Subrecord(subrecord_type=0x00, data=crn_rst)
+        record = self.ResponseRecord(rn=73, service=1, subrecords=[subrec])
+
+        data = self.protocol.build_response(pid=42, result_code=0, records=[record])
+
+        # RESPONSE должен содержать записи → FDL > 3
+        fdl = int.from_bytes(data[5:7], "little")
+        assert fdl > 3, f"FDL={fdl}, ожидался RESPONSE с записями"
+
+        # Парсим через библиотеку для проверки структуры
+        from libs.egts_protocol_gost2015.gost2015_impl.packet import Packet
+
+        pkt = Packet.from_bytes(data)
+        assert pkt.packet_type.value == 0  # RESPONSE
+        assert pkt.response_packet_id == 42
+        assert pkt.processing_result == 0
+
+        records = pkt.parse_records()
+        assert len(records) == 1, "Должна быть одна запись"
+
+        rec = records[0]
+        assert rec.record_id == 73
+        assert rec.rsod is True  # RFL bit
+
+        # parsed_subrecords — через _raw_data
+        subs = rec.parsed_subrecords
+        assert len(subs) == 1
+        sub = subs[0]
+        assert sub.subrecord_type == 0x00  # RECORD_RESPONSE
+        assert sub.raw_data == crn_rst
+
+    def test_response_with_custom_rst(self) -> None:
+        """RESPONSE с кастомным RST (статус обработки)."""
+        crn_rst = (10).to_bytes(2, "little") + bytes([1])  # CRN=10, RST=1
+        subrec = self.Subrecord(subrecord_type=0x00, data=crn_rst)
+        record = self.ResponseRecord(rn=10, service=1, subrecords=[subrec], rsod=False)
+
+        data = self.protocol.build_response(pid=1, result_code=0, records=[record])
+
+        from libs.egts_protocol_gost2015.gost2015_impl.packet import Packet
+
+        pkt = Packet.from_bytes(data)
+        records = pkt.parse_records()
+        rec = records[0]
+        assert rec.record_id == 10
+        assert rec.rsod is False
+
+    def test_fallback_for_unknown_service(self) -> None:
+        """Неизвестный сервис → fallback на AUTH_SERVICE."""
+        crn_rst = (5).to_bytes(2, "little") + bytes([0])
+        subrec = self.Subrecord(subrecord_type=0x00, data=crn_rst)
+        # service=99 — несуществующий
+        record = self.ResponseRecord(rn=5, service=99, subrecords=[subrec])
+
+        data = self.protocol.build_response(pid=1, result_code=0, records=[record])
+
+        from libs.egts_protocol_gost2015.gost2015_impl.packet import Packet
+
+        pkt = Packet.from_bytes(data)
+        records = pkt.parse_records()
+        rec = records[0]
+        # AUTH_SERVICE = 1
+        assert rec.service_type.value == 1
+
+    def test_response_with_multiple_records(self) -> None:
+        """RESPONSE с несколькими записями."""
+        records = []
+        for rn in [10, 20, 30]:
+            crn_rst = rn.to_bytes(2, "little") + bytes([0])
+            subrec = self.Subrecord(subrecord_type=0x00, data=crn_rst)
+            records.append(
+                self.ResponseRecord(rn=rn, service=1, subrecords=[subrec])
+            )
+
+        data = self.protocol.build_response(pid=100, result_code=0, records=records)
+
+        from libs.egts_protocol_gost2015.gost2015_impl.packet import Packet
+
+        pkt = Packet.from_bytes(data)
+        parsed = pkt.parse_records()
+        assert len(parsed) == 3
+        record_ids = [r.record_id for r in parsed]
+        assert record_ids == [10, 20, 30]

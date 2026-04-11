@@ -356,6 +356,155 @@ raw_bytes → Packet.from_bytes() → parse_records() → Record._raw_data → S
 
 ---
 
+## 8. Рекомендуемое архитектурное решение (для будущего)
+
+### 8.1. Проблема текущего подхода
+
+Текущее решение (два метода: `build_response()` и `build_response_with_record()`) работает, но создаёт прецедент:
+
+- На каждый новый тип RESPONSE нужен новый метод
+- `build_response_with_command()`, `build_response_with_telemetry()`, ...
+- Интерфейс раздувается, абстракция ломается
+
+### 8.2. Единый метод с typed моделями
+
+**Концепция:** расширить `build_response()` через параметр `records` с типизированными моделями.
+
+```python
+# libs/egts_protocol_iface/models.py — новая модель
+@dataclass
+class ResponseRecord:
+    """Запись в RESPONSE пакете."""
+    rn: int                        # Record Number
+    service: int                   # SST — тип сервиса
+    subrecords: list[Subrecord]    # подзаписи
+    rsod: bool = True              # RFL bit — получатель на платформе
+```
+
+```python
+# libs/egts_protocol_iface/__init__.py — расширение интерфейса
+def build_response(
+    self,
+    pid: int,
+    result_code: int,
+    records: list[ResponseRecord] | None = None,
+    **kwargs: object,
+) -> bytes:
+    """Собрать RESPONSE-пакет.
+
+    Args:
+        pid: Идентификатор подтверждаемого пакета.
+        result_code: Результат обработки.
+        records: Записи уровня поддержки услуг (опционально).
+            records=None → минимальный RESPONSE (только RPID + PR).
+            records=[...] → RESPONSE с записями и подзаписями.
+        **kwargs: Дополнительные параметры.
+
+    Returns:
+        Готовые байты RESPONSE-пакета.
+    """
+    ...
+```
+
+### 8.3. Примеры использования
+
+**Минимальный RESPONSE (как сейчас):**
+
+```python
+protocol.build_response(pid=42, result_code=0)
+```
+
+**RESPONSE с RECORD_RESPONSE (TERM_IDENTITY):**
+
+```python
+protocol.build_response(
+    pid=42,
+    result_code=0,
+    records=[ResponseRecord(
+        rn=73,
+        service=1,  # AUTH_SERVICE
+        subrecords=[Subrecord(
+            subrecord_type=0x00,  # EGTS_SR_RECORD_RESPONSE
+            data=struct.pack('<HB', 73, 0),  # CRN(2) + RST(1)
+        )],
+    )]
+)
+```
+
+**RESPONSE с несколькими записями (будущее):**
+
+```python
+protocol.build_response(
+    pid=100,
+    result_code=0,
+    records=[
+        ResponseRecord(rn=1, service=1, subrecords=[...]),  # AUTH
+        ResponseRecord(rn=2, service=4, subrecords=[...]),  # COMMANDS
+    ]
+)
+```
+
+### 8.4. AutoResponseMiddleware с новой абстракцией
+
+```python
+async def __call__(self, ctx: PacketContext) -> None:
+    # ... проверки ...
+
+    packet = ctx.parsed.packet
+    pid = packet.packet_id
+
+    # Извлекаем записи из входящего пакета
+    incoming_records = packet.records or []
+
+    if incoming_records:
+        # Формируем RESPONSE с RECORD_RESPONSE
+        records = []
+        for rec in incoming_records:
+            record = ResponseRecord(
+                rn=rec.record_id,
+                service=rec.service_type,
+                subrecords=[Subrecord(
+                    subrecord_type=0x00,  # RECORD_RESPONSE
+                    data=struct.pack('<HB', rec.record_id, 0),  # CRN + RST=0
+                )],
+            )
+            records.append(record)
+
+        response_data = protocol.build_response(
+            pid=pid, result_code=0, records=records
+        )
+    else:
+        # Минимальный RESPONSE
+        response_data = protocol.build_response(pid=pid, result_code=0)
+
+    ctx.response_data = response_data
+```
+
+### 8.5. Сравнение подходов
+
+| Критерий | Два метода | Единый с models |
+|----------|------------|-----------------|
+| **Обратная совместимость** | ✅ Полная | ✅ Полная (`records=None`) |
+| **Типизация** | ❌ Только сигнатуры | ✅ Typed dataclass'ы |
+| **Расширяемость** | ⚠️ Новый метод на каждый случай | ✅ Добавляем поля в ResponseRecord |
+| **IDE-подсказки** | ⚠️ Только у методов | ✅ Полные (dataclass) |
+| **Валидация** | В адаптере | В dataclass + адаптере |
+| **Сложность интерфейса** | ⚠️ Методы множатся | ✅ Один метод |
+
+### 8.6. Что потребуется изменить
+
+| Файл | Изменение | Объём |
+|------|-----------|-------|
+| `libs/egts_protocol_iface/models.py` | Добавить `ResponseRecord` | ~10 строк |
+| `libs/egts_protocol_iface/__init__.py` | Добавить `records` в `build_response()` | ~1 строка сигнатуры |
+| `libs/egts_protocol_gost2015/adapter.py` | Реализовать логику `records` | ~30 строк |
+| `core/pipeline.py` | Обновить AutoResponseMiddleware | ~10 строк |
+| `tests/` | Обновить/добавить тесты | ~40 строк |
+
+**Итого: ~100 строк, без переписывания существующей логики.**
+
+---
+
 ## 7. Статистика
 
 | Метрика | Значение |

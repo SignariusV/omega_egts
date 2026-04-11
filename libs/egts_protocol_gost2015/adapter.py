@@ -10,19 +10,25 @@
 """
 
 from libs.egts_protocol_iface import IEgtsProtocol
-from libs.egts_protocol_iface.models import Packet as IfacePacket
-from libs.egts_protocol_iface.models import ParseResult
-from libs.egts_protocol_iface.models import Record as IfaceRecord
-from libs.egts_protocol_iface.models import Subrecord as IfaceSubrecord
+from libs.egts_protocol_iface.models import (
+    Packet as IfacePacket,
+    ParseResult,
+    Record as IfaceRecord,
+    ResponseRecord,
+    Subrecord as IfaceSubrecord,
+)
 
 from .gost2015_impl.crc import crc8, crc16, verify_crc8, verify_crc16
 from .gost2015_impl.packet import Packet as InternalPacket
 from .gost2015_impl.record import Record as InternalRecord
 from .gost2015_impl.sms import create_sms_pdu, parse_sms_pdu
 from .gost2015_impl.subrecord import Subrecord as InternalSubrecord
-from .gost2015_impl.types import PacketType as InternalPacketType
-from .gost2015_impl.types import Priority as InternalPriority
-from .gost2015_impl.types import ServiceType as InternalServiceType
+from .gost2015_impl.types import (
+    EGTS_SRT_RECORD_RESPONSE,
+    PacketType as InternalPacketType,
+    Priority as InternalPriority,
+    ServiceType as InternalServiceType,
+)
 
 
 class EgtsProtocol2015(IEgtsProtocol):
@@ -95,10 +101,41 @@ class EgtsProtocol2015(IEgtsProtocol):
     # Сборка
     # ========================================================================
 
-    def build_response(self, pid: int, result_code: int, **kwargs: object) -> bytes:
+    def build_response(
+        self, pid: int, result_code: int, records: list[ResponseRecord] | None = None, **kwargs: object
+    ) -> bytes:
         """Собрать RESPONSE-пакет."""
         rpid_val = kwargs.get("rpid", pid)
         rpid: int = rpid_val if isinstance(rpid_val, int) else pid
+
+        internal_records_list: list[InternalRecord] = []
+
+        if records:
+            for rr in records:
+                # Маппинг subrecords
+                internal_subs = [
+                    InternalSubrecord(
+                        subrecord_type=sr.subrecord_type,
+                        data=sr.data,
+                        raw_data=sr.raw_data,
+                    )
+                    for sr in rr.subrecords
+                ]
+
+                # Маппинг service: int → ServiceType с fallback
+                try:
+                    svc_type = InternalServiceType(rr.service)
+                except ValueError:
+                    # Неизвестный сервис → fallback на AUTH_SERVICE
+                    svc_type = InternalServiceType.EGTS_AUTH_SERVICE
+
+                internal_rec = InternalRecord(
+                    record_id=rr.rn,
+                    service_type=svc_type,
+                    subrecords=internal_subs,
+                    rsod=rr.rsod,
+                )
+                internal_records_list.append(internal_rec)
 
         internal_pkt = InternalPacket(
             packet_id=pid,
@@ -106,7 +143,7 @@ class EgtsProtocol2015(IEgtsProtocol):
             priority=InternalPriority.HIGHEST,
             response_packet_id=rpid,
             processing_result=result_code,
-            records=[],
+            records=internal_records_list,
         )
         return internal_pkt.to_bytes()
 

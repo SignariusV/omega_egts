@@ -146,6 +146,42 @@ class TestFullIntegration:
                 rpid = int.from_bytes(response[4:6], byteorder="little")
                 assert rpid == 42, f"RPID={rpid}, ожидался 42"
 
+            # 4.1. Проверяем структуру RESPONSE через библиотеку
+            from libs.egts_protocol_gost2015.gost2015_impl.packet import Packet
+
+            resp_pkt = Packet.from_bytes(response)
+            assert resp_pkt.packet_type.value == 0, "Тип пакета должен быть RESPONSE (0)"
+            assert resp_pkt.response_packet_id == 42, f"RPID={resp_pkt.response_packet_id}"
+            assert resp_pkt.processing_result == 0, f"PR={resp_pkt.processing_result}"
+
+            # Проверяем наличие RECORD_RESPONSE записи
+            records = resp_pkt.parse_records()
+            assert len(records) >= 1, "RESPONSE должен содержать хотя бы одну запись"
+
+            # Находим запись с RECORD_RESPONSE
+            record_response_rec = None
+            for rec in records:
+                for sub in rec.parsed_subrecords:
+                    if sub.subrecord_type == 0x00:  # EGTS_SR_RECORD_RESPONSE
+                        record_response_rec = (rec, sub)
+                        break
+                if record_response_rec:
+                    break
+
+            assert record_response_rec is not None, (
+                "RESPONSE должен содержать RECORD_RESPONSE подзапись"
+            )
+            rec, sub = record_response_rec
+            # CRN = первые 2 байта SRD
+            crn = int.from_bytes(sub.raw_data[:2], "little")
+            rst = sub.raw_data[2]
+            assert rst == 0, f"RST={rst}, ожидался 0 (OK)"
+            assert isinstance(crn, int) and crn >= 0, f"CRN={crn}"
+
+            # FDL должен включать записи (не только RPID+PR)
+            fdl = int.from_bytes(response[5:7], "little")
+            assert fdl > 3, f"FDL={fdl}, ожидался > 3 (RESPONSE с записями)"
+
             # 5. Проверяем события FSM
             assert len(state_events) >= 1, "Нет событий connection.changed"
             states = [e.get("state") for e in state_events]

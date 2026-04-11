@@ -10,7 +10,7 @@
 
 from typing import Protocol, runtime_checkable
 
-from .models import Packet, ParseResult
+from .models import Packet, ParseResult, ResponseRecord
 from .types import (
     CRC8_INIT,
     CRC8_POLY,
@@ -59,6 +59,7 @@ __all__ = [
     "PacketType",
     "ParseResult",
     "RecordStatus",
+    "ResponseRecord",
     "ResultCode",
     "ServiceType",
     "SubrecordType",
@@ -106,12 +107,17 @@ class IEgtsProtocol(Protocol):
 
     # ----- Сборка -----
 
-    def build_response(self, pid: int, result_code: int, **kwargs: object) -> bytes:
+    def build_response(
+        self, pid: int, result_code: int, records: list[ResponseRecord] | None = None, **kwargs: object
+    ) -> bytes:
         """Собрать RESPONSE-пакет.
 
         Args:
             pid: Идентификатор подтверждаемого пакета.
             result_code: Результат обработки.
+            records: Записи уровня поддержки услуг (опционально).
+                records=None → минимальный RESPONSE (только RPID + PR).
+                records=[...] → RESPONSE с записями и подзаписями.
             **kwargs: Дополнительные параметры.
 
         Returns:

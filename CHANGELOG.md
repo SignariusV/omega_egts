@@ -6,6 +6,60 @@
 
 ## [Unreleased]
 
+### RESPONSE с RECORD_RESPONSE (ГОСТ 33465-2015, раздел 6.7.2.1)
+
+**Дата:** 11.04.2026
+
+#### Проблема
+RESPONSE на TERM_IDENTITY был **16 байт** (только RPID + PR) — без записи `RECORD_RESPONSE`.
+По ГОСТ 33465-2015 (разделы 6.7.2.1, 6.8.1) RESPONSE должен содержать подтверждение записи
+уровня поддержки услуг — `EGTS_SR_RECORD_RESPONSE`.
+
+#### Architectural решение
+Вместо создания отдельных методов (`build_response_with_record()`, `build_response_with_command()` и т.д.)
+реализован **единый метод** `build_response()` с типизированным параметром `records`:
+
+```python
+@dataclass
+class ResponseRecord:
+    rn: int                       # Record Number подтверждаемой записи (CRN)
+    service: int                  # SST — тип сервиса
+    subrecords: list[Subrecord]   # подзаписи (RECORD_RESPONSE)
+    rsod: bool = True             # RFL bit 6 — получатель на платформе
+
+def build_response(
+    self, pid: int, result_code: int,
+    records: list[ResponseRecord] | None = None,
+    **kwargs: object,
+) -> bytes:
+```
+
+#### Изменения
+
+| Файл | Что изменено |
+|------|-------------|
+| `libs/egts_protocol_iface/models.py` | + `ResponseRecord` dataclass |
+| `libs/egts_protocol_iface/__init__.py` | Экспорт `ResponseRecord`, `records` параметр в `IEgtsProtocol.build_response()` |
+| `libs/egts_protocol_gost2015/adapter.py` | Маппинг `ResponseRecord → InternalRecord`, fallback для unknown service → AUTH_SERVICE |
+| `core/pipeline.py` | `AutoResponseMiddleware` извлекает записи из входящего пакета, формирует `ResponseRecord` с `EGTS_SR_RECORD_RESPONSE` |
+| `tests/.../test_adapter.py` | + `TestBuildResponseWithRecords` (5 тестов) |
+| `tests/integration/test_full_integration.py` | Проверка структуры RESPONSE через `Packet.from_bytes()` + `parse_records()` |
+
+#### Результат
+
+| Параметр | До | После |
+|----------|-----|-------|
+| Длина RESPONSE | 16 байт | **29 байт** |
+| FDL | 3 | **16** (RPID + PR + RECORD) |
+| Записи | ❌ | ✅ RN, SST=1, SRT=0, CRN, RST=0, RSOD=1 |
+| Соответствие ГОСТ | ❌ Частичное | ✅ Полное (раздел 6.7.2.1) |
+| Тесты | 921 | **926 passed** |
+
+#### Обратная совместимость
+`records=None` (по умолчанию) = старое поведение (минимальный RESPONSE без записей).
+
+---
+
 ### Итерация 10: E2E интеграция и финальные проверки (завершена)
 
 **Ветка:** `master` | **Коммит:** `7d7426b`

@@ -95,6 +95,27 @@ class Record:
 
 
 @dataclass
+class ResponseRecord:
+    """Запись в RESPONSE-пакете.
+
+    Упрощённая модель для создания RECORD_RESPONSE внутри RESPONSE.
+    Используется только при сборке RESPONSE с записями.
+
+    Attributes:
+        rn: Record Number подтверждаемой записи (CRN).
+        service: Тип сервиса (SST), например AUTH_SERVICE=1.
+        subrecords: Подзаписи (обычно одна RECORD_RESPONSE).
+        rsod: Recipient Service On Device (RFL bit 6).
+              True = сервис-получатель на платформе (по ГОСТ для RESPONSE).
+    """
+
+    rn: int
+    service: int
+    subrecords: list["Subrecord"]
+    rsod: bool = True
+
+
+@dataclass
 class Packet:
     """Пакет транспортного уровня EGTS
 

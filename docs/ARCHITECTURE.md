@@ -678,8 +678,8 @@ class PacketPipeline:
 |---|-----------|-------|----------------------|----------|
 | 1 | `CrcValidationMiddleware` | 1 | Да (CRC mismatch) | Проверка CRC-8 + CRC-16 |
 | 2 | `ParseMiddleware` | 2 | Да (ошибка парсинга) | Десериализация EGTS |
-| 3 | `AutoResponseMiddleware` | 3 | Нет | Формирует RESPONSE, кеширует |
-| 4 | `DuplicateDetectionMiddleware` | 4 | Да (дубликат) | Сверяет PID с кэшем |
+| 3 | `DuplicateDetectionMiddleware` | 2.5 | Да (дубликат) | Сверяет PID с кэшем |
+| 4 | `AutoResponseMiddleware` | 3 | Нет | Формирует RESPONSE с `ResponseRecord` (RECORD_RESPONSE), кеширует PID→response |
 | 5 | `EventEmitMiddleware` | 5 | Нет | Emit `packet.processed` (всегда) |
 
 ---
@@ -1013,7 +1013,10 @@ libs/
 ```python
 class IEgtsProtocol(Protocol):
     def parse_packet(self, data: bytes, **kwargs) -> ParseResult: ...
-    def build_response(self, pid: int, result_code: int, **kwargs) -> bytes: ...
+    def build_response(
+        self, pid: int, result_code: int,
+        records: list[ResponseRecord] | None = None, **kwargs
+    ) -> bytes: ...
     def build_record_response(self, crn: int, rst: int, **kwargs) -> bytes: ...
     def build_packet(self, packet: Packet, **kwargs) -> bytes: ...
     def build_sms_pdu(self, egts_bytes: bytes, destination: str, **kwargs) -> bytes: ...
@@ -1026,6 +1029,51 @@ class IEgtsProtocol(Protocol):
     def version(self) -> str: ...
     @property
     def capabilities(self) -> set[str]: ...
+```
+
+### ResponseRecord — модель записи в RESPONSE
+
+```python
+@dataclass
+class ResponseRecord:
+    """Запись в RESPONSE-пакете (упрощённая модель для сборки)."""
+    rn: int                       # Record Number подтверждаемой записи (CRN)
+    service: int                  # SST — тип сервиса (AUTH_SERVICE=1, ...)
+    subrecords: list[Subrecord]   # подзаписи (обычно EGTS_SR_RECORD_RESPONSE)
+    rsod: bool = True             # RFL bit 6 — получатель на платформе
+```
+
+**Зачем:** ГОСТ 33465-2015 (раздел 6.7.2.1) рекомендует совмещать RESPONSE с подзаписями
+`EGTS_SR_RECORD_RESPONSE`. Раньше `build_response()` создавал пакет без записей (16 байт).
+Теперь через параметр `records` можно добавить записи, не создавая отдельные методы
+для каждого типа RESPONSE.
+
+**Пример:**
+
+```python
+# RESPONSE с RECORD_RESPONSE на TERM_IDENTITY (RN=73)
+crn_rst = (73).to_bytes(2, "little") + bytes([0])  # CRN=73, RST=0
+record = ResponseRecord(
+    rn=73, service=1,  # AUTH_SERVICE
+    subrecords=[Subrecord(subrecord_type=0x00, data=crn_rst)],
+    rsod=True,
+)
+response = protocol.build_response(pid=42, result_code=0, records=[record])
+# → 29 байт: HEADER + RPID(2) + PR(1) + RECORD(13) + CRC16
+```
+
+**AutoResponseMiddleware:** автоматически извлекает записи из входящего пакета и формирует
+`ResponseRecord` для каждой:
+
+```python
+# AutoResponseMiddleware
+for rec in packet.records:
+    crn_rst = rec.record_id.to_bytes(2, "little") + bytes([0])
+    response_records.append(ResponseRecord(
+        rn=rec.record_id, service=rec.service_type,
+        subrecords=[Subrecord(0x00, crn_rst)], rsod=True,
+    ))
+protocol.build_response(pid=pid, result_code=0, records=response_records)
 ```
 
 **`**kwargs`** — для расширяемости. Новые версии ГОСТ (2023) добавляют параметры без изменения сигнатуры.
@@ -1100,4 +1148,4 @@ egts-tester/
         └── egts_protocol_gost2015/ # ✅ 59 тестов (адаптер)
 ```
 
-**Итого:** 884 теста, 90%+ coverage, 0 failing
+**Итого:** 926 тестов, 89%+ coverage, 1 pre-existing failure (не связано с изменениями)
