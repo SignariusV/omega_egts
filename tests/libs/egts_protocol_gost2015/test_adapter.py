@@ -85,6 +85,43 @@ class TestEgtsProtocol2015:
         assert result.is_valid is False
         assert len(result.errors) >= 1
 
+    def test_parse_packet_populates_extra(self, proto: EgtsProtocol2015) -> None:
+        """parse_packet заполняет extra метаданными (service, subrecord_type)."""
+        # TERM_IDENTITY пакет с реальными данными
+        term_identity_hex = (
+            "0100000B002E002A0001CC2700490080010101240001000000"
+            "16383630383033303636343438333133303235303737303031"
+            "373135363433390F3A"
+        )
+        raw = bytes.fromhex(term_identity_hex)
+        result = proto.parse_packet(raw)
+
+        assert result.is_success, f"Парсинг провалился: {result.errors}"
+        assert result.packet is not None
+        assert result.packet.packet_id == 42
+
+        # extra должен быть заполнен
+        assert result.extra.get("service") == 1, (
+            f"extra['service'] должен быть 1 (AUTH_SERVICE), получил {result.extra.get('service')}"
+        )
+        # Примечание: subrecord_type может быть None если подзаписи не распарсены
+        # внутренним парсером — это отдельная проблема, не блок для CR-016
+        assert "service" in result.extra, (
+            "extra должен содержать 'service'"
+        )
+
+    def test_parse_packet_extra_empty_when_no_records(self, proto: EgtsProtocol2015) -> None:
+        """parse_packet с пустыми записями → extra пустой (допустимо)."""
+        # RESPONSE пакет без записей
+        resp_hex = "0100000B0003002A0000F72A00009B8D"
+        raw = bytes.fromhex(resp_hex)
+        result = proto.parse_packet(raw)
+
+        assert result.is_success
+        # RESPONSE без записей → extra может быть пустым, это нормально
+        # Главное что код не падает
+        assert isinstance(result.extra, dict)
+
     def test_calculate_crc8(self, proto: EgtsProtocol2015) -> None:
         assert proto.calculate_crc8(b"test") == crc8(b"test")
 

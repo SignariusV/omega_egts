@@ -85,11 +85,20 @@ class EgtsProtocol2015(IEgtsProtocol):
         iface_packet.crc16_valid = True  # from_bytes бросает при ошибке
         iface_packet.raw_bytes = data
 
+        # Заполняем extra метаданными для ExpectStep/FSM/LogManager
+        extra: dict[str, object] = {}
+        if iface_packet.records:
+            rec = iface_packet.records[0]
+            extra["service"] = rec.service_type
+            if rec.subrecords:
+                extra["subrecord_type"] = rec.subrecords[0].subrecord_type
+
         return ParseResult(
             packet=iface_packet,
             errors=errors,
             warnings=warnings,
             raw_bytes=data,
+            extra=extra,
         )
 
     def parse_sms_pdu(self, pdu: bytes, **kwargs: object) -> bytes:
