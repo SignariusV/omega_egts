@@ -415,15 +415,28 @@ class CommandDispatcher:
                 f"Connection {connection_id} is closing"
             )
 
+        # Извлечение PID/RN из packet_bytes если не переданы явно
+        # Это позволяет регистрировать транзакции даже для hex-файлов
+        effective_pid: int | None = pid
+        effective_rn: int | None = rn
+
+        if effective_pid is None or effective_rn is None:
+            parsed = self._parse_packet_bytes(conn, packet_bytes)
+            if parsed is not None:
+                if effective_pid is None:
+                    effective_pid = parsed.get("packet_id")
+                if effective_rn is None:
+                    effective_rn = parsed.get("record_id")
+
         writer.write(packet_bytes)
         await writer.drain()
 
         # Регистрация транзакции если есть PID/RN
-        if pid is not None or rn is not None:
+        if effective_pid is not None or effective_rn is not None:
             if conn.transaction_mgr is not None:
                 conn.transaction_mgr.register(
-                    pid=pid,
-                    rn=rn,
+                    pid=effective_pid,
+                    rn=effective_rn,
                     step_name=step_name or "",
                     timeout=timeout,
                 )
@@ -443,10 +456,46 @@ class CommandDispatcher:
             },
         )
         logger.info(
-            "CommandDispatcher: команда отправлена через TCP %s (%d байт)",
+            "CommandDispatcher: команда отправлена через TCP %s (pid=%s, rn=%s, %d байт)",
             connection_id,
+            effective_pid,
+            effective_rn,
             len(packet_bytes),
         )
+
+    def _parse_packet_bytes(
+        self, conn: object, packet_bytes: bytes
+    ) -> dict[str, int | None] | None:
+        """Извлечь PID/RN из сырых байтов пакета.
+
+        Использует protocol из сессии для парсинга.
+        Возвращает dict с packet_id и record_id (первая запись).
+        """
+        try:
+            # Получаем protocol из сессии
+            protocol = getattr(conn, "protocol", None)
+            if protocol is None:
+                logger.debug("_parse_packet_bytes: protocol недоступен")
+                return None
+
+            parsed = protocol.parse_packet(packet_bytes)
+            if parsed.packet is None:
+                logger.debug("_parse_packet_bytes: parse_packet вернул None")
+                return None
+
+            result: dict[str, int | None] = {
+                "packet_id": parsed.packet.packet_id,
+                "record_id": None,
+            }
+
+            if parsed.packet.records:
+                result["record_id"] = parsed.packet.records[0].record_id
+
+            return result
+
+        except Exception as e:
+            logger.debug("_parse_packet_bytes: ошибка: %s", e)
+            return None
 
     async def _send_sms(
         self,

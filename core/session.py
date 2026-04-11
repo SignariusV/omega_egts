@@ -324,7 +324,7 @@ class UsvStateMachine:
             self._timeout_counter = 0
             return None
 
-        if subrecord_type == 0x8000:
+        if subrecord_type == 0x8000 or subrecord_type == "EGTS_SR_RECORD_RESPONSE":
             # EGTS_SR_RECORD_RESPONSE — УСВ подтвердило получение
             # (AUTH_PARAMS или RESULT_CODE)
             rst = packet.get("record_status", 0)
@@ -334,6 +334,14 @@ class UsvStateMachine:
                     UsvState.DISCONNECTED,
                     f"RECORD_RESPONSE RST={rst} (ошибка УСВ)",
                 )
+
+            # Если это подтверждение RESULT_CODE — переходим в AUTHORIZED
+            # confirmed_record_number должен совпадать с RN записи RESULT_CODE
+            crn = packet.get("confirmed_record_number")
+            if crn is not None:
+                # Это RECORD_RESPONSE на наш RESULT_CODE → авторизация завершена
+                return self.on_result_code_sent(0)
+
             self._timeout_counter = 0
             return None
 

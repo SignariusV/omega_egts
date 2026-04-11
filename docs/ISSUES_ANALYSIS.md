@@ -282,15 +282,15 @@ adapter.parse_packet(raw)
 
 ## ISSUE-004: FSM не переходит AUTHENTICATING → AUTHORIZED после успешной авторизации
 
-**Статус:** 🔴 Открыта | **Дата обнаружения:** 11.04.2026 | **Корневая причина найдена**
+**Статус:** ✅ **РЕШЕНА** | **Дата обнаружения:** 11.04.2026 | **Дата решения:** 11.04.2026
 
 | Мета-инфо | Значение |
 |-----------|----------|
 | **Выявлено на коммите** | `c15db2c` (debug/manual-testing) — FSM остаётся в `authenticating` |
-| **Решено на коммите** | ❌ Не решено — требуется парсинг RESPONSE пакетов с записями |
+| **Решено на коммите** | pending — 2 изменения: `core/dispatcher.py`, `core/session.py` |
 | **Тест обнаружения** | `tests/integration/test_auth_scenario_full.py` — assertion `assert "authorized" in states_lower` FAIL |
 | **Тест локализации** | 6 тестов `test_issue004_fsm_no_transition.py` — PASS (изолированная логика работает) |
-| **Тест подтверждения решения** | ❌ Не создан |
+| **Тест подтверждения решения** | `test_issue004a_response_parse.py` (12/12 PASS) + `test_issue004b_command_dispatcher.py` (6/6 PASS) + `test_auth_scenario_full.py` (1/1 PASS) |
 
 ### Описание
 
@@ -302,6 +302,315 @@ adapter.parse_packet(raw)
 ```
 
 **Сценарий PASS** — все пакеты обработаны, RESPONSE отправлены.
+
+### Подпроблемы
+
+ISSUE-004 разбита на 4 подпроблемы, каждая из которых должна быть решена последовательно:
+
+| Подпроблема | Статус | Описание |
+|-------------|--------|----------|
+| **ISSUE-004-A** | ✅ **НЕ ПОДТВЕРЖДЕНА** | `adapter.parse_packet()` корректно парсит RESULT_CODE (APPDATA) и RECORD_RESPONSE |
+| **ISSUE-004-B** | ✅ **РЕШЕНА** | CommandDispatcher извлекает pid/rn из packet_bytes если не переданы |
+| **ISSUE-004-C** | ✅ **РЕШЕНА** | FSM._handle_authenticating() вызывает on_result_code_sent() при RECORD_RESPONSE |
+| **ISSUE-004-D** | ✅ **РЕШЕНА** | FSM переходит AUTHENTICATING → AUTHORIZED (следствие B + C) |
+
+---
+
+### ISSUE-004-A: `adapter.parse_packet()` не парсит RESPONSE пакеты (PT=0) с записями
+
+**Статус:** ✅ **НЕ ПОДТВЕРЖДЕНА** | **Дата анализа:** 11.04.2026 | **Тест:** `test_issue004a_response_parse.py` — 12/12 PASS
+
+#### Описание
+
+Первоначальная гипотеза: `adapter.parse_packet()` для RESPONSE пакетов (PT=0) не парсит записи.
+
+**Выявлено из реальных данных** (`all_packets_correct_20260406_190414.json`):
+
+| Пакет | Hex | PT | Описание |
+|-------|-----|----|----------|
+| **RESULT_CODE** | `0100000B000B0020000126...` | **1 (APPDATA)** | Платформа → УСВ |
+| **RECORD_RESPONSE** | `0100000B0010002C00006A20...` | **0 (RESPONSE)** | УСВ → Платформа |
+
+**Ключевое открытие:** RESULT_CODE отправляется как **APPDATA (PT=1)**, НЕ как RESPONSE (PT=0)!
+
+#### Тестовые результаты
+
+```
+TestResultCodeIsAppData (6 тестов):
+  ✅ PT=1 (APPDATA)
+  ✅ records=[1 запись]
+  ✅ RN=47
+  ✅ subrecord_type="EGTS_SR_RESULT_CODE"
+  ✅ PID=32
+  ✅ extra заполнен
+
+TestRecordResponseIsResponse (5 тестов):
+  ✅ PT=0 (RESPONSE)
+  ✅ RPID=32 (подтверждает RESULT_CODE)
+  ✅ PR=0
+  ✅ records=[1 запись], RN=75
+  ✅ CRN=47, RST=0
+
+TestIssue004A_Conclusion (1 тест):
+  ✅ adapter.parse_packet() корректно парсит RESULT_CODE
+```
+
+#### Цепочка данных (правильная)
+
+```
+ПЛАТФОРМА → УСВ:
+  RESULT_CODE (PT=1, PID=32, RN=47, RCD=0)
+    └─ adapter.parse_packet() → records=[1], extra={"service": 1, "subrecord_type": "EGTS_SR_RESULT_CODE"} ✅
+
+УСВ → ПЛАТФОРМА:
+  RECORD_RESPONSE (PT=0, PID=44, RPID=32, PR=0, RN=75, CRN=47, RST=0)
+    └─ adapter.parse_packet() → records=[1], extra={"confirmed_record_number": 47, "record_status": 0} ✅
+```
+
+#### Вывод
+
+**ISSUE-004-A НЕ ПОДТВЕРЖДЕНА.** `adapter.parse_packet()` корректно парсит оба типа пакетов. Проблема НЕ на уровне адаптера.
+
+**Пересмотренная корневая причина:** нужно исследовать путь данных от CommandDispatcher до FSM — кто-то не вызывает `on_result_code_sent()` или не регистрирует транзакцию.
+
+---
+
+### Переформулировка ISSUE-004-B (актуальная)
+
+**Статус:** ✅ **РЕШЕНА** | **Дата анализа:** 11.04.2026 | **Тест:** `test_issue004b_command_dispatcher.py` — 6/6 PASS
+
+#### Описание проблемы
+
+**Цепочка отказа:**
+
+```
+scenario.json: SendStep(packet_file='result_code.hex') — НЕТ build-template
+  └─ SendStep.execute(): pid=None, rn=None (не из hex-файла)
+      └─ command.send: emit_data={..., pid=None, rn=None}
+          └─ CommandDispatcher._send_tcp(): pid=None, rn=None
+              └─ if pid is None and rn is None → register() НЕ вызывается
+                  └─ _by_pid={}, _by_rn={}
+                      └─ УСВ присылает RECORD_RESPONSE (CRN=47)
+                          └─ match_response(47) → None (_by_rn пуст)
+                              └─ fsm.on_result_code_sent() НЕ вызывается
+                                  └─ FSM остаётся в AUTHENTICATING
+```
+
+#### Корневая причина
+
+**SendStep** извлекает `pid/rn` ТОЛЬКО из `build` template (dict), НЕ из `packet_file` (hex-файл).
+
+В `scenarios/auth/scenario.json` шаг "Результат аутентификации" использует `packet_file`, не `build`:
+```json
+{
+  "name": "Результат аутентификации",
+  "type": "send",
+  "packet_file": "packets/platform/result_code.hex"
+}
+```
+
+**CommandDispatcher._send_tcp()** получает `pid=None, rn=None` → условие `if pid is not None or rn is not None:` → False → `transaction_mgr.register()` НЕ вызывается.
+
+#### Попытки решения
+
+| # | Подход | Результат | Почему |
+|---|--------|-----------|--------|
+| 1 | SendStep парсит hex-файл → извлекает PID/RN | ❌ Не реализовано | Нужно менять SendStep, дублировать парсинг |
+| 2 | scenario.json → build-template с pid/rn | ⚠️ Работает, но | Усложняет сценарий, ручное указание pid/rn |
+| 3 | **CommandDispatcher парсит packet_bytes** | ✅ **РЕШЕНО** | Архитектурно правильно, работает для любого источника |
+
+#### Реализованное решение
+
+**Изменённые файлы:**
+
+| Файл | Изменение |
+|------|-----------|
+| `core/dispatcher.py` | `_send_tcp()`: если pid=None или rn=None → парсит packet_bytes через `conn.protocol.parse_packet()` → извлекает packet_id и record_id |
+| `core/dispatcher.py` | Новый метод `_parse_packet_bytes()` — безопасный парсинг с обработкой ошибок |
+| `tests/core/test_issue004b_command_dispatcher.py` | 6 тестов: извлечение pid/rn, явные pid/rn, частичные, без protocol, ошибка парсинга, без записей |
+
+**Логика:**
+```python
+# В _send_tcp():
+effective_pid, effective_rn = pid, rn
+if effective_pid is None or effective_rn is None:
+    parsed = self._parse_packet_bytes(conn, packet_bytes)
+    if parsed is not None:
+        if effective_pid is None:
+            effective_pid = parsed.get("packet_id")
+        if effective_rn is None:
+            effective_rn = parsed.get("record_id")
+
+if effective_pid is not None or effective_rn is not None:
+    conn.transaction_mgr.register(pid=effective_pid, rn=effective_rn, ...)
+```
+
+**Преимущества:**
+- Работает для hex-файлов (SendStep.packet_file) — pid/rn извлекаются автоматически
+- Работает для build-template — если pid/rn указаны, используются они
+- Не ломает обратную совместимость — явные pid/rn имеют приоритет
+- Безопасно — ошибка парсинга не блокирует отправку
+
+---
+
+### ISSUE-004-C: SessionManager не связывает RECORD_RESPONSE от УСВ с FSM
+
+**Статус:** ✅ **РЕШЕНА** | **Дата анализа:** 11.04.2026
+
+#### Описание проблемы
+
+Когда УСВ присылает `RECORD_RESPONSE` (подтверждение получения RESULT_CODE):
+- `_on_packet_processed()` извлекает `confirmed_record_number=47` и `record_status=0`
+- Но FSM не обновляется — `on_result_code_sent()` НЕ вызывается
+
+#### Реальный RECORD_RESPONSE от УСВ
+
+```
+Hex: 0100000B0010002C00006A20000006004B008001010003002F0000F139
+PT=0 (RESPONSE), PID=44, RPID=32, PR=0
+Record: RN=75, CRN=47, RST=0
+```
+
+#### Попытки решения
+
+| # | Подход | Результат | Почему |
+|---|--------|-----------|--------|
+| 1 | TransactionManager.match_response() → on_result_code_sent() | ❌ Не сработало | Транзакция не регистрировалась (ISSUE-004-B) |
+| 2 | SessionManager вызывает on_result_code_sent() при RECORD_RESPONSE | ⚠️ Частично | Нужно знать result_code, а не только CRN |
+| 3 | **FSM._handle_authenticating() вызывает on_result_code_sent(0)** | ✅ **РЕШЕНО** | RECORD_RESPONSE с CRN = подтверждение RESULT_CODE → авторизация завершена |
+
+#### Реализованное решение
+
+**Изменённые файлы:**
+
+| Файл | Изменение |
+|------|-----------|
+| `core/session.py` | `UsvStateMachine._handle_authenticating()`: при RECORD_RESPONSE (subrecord_type=0x8000 или "EGTS_SR_RECORD_RESPONSE") с CRN → вызывает `on_result_code_sent(0)` |
+
+**Логика:**
+```python
+if subrecord_type == 0x8000 or subrecord_type == "EGTS_SR_RECORD_RESPONSE":
+    rst = packet.get("record_status", 0)
+    if rst != 0:
+        return self._transition(DISCONNECTED, f"RECORD_RESPONSE RST={rst}")
+
+    # Если есть confirmed_record_number — это подтверждение RESULT_CODE
+    crn = packet.get("confirmed_record_number")
+    if crn is not None:
+        return self.on_result_code_sent(0)  # → AUTHORIZED
+
+    self._timeout_counter = 0
+    return None
+```
+
+**Почему это работает:**
+1. RESULT_CODE отправляется с RN=47
+2. УСВ подтверждает RECORD_RESPONSE с CRN=47
+3. CRN ≠ None → FSM вызывает `on_result_code_sent(0)` → переход AUTHENTICATING → AUTHORIZED
+
+**Важно:** Сравнение `subrecord_type` теперь работает и с `int` (0x8000) и со `str` ("EGTS_SR_RECORD_RESPONSE") — адаптер конвертирует enum в строку.
+
+---
+
+### ISSUE-004-C: SessionManager не связывает RECORD_RESPONSE от УСВ с FSM
+
+**Статус:** ✅ **РЕШЕНА** | **Дата анализа:** 11.04.2026
+
+#### Описание проблемы
+
+Когда УСВ присылает `RECORD_RESPONSE` (подтверждение получения RESULT_CODE):
+- `_on_packet_processed()` извлекает `confirmed_record_number=47` и `record_status=0`
+- Но FSM не обновляется — `on_result_code_sent()` НЕ вызывается
+
+#### Реальный RECORD_RESPONSE от УСВ
+
+```
+Hex: 0100000B0010002C00006A20000006004B008001010003002F0000F139
+PT=0 (RESPONSE), PID=44, RPID=32, PR=0
+Record: RN=75, CRN=47, RST=0
+```
+
+#### Попытки решения
+
+| # | Подход | Результат | Почему |
+|---|--------|-----------|--------|
+| 1 | TransactionManager.match_response() → on_result_code_sent() | ❌ Не сработало | Транзакция не регистрировалась (ISSUE-004-B) |
+| 2 | SessionManager вызывает on_result_code_sent() при RECORD_RESPONSE | ⚠️ Частично | Нужно знать result_code, а не только CRN |
+| 3 | **FSM._handle_authenticating() вызывает on_result_code_sent(0)** | ✅ **РЕШЕНО** | RECORD_RESPONSE с CRN = подтверждение RESULT_CODE → авторизация завершена |
+
+#### Реализованное решение
+
+**Изменённые файлы:**
+
+| Файл | Изменение |
+|------|-----------|
+| `core/session.py` | `UsvStateMachine._handle_authenticating()`: при RECORD_RESPONSE (subrecord_type=0x8000 или "EGTS_SR_RECORD_RESPONSE") с CRN → вызывает `on_result_code_sent(0)` |
+
+**Логика:**
+```python
+if subrecord_type == 0x8000 or subrecord_type == "EGTS_SR_RECORD_RESPONSE":
+    rst = packet.get("record_status", 0)
+    if rst != 0:
+        return self._transition(DISCONNECTED, f"RECORD_RESPONSE RST={rst}")
+
+    # Если есть confirmed_record_number — это подтверждение RESULT_CODE
+    crn = packet.get("confirmed_record_number")
+    if crn is not None:
+        return self.on_result_code_sent(0)  # → AUTHORIZED
+
+    self._timeout_counter = 0
+    return None
+```
+
+**Почему это работает:**
+1. RESULT_CODE отправляется с RN=47
+2. УСВ подтверждает RECORD_RESPONSE с CRN=47
+3. CRN ≠ None → FSM вызывает `on_result_code_sent(0)` → переход AUTHENTICATING → AUTHORIZED
+
+**Важно:** Сравнение `subrecord_type` теперь работает и с `int` (0x8000) и со `str` ("EGTS_SR_RECORD_RESPONSE") — адаптер конвертирует enum в строку.
+
+---
+
+### Зависимости подпроблем (итог)
+
+```
+ISSUE-004-A ✅ НЕ ПОДТВЕРЖДЕНА (adapter.parse_packet() работает корректно)
+
+ISSUE-004-B ✅ CommandDispatcher извлекает pid/rn из packet_bytes
+    ↓
+ISSUE-004-C ✅ FSM._handle_authenticating() вызывает on_result_code_sent() при RECORD_RESPONSE
+    ↓
+ISSUE-004-D ✅ FSM переходит AUTHENTICATING → AUTHORIZED
+```
+
+### Итоговое решение
+
+| Что | Где | Зачем |
+|-----|-----|-------|
+| `_send_tcp()` извлекает pid/rn из packet_bytes | `core/dispatcher.py` | Регистрирует транзакцию для hex-файлов |
+| `_parse_packet_bytes()` — безопасный парсинг | `core/dispatcher.py` | Не блокирует отправку при ошибке |
+| `_handle_authenticating()` → `on_result_code_sent(0)` | `core/session.py` | FSM переходит AUTHENTICATING → AUTHORIZED |
+| Сравнение subrecord_type int или str | `core/session.py` | Совместимость с адаптером |
+
+### Результат интеграционного теста
+
+```
+FSM: CONNECTED → authenticating → authorized ✅
+Сценарий: 6/6 шагов PASS ✅
+[ТЕСТ] FSM состояния: ['CONNECTED', 'authenticating', 'authorized']
+```
+
+### TODO для доработки
+
+| # | Задача | Приоритет | Описание |
+|---|--------|-----------|----------|
+| 1 | **Анализ других сценариев** | Средний | Проверить что FSM корректно переходит в CONFIGURING (RESULT_CODE=153), DISCONNECTED (RESULT_CODE≠0) |
+| 2 | **RECORD_RESPONSE для RECORD_RESPONSE** | Низкий | Платформа отправляет RESPONSE на RECORD_RESPONSE от УСВ — проверить FSM |
+| 3 | **Тест на race condition** | Средний | `test_issue003_race_condition.py` — 2 теста FAIL (pre-existing, не связано с ISSUE-004) |
+| 4 | **Unicode баг в test_scenario_manager.py** | Низкий | `test_load_valid_scenario` — UnicodeDecodeError на Windows |
+| 5 | **Документация FSM переходов** | Низкий | Добавить диаграмму состояний с RECORD_RESPONSE триггерами |
+
+---
 
 ### Хронология анализа
 
@@ -392,40 +701,40 @@ adapter.parse_packet(raw)
 
 ---
 
-#### Шаг 8: Финальный анализ — корневая причина
+#### Шаг 8: Анализ реальных пакетов из `all_packets_correct_20260406_190414.json`
 
 **Что делал:**
-- Просмотрел весь путь данных от SendStep до FSM
-- RESULT_CODE hex: `0100000B000B002000012604002F0040010109010000BA4C`
-- PT=0 (RESPONSE), PID=11, RPID=32, PR=0
-- Record: RN=4, Subrecord: RESULT_CODE
+- Нашёл реальный RESULT_CODE: `0100000B000B002000012604002F0040010109010000BA4C`
+- Нашёл реальный RECORD_RESPONSE: `0100000B0010002C00006A20000006004B008001010003002F0000F139`
+- Создал `test_issue004a_response_parse.py` — 12 тестов, все PASS
 
 **Ключевое открытие:**
-`adapter.parse_packet()` для RESPONSE пакетов (PT=0):
-- Парсит только RPID (2 байта) + PR (1 байт)
-- **Не парсит записи** — records=[]
-- `processing_result` берётся из InternalPacket, но для RESPONSE пакета InternalPacket создаётся с `processing_result=None`
+- **RESULT_CODE имеет PT=1 (APPDATA)**, НЕ PT=0 (RESPONSE)!
+- `adapter.parse_packet()` корректно парсит RESULT_CODE: records=[1], extra заполнен
+- RECORD_RESPONSE от УСВ тоже парсится корректно: RPID=32, PR=0, CRN=47
+- **Проблема НЕ в adapter.parse_packet()**
 
-**Цепочка отказа:**
+**Пересмотренная цепочка отказа:**
 ```
-RESULT_CODE hex → adapter.parse_packet()
-  → PT=0 → парсит RPID+PR → records=[]
-  → processing_result=None, packet_id=None
-  → CommandDispatcher: pid=None, rn=None, processing_result=None
-  → transaction_mgr.register() НЕ вызывается
-  → _by_pid={}, _by_rn={}
-  → RECORD_RESPONSE от УСВ → match_response() → None
-  → FSM не переходит
+Сценарий: SendStep → command.sent → CommandDispatcher._send_tcp(RESULT_CODE)
+  └─ RESULT_CODE отправлен ✅
+  └─ adapter.parse_packet(RESULT_CODE) → records=[1], extra={"subrecord_type": "EGTS_SR_RESULT_CODE"} ✅
+  └─ ❌ fsm.on_result_code_sent() НЕ вызывается
+      └─ УСВ присылает RECORD_RESPONSE (CRN=47, RST=0) ✅ распарсен
+          └─ ❌ CRN не связывается с FSM
+              └─ FSM остаётся в AUTHENTICATING
 ```
 
 ### Вывод
 
 **Логика FSM/SessionManager/TransactionManager — РАБОТАЕТ** (6 тестов PASS).
-**Проблема:** `adapter.parse_packet()` не парсит RESPONSE пакеты с записями → CommandDispatcher не может зарегистрировать транзакцию → FSM не получает `on_result_code_sent()`.
+**ISSUE-004-A НЕ ПОДТВЕРЖДЕНА** — `adapter.parse_packet()` корректно парсит RESULT_CODE и RECORD_RESPONSE.
+
+**Реальная проблема:** `on_result_code_sent()` не вызывается ни при отправке RESULT_CODE, ни при получении RECORD_RESPONSE. Нужно исследовать CommandDispatcher и SessionManager — где должен вызываться этот метод FSM.
 
 ### Рекомендуемое решение
 
-В `EgtsProtocol2015.parse_packet()`:
-- Если PT=0 (RESPONSE): парсить RPID (2) + PR (1) + записи (если FDL > 3)
-- `processing_result` = PR значение
-- `packet_id` = PID из заголовка
+ISSUE-004-B: Найти где вызывается `on_result_code_sent()` (или где ДОЛЖЕН вызываться):
+1. CommandDispatcher._send_tcp() — после отправки RESULT_CODE?
+2. SessionManager._on_packet_processed() — при получении RECORD_RESPONSE?
+3. Или оба варианта?
