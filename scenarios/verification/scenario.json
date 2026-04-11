@@ -22,7 +22,8 @@
       "packet_type": "CT_COMCONF",
       "timeout": 5,
       "checks": {
-        "subrecord_type": "CT_COMCONF",
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
         "cid": 0
       },
       "description": "УСВ подтверждает приём настроек APN"
@@ -43,7 +44,8 @@
       "packet_type": "CT_COMCONF",
       "timeout": 5,
       "checks": {
-        "subrecord_type": "CT_COMCONF",
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
         "cid": 1
       },
       "description": "УСВ подтверждает приём адреса сервера"
@@ -64,7 +66,8 @@
       "packet_type": "CT_COMCONF",
       "timeout": 5,
       "checks": {
-        "subrecord_type": "CT_COMCONF",
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
         "cid": 2
       },
       "capture": {

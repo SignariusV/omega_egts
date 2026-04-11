@@ -104,6 +104,19 @@ class EgtsProtocol2015(IEgtsProtocol):
                         extra["confirmed_record_number"] = crn
                         extra["record_status"] = rst
 
+                # COMMAND_DATA SRD: CT(4 бита) + CCT(4 бита) + CID(4 байта) + SID(4 байта) + ...
+                # ГОСТ 33465 таблица 29 — извлекаем ct и cid для ExpectStep checks
+                if sub.subrecord_type == "EGTS_SR_COMMAND_DATA" and isinstance(sub.data, bytes):
+                    srd = sub.data
+                    if len(srd) >= 10:  # CT/CCT(1) + CID(4) + SID(4) + FLAGS(1) минимум
+                        ct_cct = srd[0]
+                        ct = (ct_cct >> 4) & 0x0F
+                        cct = ct_cct & 0x0F
+                        cid = int.from_bytes(srd[1:5], "little")
+                        extra["ct"] = ct
+                        extra["cct"] = cct
+                        extra["cid"] = cid
+
         return ParseResult(
             packet=iface_packet,
             errors=errors,
