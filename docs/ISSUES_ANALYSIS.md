@@ -282,14 +282,14 @@ adapter.parse_packet(raw)
 
 ## ISSUE-004: FSM не переходит AUTHENTICATING → AUTHORIZED после успешной авторизации
 
-**Статус:** 🔴 Открыта | **Дата обнаружения:** 11.04.2026
+**Статус:** 🔴 Открыта | **Дата обнаружения:** 11.04.2026 | **Корневая причина найдена**
 
 | Мета-инфо | Значение |
 |-----------|----------|
-| **Выявлено на коммите** | pending — `test_auth_scenario_full.py` FAIL после решения ISSUE-003 |
-| **Решено на коммите** | ❌ Не решено |
+| **Выявлено на коммите** | `c15db2c` (debug/manual-testing) — FSM остаётся в `authenticating` |
+| **Решено на коммите** | ❌ Не решено — требуется парсинг RESPONSE пакетов с записями |
 | **Тест обнаружения** | `tests/integration/test_auth_scenario_full.py` — assertion `assert "authorized" in states_lower` FAIL |
-| **Тест локализации** | ❌ Требуется |
+| **Тест локализации** | 6 тестов `test_issue004_fsm_no_transition.py` — PASS (изолированная логика работает) |
 | **Тест подтверждения решения** | ❌ Не создан |
 
 ### Описание
@@ -301,21 +301,131 @@ adapter.parse_packet(raw)
 Ожидалось: ['CONNECTED', 'authenticating', 'AUTHORIZED'] или ['CONNECTED', 'authenticating', 'RUNNING']
 ```
 
-**Сценарий PASS** — все пакеты обработаны, RESPONSE отправлены, но FSM не получил переход `AUTHENTICATING → AUTHORIZED`.
+**Сценарий PASS** — все пакеты обработаны, RESPONSE отправлены.
 
-### Возможные причины
+### Хронология анализа
 
-| Гипотеза | Проверка |
-|----------|----------|
-| `SessionManager._on_packet_processed()` не вызывает `fsm.on_result_code_sent()` | Проверить что RESULT_CODE пакет триггерит переход |
-| `on_result_code_sent(0)` не вызывается при отправке RESULT_CODE | Проверить `AutoResponseMiddleware` или `CommandDispatcher` |
-| FSM ждёт `EGTS_SR_RESULT_CODE` но получает RESPONSE | Проверить что сервис RESULT_CODE распознаётся |
-| Переход требует `service=9` (RESULT_CODE), но FSM видит `service=1` | Проверить что RESULT_CODE пакет имеет правильный service |
+#### Шаг 1: Анализ кода — где вызывается `on_result_code_sent()`
+
+**Что делал:**
+- grep_search по `on_result_code_sent` — 27 вхождений
+- Все вызовы только в **тестах FSM** (`test_fsm.py`)
+- В **production коде** — **НИКОГДА не вызывается**
+
+**Результат:** Подтверждено — `on_result_code_sent()` определён в FSM но никто не вызывает.
+
+---
+
+#### Шаг 2: Анализ `_on_packet_processed()` — обработка входящих пакетов
+
+**Что делал:**
+- Прочитал `SessionManager._on_packet_processed()` (строки 730–798)
+- FSM обновляется только через `conn.fsm.on_packet(parsed)`
+- Для RECORD_RESPONSE: `_handle_authenticating()` видит `subrecord_type=0x8000`
+- Но `_handle_authenticating()` только сбрасывает счётчик таймаутов, **не вызывает переход**
+
+**Результат:** FSM получает входящие пакеты, но переход AUTHENTICATING → AUTHORIZED требует `on_result_code_sent()`, который **не вызывается** для входящих пакетов.
+
+---
+
+#### Шаг 3: Гипотеза — нужно слушать `command.sent`
+
+**Что делал:**
+- CommandDispatcher отправляет RESULT_CODE → эмитит `command.sent`
+- Подписал SessionManager на `command.sent` → вызываю `fsm.on_result_code_sent(processing_result)`
+
+**Первая реализация:**
+- `PendingTransaction.processing_result` — добавил поле
+- `CommandDispatcher._send_tcp()` — парсит пакет, извлекает `processing_result`
+- `_on_packet_processed()` при RECORD_RESPONSE → `match_response(crn)` → `on_result_code_sent()`
+
+**Результат теста:** ❌ FAIL — FSM не переходит.
+
+**Причина:** CommandDispatcher парсит RESULT_CODE пакет, но adapter возвращает `records=[]` → RN=None → транзакция не регистрируется.
+
+---
+
+#### Шаг 4: Извлечение RN из пакета
+
+**Что делал:**
+- Добавил извлечение `actual_rn = parsed.packet.records[0].record_id` из пакета
+- Если rn=None → берём из записи пакета
+
+**Результат теста:** ❌ FAIL — `parsed.packet.records=[]` для RESPONSE пакета.
+
+**Причина:** `adapter.parse_packet()` для PT=0 (RESPONSE) не парсит записи.
+
+---
+
+#### Шаг 5: Fallback — поиск в `_by_pid` вместо `_by_rn`
+
+**Что делал:**
+- Изменил логику: если CRN не совпал → ищу pending транзакцию в `_by_pid`
+- `_by_pid` должен содержать транзакцию с `processing_result`
+
+**Результат теста:** ❌ FAIL — `_by_pid` пуст.
+
+**Причина:** CommandDispatcher не передаёт `pid` в `register()` — SendStep не знает PID, условие `if pid is not None or rn is not None:` → False.
+
+---
+
+#### Шаг 6: Извлечение PID из пакета
+
+**Что делал:**
+- Убрал условие `if pid is not None or rn is not None:`
+- Всегда парсим пакет → извлекаем `actual_pid = parsed.packet.packet_id`
+
+**Результат теста:** ❌ FAIL — `_by_pid` всё ещё пуст.
+
+**Причина:** `adapter.parse_packet()` для RESPONSE пакета возвращает `packet_id=None` потому что не парсит заголовок RESPONSE корректно.
+
+---
+
+#### Шаг 7: Изолированные тесты — подтверждение логики
+
+**Что делал:**
+- Создал `test_issue004_fsm_no_transition.py` — 6 тестов
+- Тесты используют моки с `processing_result=0` напрямую
+- Все 6 тестов **PASS** — логика FSM/SessionManager/TransactionManager работает
+
+**Результат:** ✅ Логика перехода WORKING. Проблема **только** в том что данные не доходят до FSM.
+
+---
+
+#### Шаг 8: Финальный анализ — корневая причина
+
+**Что делал:**
+- Просмотрел весь путь данных от SendStep до FSM
+- RESULT_CODE hex: `0100000B000B002000012604002F0040010109010000BA4C`
+- PT=0 (RESPONSE), PID=11, RPID=32, PR=0
+- Record: RN=4, Subrecord: RESULT_CODE
+
+**Ключевое открытие:**
+`adapter.parse_packet()` для RESPONSE пакетов (PT=0):
+- Парсит только RPID (2 байта) + PR (1 байт)
+- **Не парсит записи** — records=[]
+- `processing_result` берётся из InternalPacket, но для RESPONSE пакета InternalPacket создаётся с `processing_result=None`
+
+**Цепочка отказа:**
+```
+RESULT_CODE hex → adapter.parse_packet()
+  → PT=0 → парсит RPID+PR → records=[]
+  → processing_result=None, packet_id=None
+  → CommandDispatcher: pid=None, rn=None, processing_result=None
+  → transaction_mgr.register() НЕ вызывается
+  → _by_pid={}, _by_rn={}
+  → RECORD_RESPONSE от УСВ → match_response() → None
+  → FSM не переходит
+```
+
+### Вывод
+
+**Логика FSM/SessionManager/TransactionManager — РАБОТАЕТ** (6 тестов PASS).
+**Проблема:** `adapter.parse_packet()` не парсит RESPONSE пакеты с записями → CommandDispatcher не может зарегистрировать транзакцию → FSM не получает `on_result_code_sent()`.
 
 ### Рекомендуемое решение
 
-1. Добавить отладку в `SessionManager._on_packet_processed()`:
-   - Проверить что `on_result_code_sent(0)` вызывается при RESULT_CODE
-   - Проверить FSM переходы после каждого пакета
-2. Создать юнит-тест: FSM AUTHENTICATING + RESULT_CODE(0) → AUTHORIZED
-3. Если FSM не получает `on_result_code_sent()` — добавить вызов в `CommandDispatcher` или `SessionManager`
+В `EgtsProtocol2015.parse_packet()`:
+- Если PT=0 (RESPONSE): парсить RPID (2) + PR (1) + записи (если FDL > 3)
+- `processing_result` = PR значение
+- `packet_id` = PID из заголовка
