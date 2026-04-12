@@ -11,7 +11,7 @@ async def main():
     engine = CoreEngine(config=config, bus=bus)
     
     await engine.start()
-    print("✅ Сервер запущен на порту 3001, ГОСТ 2015")
+    print("[OK] Сервер запущен на порту 3001, ГОСТ 2015")
     print("Нажмите Ctrl+C для остановки")
     
     try:
@@ -21,7 +21,7 @@ async def main():
         pass
     finally:
         await engine.stop()
-        print("\n🔴 Сервер остановлен")
+        print("\n[STOP] Сервер остановлен")
 
 
 if __name__ == "__main__":

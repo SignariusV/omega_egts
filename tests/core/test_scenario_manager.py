@@ -13,7 +13,7 @@ from core.scenario_parser import ScenarioParserFactory, ScenarioParserRegistry, 
 def _make_scenario(tmp_path: Path, data: dict) -> Path:
     """Создать scenario.json во временной директории."""
     scenario_file = tmp_path / "scenario.json"
-    scenario_file.write_text(json.dumps(data, ensure_ascii=False))
+    scenario_file.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return scenario_file
 
 
