@@ -36,7 +36,8 @@ def _patch_components():
     cmw = MagicMock(connect=AsyncMock(), disconnect=AsyncMock(),
                      get_status=AsyncMock(return_value={}),
                      configure_gsm_signaling=AsyncMock(),
-                     configure_sms=AsyncMock())
+                     configure_sms=AsyncMock(),
+                     configure_dau=AsyncMock())
     sess = MagicMock()
     log = MagicMock()
     scen = MagicMock()

@@ -904,6 +904,26 @@ class Cmw500Controller:
             None, lambda: self._driver.configure_sms(dcoding=dcoding, pid=pid)
         )
 
+    async def configure_dau(
+        self,
+        meas_range: str = "GSM Sig1",
+        dns_type: str = "Foreign",
+        ipv4_type: str = "DHCPv4",
+    ) -> None:
+        """Настройка DAU (Data Access Unit)."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+
+        def _do_config() -> None:
+            self._driver.configure_dau(
+                meas_range=meas_range,
+                dns_type=dns_type,
+                ipv4_type=ipv4_type,
+            )
+
+        await loop.run_in_executor(None, _do_config)
+
 
 # ════════════════════════════════════════════════════════════
 # Эмулятор CMW-500 для разработки и тестов
@@ -976,8 +996,19 @@ class Cmw500Emulator(Cmw500Controller):
         """Эмулятор: заглушка конфигурации GSM."""
         pass  # Конфигурация применяется к реальному прибору
 
-    async def configure_sms(self, **kwargs: Any) -> None:
+    async def configure_sms(
+        self, dcoding: str = "BIT8", pid: int = 1
+    ) -> None:
         """Эмулятор: заглушка конфигурации SMS."""
+        pass
+
+    async def configure_dau(
+        self,
+        meas_range: str = "GSM Sig1",
+        dns_type: str = "Foreign",
+        ipv4_type: str = "DHCPv4",
+    ) -> None:
+        """Эмулятор: заглушка конфигурации DAU."""
         pass
 
     def set_incoming_sms_handler(

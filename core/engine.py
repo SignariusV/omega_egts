@@ -145,8 +145,9 @@ class CoreEngine:
                 )
                 await self.cmw500.configure_sms(
                     dcoding=cmw_cfg.sms_dcoding,
-                    pidentifier=cmw_cfg.sms_pidentifier,
+                    pid=cmw_cfg.sms_pidentifier,
                 )
+                await self.cmw500.configure_dau()
 
                 # Обновляем cmw в CommandDispatcher для SMS-канала
                 self.command_dispatcher.cmw = self.cmw500
