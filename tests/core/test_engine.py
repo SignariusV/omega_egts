@@ -34,7 +34,9 @@ def _patch_components():
 
     tcp = MagicMock(start=AsyncMock(), stop=AsyncMock())
     cmw = MagicMock(connect=AsyncMock(), disconnect=AsyncMock(),
-                     get_status=AsyncMock(return_value={}))
+                     get_status=AsyncMock(return_value={}),
+                     configure_gsm_signaling=AsyncMock(),
+                     configure_sms=AsyncMock())
     sess = MagicMock()
     log = MagicMock()
     scen = MagicMock()

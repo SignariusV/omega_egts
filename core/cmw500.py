@@ -972,6 +972,14 @@ class Cmw500Emulator(Cmw500Controller):
             "ip": self._ip,
         }
 
+    async def configure_gsm_signaling(self, **kwargs: Any) -> None:
+        """Эмулятор: заглушка конфигурации GSM."""
+        pass  # Конфигурация применяется к реальному прибору
+
+    async def configure_sms(self, **kwargs: Any) -> None:
+        """Эмулятор: заглушка конфигурации SMS."""
+        pass
+
     def set_incoming_sms_handler(
         self, handler: Callable[[bytes], bytes | None]
     ) -> None:

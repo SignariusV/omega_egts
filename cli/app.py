@@ -471,6 +471,49 @@ class EGTSTesterCLI(Cmd):
     intro = "egts-tester REPL. Введите 'help' для списка команд."
     prompt = "egts-tester> "
 
+    # Краткие описания команд для help
+    _command_help: dict[str, str] = {
+        "start": "Запустить сервер [--port PORT] [--gost VER] [--cmw IP]",
+        "stop": "Остановить сервер",
+        "status": "Статус TCP-сервера",
+        "cmw-status": "Статус CMW-500",
+        "run-scenario": "Запустить сценарий <path> [--connection-id ID]",
+        "replay": "Replay лога <log_path> [--scenario PATH]",
+        "export": "Выгрузка данных <type> --format <fmt> --output <file>",
+        "help": "Справка по командам",
+        "quit": "Выйти из REPL",
+        "exit": "Выйти из REPL",
+    }
+
+    # Алисы: команда с дефисом → команда с подчёркиванием
+    _aliases: dict[str, str] = {
+        "cmw-status": "cmw_status",
+        "run-scenario": "run_scenario",
+    }
+
+    def do_help(self, arg: str) -> None:
+        """Показать справку — переопределён вывод в столбец."""
+        if arg.strip():
+            # Стандартная справка по конкретной команде
+            super().do_help(arg)
+            return
+
+        print("\nДоступные команды:\n")
+        max_cmd = max(len(cmd) for cmd in self._command_help)
+        for cmd, desc in self._command_help.items():
+            print(f"  {cmd:<{max_cmd}}  {desc}")
+        print()
+
+    def onecmd(self, line: str) -> bool:
+        """Перехват команд с алиасами (дефис → подчёркивание)."""
+        parts = line.strip().split(None, 1)
+        if parts:
+            cmd = parts[0].lower()
+            if cmd in self._aliases:
+                rest = parts[1] if len(parts) > 1 else ""
+                return super().onecmd(f"{self._aliases[cmd]} {rest}".strip())
+        return super().onecmd(line)
+
     def __init__(self) -> None:
         super().__init__()
         self._engine: Any = None
@@ -684,7 +727,8 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command is None:
-        parser.print_help()
+        # Без команды — запускаем REPL
+        _cmd_monitor(None)
         sys.exit(0)
 
     # Маппинг команд на обработчики
@@ -718,3 +762,7 @@ def main() -> None:
         print(f"Ошибка: {exc}", file=sys.stderr)
         exit_code = 1
     sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()

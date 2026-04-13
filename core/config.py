@@ -18,6 +18,20 @@ class CmwConfig:
     sms_send_timeout: float = 10.0
     status_poll_interval: float = 2.0
 
+    # GSM Signaling параметры (из docs/comands.txt)
+    mcc: int = 250
+    mnc: int = 60
+    rf_level_tch: float = -40.0
+    ps_service: str = "TMA"
+    ps_tlevel: str = "EGPRS"
+    ps_cscheme_ul: str = "MC9"
+    ps_dl_carrier: list[str] = field(default_factory=lambda: [
+        "OFF", "OFF", "OFF", "ON", "ON", "OFF", "OFF", "OFF",
+    ])
+    ps_dl_cscheme: list[str] = field(default_factory=lambda: ["MC9"] * 8)
+    sms_dcoding: str = "BIT8"
+    sms_pidentifier: int = 1
+
 
 @dataclass(frozen=True)
 class TimeoutsConfig:
@@ -142,6 +156,18 @@ class Config:
                 retries=cmw_data.get("retries", CmwConfig.retries),
                 sms_send_timeout=float(cmw_data.get("sms_send_timeout", CmwConfig.sms_send_timeout)),
                 status_poll_interval=float(cmw_data.get("status_poll_interval", CmwConfig.status_poll_interval)),
+                mcc=cmw_data.get("mcc", CmwConfig.mcc),
+                mnc=cmw_data.get("mnc", CmwConfig.mnc),
+                rf_level_tch=float(cmw_data.get("rf_level_tch", CmwConfig.rf_level_tch)),
+                ps_service=cmw_data.get("ps_service", CmwConfig.ps_service),
+                ps_tlevel=cmw_data.get("ps_tlevel", CmwConfig.ps_tlevel),
+                ps_cscheme_ul=cmw_data.get("ps_cscheme_ul", CmwConfig.ps_cscheme_ul),
+                ps_dl_carrier=cmw_data.get("ps_dl_carrier", [
+                    "OFF", "OFF", "OFF", "ON", "ON", "OFF", "OFF", "OFF",
+                ]),
+                ps_dl_cscheme=cmw_data.get("ps_dl_cscheme", ["MC9"] * 8),
+                sms_dcoding=cmw_data.get("sms_dcoding", CmwConfig.sms_dcoding),
+                sms_pidentifier=cmw_data.get("sms_pidentifier", CmwConfig.sms_pidentifier),
             ),
             timeouts=TimeoutsConfig(
                 tl_response_to=float(timeouts_data.get("tl_response_to", TimeoutsConfig.tl_response_to)),

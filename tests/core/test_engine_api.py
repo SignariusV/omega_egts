@@ -76,6 +76,8 @@ def _patch_all_components():
         "simulate": False,
         "ip": "192.168.1.100",
     })
+    cmw_mock.configure_gsm_signaling = AsyncMock()
+    cmw_mock.configure_sms = AsyncMock()
     cmw_mock.is_connected = True
     cmw_cls = MagicMock(return_value=cmw_mock)
 

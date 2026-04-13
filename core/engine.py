@@ -130,6 +130,24 @@ class CoreEngine:
                     bus=self.bus, ip=self.config.cmw500.ip
                 )
                 await self.cmw500.connect()
+
+                # Автоконфигурация GSM Signaling + SMS (из docs/comands.txt)
+                cmw_cfg = self.config.cmw500
+                await self.cmw500.configure_gsm_signaling(
+                    mcc=cmw_cfg.mcc,
+                    mnc=cmw_cfg.mnc,
+                    rf_level=cmw_cfg.rf_level_tch,
+                    ps_service=cmw_cfg.ps_service,
+                    ps_tlevel=cmw_cfg.ps_tlevel,
+                    ps_cscheme_ul=cmw_cfg.ps_cscheme_ul,
+                    ps_dl_carrier=cmw_cfg.ps_dl_carrier,
+                    ps_dl_cscheme=cmw_cfg.ps_dl_cscheme,
+                )
+                await self.cmw500.configure_sms(
+                    dcoding=cmw_cfg.sms_dcoding,
+                    pidentifier=cmw_cfg.sms_pidentifier,
+                )
+
                 # Обновляем cmw в CommandDispatcher для SMS-канала
                 self.command_dispatcher.cmw = self.cmw500
 
