@@ -7,7 +7,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from libs.egts_protocol_gost2015.gost2015_impl.packet import Packet
 from libs.egts_protocol_gost2015.gost2015_impl.record import Record

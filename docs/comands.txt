@@ -1,0 +1,30 @@
+Команды для конфигурирования приложения DAU:
+
+CONFigure:DATA:MEAS:RAN 'GSM Sig1'
+CONFigure:DATA:CONTrol:DNS:PRIMary:STYPe Foreign
+CONFigure:DATA:CONTrol:IPVFour:ADDRess:TYPE DHCPv4
+
+
+
+Команды для конфигурирования GSM приложения:
+
+CONFigure:GSM:SIGN:CELL:MCC  250
+CONFigure:GSM:SIGN:CELL:MNC  60   # Для случая использования SIM карты ВОЛНА, для МТС - 01
+
+CONFigure:GSM:SIGN:RFSettings:LEVel:TCH -40
+CONFigure:GSM:SIGN:CONNection:PSWitched:SERVice TMA
+CONFigure:GSM:SIGN:CONNection:PSWitched:TLEVel EGPRS
+CONFigure:GSM:SIGN:CONNection:PSWitched:CSCHeme:UL MC9
+CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:ENABle:DL:CARRier OFF,OFF,OFF,ON,ON,OFF,OFF,OFF
+CONF:GSM:SIGN:CONN:PSW:SCON:CSCHeme:DL:CARRier MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9
+
+
+
+Команды для отправки SMS через CMW500:
+
+CONF:GSM:SIGN1:SMS:OUTG:BIN #H0100000B001A00000001F01300000040040433100050000000000000000000000000120100B3B6
+
+CONFigure:GSM:SIGN:SMS:OUTGoing:DCODing BIT8
+CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H1
+
+CALL:GSM:SIGN:CSWitched:ACTion SMS

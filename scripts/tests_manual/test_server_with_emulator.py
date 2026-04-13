@@ -8,14 +8,19 @@
 import argparse
 import asyncio
 import sys
+from pathlib import Path
+
+# Добавляем корень проекта в sys.path
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
 from core.config import Config
 from core.engine import CoreEngine
 from core.event_bus import EventBus
+from pathlib import Path
 
-# Добавляем корень проекта
-sys.path.insert(0, ".")
-from emulate_usv import UsvEmulator
+from scripts.emulators.emulate_usv import UsvEmulator
 
 
 async def main():

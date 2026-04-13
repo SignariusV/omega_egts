@@ -7,9 +7,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from emulate_usv_combined_build import (
+from scripts.emulators.emulate_usv_combined_build import (
     build_term_identity_packet,
     build_vehicle_data_packet,
     build_comconf_packet,

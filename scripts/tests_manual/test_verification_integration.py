@@ -9,15 +9,19 @@
 """
 import asyncio
 import sys
+from pathlib import Path
+
+# Добавляем корень проекта в sys.path
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
 from core.config import Config
 from core.engine import CoreEngine
 from core.event_bus import EventBus
-
-sys.path.insert(0, ".")
 from pathlib import Path
 
-from emulate_usv_verification import VerificationEmulator
+from scripts.emulators.emulate_usv_verification import VerificationEmulator
 
 
 async def main():

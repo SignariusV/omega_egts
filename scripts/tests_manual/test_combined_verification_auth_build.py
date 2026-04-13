@@ -1,24 +1,29 @@
-"""Интеграционный тест: Верификация + Аутентификация в одной TCP-сессии.
+"""Интеграционный тест: Верификация + Аутентификация с динамической генерацией пакетов.
 
-Сначала запускаем верификацию, ждём завершения, 
-затем запускаем аутентификацию.
+Эмулятор строит все пакеты через библиотеку EGTS (без HEX-файлов).
+Сценарий верификации запускается через engine.run_scenario().
 """
 import asyncio
 import sys
+from pathlib import Path
+
+# Добавляем корень проекта в sys.path
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
 from core.config import Config
 from core.engine import CoreEngine
 from core.event_bus import EventBus
-
-sys.path.insert(0, ".")
 from pathlib import Path
 
-from emulate_usv_combined import CombinedEmulator, CombinedState
+from scripts.emulators.emulate_usv_combined_build import CombinedEmulator, CombinedState
 
 
 async def main():
     print("=" * 60)
     print("  Интеграционный тест: Верификация + Аутентификация")
+    print("  ПАКЕТЫ ГЕНЕРИРУЮТСЯ ЧЕРЕЗ БИБЛИОТЕКУ EGTS (без HEX)")
     print("  Одна TCP-сессия, две процедуры последовательно")
     print("=" * 60)
 
@@ -120,7 +125,7 @@ async def main():
 
     print(f"\n{'=' * 60}")
     if emulator.fsm.state == CombinedState.A_RUNNING:
-        print("  ✅ ПОЛНЫЙ ЦИКЛ ЗАВЕРШЕН УСПЕШНО")
+        print("  ✅ ПОЛНЫЙ ЦИКЛ ЗАВЕРШЁН УСПЕШНО")
         print("     Верификация: 3 команды → COMCONF")
         print("     Аутентификация: TERM_IDENTITY → VEHICLE_DATA → RESULT_CODE → RECORD_RESPONSE")
     elif len(emulator.fsm.received_commands) >= 3 and emulator.fsm.responses_received >= 2:

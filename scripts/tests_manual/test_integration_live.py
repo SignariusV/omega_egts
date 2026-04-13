@@ -1,15 +1,16 @@
 """Интеграционный тест: сервер + эмулятор УСВ в одном процессе."""
 import asyncio
 import sys
+from pathlib import Path
+
+# Добавляем корень проекта в sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from core.config import Config
 from core.engine import CoreEngine
 from core.event_bus import EventBus
 
-# Добавляем корень проекта в path
-sys.path.insert(0, ".")
-
-from emulate_usv import UsvEmulator
+from scripts.emulators.emulate_usv import UsvEmulator
 
 
 async def main():
