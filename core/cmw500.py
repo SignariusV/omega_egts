@@ -56,14 +56,17 @@ class VisaCmw500Driver:
         from RsCmwGsmSig import RsCmwGsmSig
 
         options = "Simulate=True" if self._simulate else None
-        resource = f"TCPIP::{self._ip}::HISLIP"
+        resource = f"TCPIP::{self._ip}::inst0::INSTR"
         self._driver = RsCmwGsmSig(
             resource,
             id_query=self._id_query,
             reset=self._reset,
             options=options,
         )
-        self._driver.utilities.instrument_status_checking = True
+        # Увеличиваем таймаут для реального прибора (5с → 30с)
+        if not self._simulate:
+            self._driver.utilities.visa_timeout = 30000  # 30 секунд
+        self._driver.utilities.instrument_status_checking = False  # Отключаем автопроверку (в буфере могут быть старые ошибки)
         self._driver.utilities.opc_query_after_write = False
         return self.serial_number
 
@@ -109,13 +112,17 @@ class VisaCmw500Driver:
         """Состояние CS-канала: DISConnect, PREPare, CONNected, ACTive, REL ease."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        return self._driver.sense.connection.cswitched.connection.get()
+        return self._driver.utilities.query_str_with_opc(
+            "FETCh:GSM:SIGN:CSWitched:STATe?"
+        ).strip()
 
     def get_ps_state(self) -> str:
         """Состояние PS-канала: DISConnect, PREPare, CONNected, ACTive."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        return self._driver.call.pswitched.state.get()
+        return self._driver.utilities.query_str_with_opc(
+            "FETCh:GSM:SIGN:PSWitched:STATe?"
+        ).strip()
 
     def get_call_cs_state(self) -> str:
         """Состояние CS-вызова: DISConnect, PREParation, CONNected, ACTive, HOLD."""
@@ -129,13 +136,15 @@ class VisaCmw500Driver:
         """BER — коэффициент битовых ошибок."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        return self._driver.sense.rreport.cswitched.mbep.get()
+        result = self._driver.utilities.query_str("SENSe:RReport:CSW:MBEP?").strip()
+        return float(result)
 
     def get_rx_level(self) -> float:
         """Уровень приёма (dBm)."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        return self._driver.sense.rreport.rx_level.sub.get()
+        result = self._driver.utilities.query_str("SENSe:RReport:RXLevel:SUB?").strip()
+        return float(result)
 
     def get_rx_quality(self) -> float:
         """Качество приёма."""
@@ -186,10 +195,10 @@ class VisaCmw500Driver:
         return self.query("CMW:GSM:SIGN:IMSI?")
 
     def get_rssi(self) -> str:
-        return self.query("CMW:GSM:SIGN:RSSI?")
+        return self._driver.utilities.query_str("CALL:GSM:SIGN:RSSI?").strip()
 
     def get_status(self) -> str:
-        return self.query("CMW:GSM:SIGN:CONN?")
+        return self._driver.utilities.query_str("CMW:GSM:SIGN:CONN?").strip()
 
     # ──────────────────── Configure API ────────────────────
 
@@ -197,65 +206,77 @@ class VisaCmw500Driver:
         """MCC — код страны (250 = Россия)."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.cell.mnc.set(mcc)
+        self._driver.utilities.write_str(f"CONFigure:GSM:SIGN:CELL:MCC {mcc}")
 
     def configure_cell_mnc(self, mnc: int) -> None:
         """MNC — код оператора (60 = Волна, 01 = МТС)."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.cell.mnc.set(mnc)
+        self._driver.utilities.write_str(f"CONFigure:GSM:SIGN:CELL:MNC {mnc}")
 
     def configure_rf_level_tch(self, level_dbm: float) -> None:
         """Мощность TCH (dBm), обычно -40."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.rf_settings.level.tch.set(level_dbm)
+        self._driver.utilities.write_str(
+            f"CONFigure:GSM:SIGN:RFSettings:LEVel:TCH {level_dbm}"
+        )
 
     def configure_ps_service(self, service: str) -> None:
         """Тип PS-сервиса, обычно 'TMA'."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.connection.pswitched.service.set(service)
+        self._driver.utilities.write_str(
+            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SERVice {service}"
+        )
 
     def configure_ps_tlevel(self, tlevel: str) -> None:
         """Тип PS-канала, обычно 'EGPRS'."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.connection.pswitched.tlevel.set(tlevel)
+        self._driver.utilities.write_str(
+            f"CONFigure:GSM:SIGN:CONNection:PSWitched:TLEVel {tlevel}"
+        )
 
     def configure_ps_cscheme_ul(self, scheme: str) -> None:
         """Схема кодирования UL, обычно 'MC9'."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.connection.pswitched.cscheme.ul.set(scheme)
+        self._driver.utilities.write_str(
+            f"CONFigure:GSM:SIGN:CONNection:PSWitched:CSCHeme:UL {scheme}"
+        )
 
     def configure_ps_dl_carrier(self, carriers: str) -> None:
         """Несущие DL — строка 'OFF,OFF,OFF,ON,ON,OFF,OFF,OFF'."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.connection.pswitched.sconfig.enable.dl.carrier.set(
-            carriers
+        self._driver.utilities.write_str(
+            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:ENABle:DL:CARRier {carriers}"
         )
 
     def configure_ps_dl_cscheme(self, scheme: str) -> None:
         """Кодирование DL — строка 'MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9'."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.connection.pswitched.sconfig.cscheme.dl.carrier.set(
-            scheme
+        self._driver.utilities.write_str(
+            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:CSCHeme:DL:CARRier {scheme}"
         )
 
     def configure_sms_dcoding(self, dcoding: str) -> None:
         """Кодирование SMS — обычно 'BIT8'."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.sms.outgoing.dcoding.set(dcoding)
+        self._driver.utilities.write_str(
+            f"CONFigure:GSM:SIGN:SMS:OUTGoing:DCODing {dcoding}"
+        )
 
     def configure_sms_pidentifier(self, pid: int) -> None:
         """PID SMS — обычно 1."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
-        self._driver.configure.sms.outgoing.pidentifier.set(pid)
+        self._driver.utilities.write_str(
+            f"CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H{pid}"
+        )
 
     # ──────────────────── Полная конфигурация ─────────────
 
@@ -298,21 +319,21 @@ class VisaCmw500Driver:
         dns_type: str = "Foreign",
         ipv4_type: str = "DHCPv4",
     ) -> None:
-        """Настройка DAU (Data Access Unit).
-
-        Args:
-            meas_range: Диапазон измерений (например, 'GSM Sig1').
-            dns_type: Тип DNS (Foreign).
-            ipv4_type: Тип IPv4-адреса (DHCPv4).
-        """
+        """Настройка DAU (Data Access Unit)."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
         # CONF:DATA:MEAS:RAN 'GSM Sig1'
-        self._driver.configure.data.meas.range.set(meas_range)
+        self._driver.utilities.write_str(
+            f"CONFigure:DATA:MEAS:RAN '{meas_range}'"
+        )
         # CONF:DATA:CONT:DNS:PRIM:STYP Foreign
-        self._driver.configure.data.control.dns.primary.stype.set(dns_type)
+        self._driver.utilities.write_str(
+            f"CONFigure:DATA:CONTrol:DNS:PRIMary:STYPe {dns_type}"
+        )
         # CONF:DATA:CONT:IPV4:ADDR:TYPE DHCPv4
-        self._driver.configure.data.control.ipv4.address.type.set(ipv4_type)
+        self._driver.utilities.write_str(
+            f"CONFigure:DATA:CONTrol:IPVFour:ADDRess:TYPE {ipv4_type}"
+        )
 
 
 @dataclass
@@ -372,6 +393,18 @@ class Cmw500Controller:
         self._connected = False
 
     # ──────────────────── Подключение ────────────────────
+
+    def stop_poll(self) -> None:
+        """Временно остановить опрос состояний (на время конфигурации)."""
+        if self._poll_task and not self._poll_task.done():
+            self._poll_task.cancel()
+
+    def start_poll(self) -> None:
+        """Запустить опрос состояний после конфигурации."""
+        if not self._connected or self._poll_task is not None:
+            return
+        self._poll_task = asyncio.create_task(self._poll_loop())
+        self._poll_task.add_done_callback(self._on_poll_done)
 
     async def connect(self) -> None:
         """Подключиться к CMW-500 и запустить worker-цикл + опрос SMS."""
@@ -536,88 +569,11 @@ class Cmw500Controller:
     async def _poll_states(self) -> None:
         """Опрос состояний CMW-500 и эмит EventBus-событий.
 
-        Проверяет:
-        - CS state → ``cmw.cs_state_changed``
-        - PS state → ``cmw.ps_state_changed``
-        - RSSI → ``cmw.rssi_updated``
-        - BER → ``cmw.ber_updated``
-        - RX level → ``cmw.rx_level_updated``
-
-        Событие эмитится только при изменении значения.
+        На текущей версии CMW (4.0.160.40 beta) Sense/Call команды
+        не поддерживаются. Poll пропускается.
         """
-        driver = self._driver  # локальная ссылка — защита от disconnect
-        if driver is None:
-            return
-
-        loop = asyncio.get_running_loop()
-
-        # CS state
-        try:
-            cs_state = await loop.run_in_executor(
-                None, driver.get_cs_state
-            )
-            if cs_state != self._last_cs_state:
-                self._last_cs_state = cs_state
-                await self.bus.emit("cmw.cs_state_changed", {
-                    "state": cs_state,
-                })
-        except Exception as e:
-            logger.debug("CMW poll CS state error: %s", e)
-
-        # PS state
-        try:
-            ps_state = await loop.run_in_executor(
-                None, driver.get_ps_state
-            )
-            if ps_state != self._last_ps_state:
-                self._last_ps_state = ps_state
-                await self.bus.emit("cmw.ps_state_changed", {
-                    "state": ps_state,
-                })
-        except Exception as e:
-            logger.debug("CMW poll PS state error: %s", e)
-
-        # RSSI
-        try:
-            rssi = await loop.run_in_executor(
-                None, driver.get_rssi
-            )
-            if rssi != self._last_rssi:
-                self._last_rssi = rssi
-                await self.bus.emit("cmw.rssi_updated", {
-                    "rssi": rssi,
-                })
-        except Exception as e:
-            logger.debug("CMW poll RSSI error: %s", e)
-
-        # BER
-        try:
-            ber = await loop.run_in_executor(
-                None, driver.get_ber
-            )
-            if self._last_ber is None or abs(ber - self._last_ber) > 0.01:
-                self._last_ber = ber
-                await self.bus.emit("cmw.ber_updated", {
-                    "ber": ber,
-                })
-        except Exception as e:
-            logger.debug("CMW poll BER error: %s", e)
-
-        # RX level
-        try:
-            rx_level = await loop.run_in_executor(
-                None, driver.get_rx_level
-            )
-            if (
-                self._last_rx_level is None
-                or abs(rx_level - self._last_rx_level) > 0.5
-            ):
-                self._last_rx_level = rx_level
-                await self.bus.emit("cmw.rx_level_updated", {
-                    "rx_level": rx_level,
-                })
-        except Exception as e:
-            logger.debug("CMW poll RX level error: %s", e)
+        # Sense/Call не работают на этом CMW — пропускаем
+        pass
 
     async def _poll_loop(self) -> None:
         """Фоновый цикл опроса.
@@ -812,12 +768,8 @@ class Cmw500Controller:
     async def get_full_status(self) -> dict[str, Any]:
         """Полный статус CMW-500 с TTL-кэшем (KI-046).
 
-        Вместо 3+ SCPI-запросов на каждый вызов, кэширует
-        результат на ``_status_cache_ttl`` секунд.
-
-        Returns:
-            Словарь: connected, serial, cs_state, ps_state,
-            rssi, ber, rx_level, simulate, ip.
+        На CMW 4.0.160.40 beta Sense/Call методы не работают,
+        поэтому возвращаем базовую информацию.
         """
         import time
 
@@ -844,26 +796,14 @@ class Cmw500Controller:
                 data["serial"] = self._driver.serial_number
             except Exception:
                 pass
-            try:
-                data["cs_state"] = self._driver.get_cs_state()
-            except Exception:
-                data["cs_state"] = "N/A"
-            try:
-                data["ps_state"] = self._driver.get_ps_state()
-            except Exception:
-                data["ps_state"] = "N/A"
-            try:
-                data["rssi"] = self._driver.get_rssi()
-            except Exception:
-                data["rssi"] = "N/A"
-            try:
-                data["ber"] = self._driver.get_ber()
-            except Exception:
-                data["ber"] = "N/A"
-            try:
-                data["rx_level"] = self._driver.get_rx_level()
-            except Exception:
-                data["rx_level"] = "N/A"
+
+            # Sense/Call не работают на CMW 4.0.160.40 beta
+            # Оставляем заглушки
+            data["cs_state"] = "N/A (Sense не поддерживается)"
+            data["ps_state"] = "N/A (Sense не поддерживается)"
+            data["rssi"] = "N/A"
+            data["ber"] = "N/A"
+            data["rx_level"] = "N/A"
             return data
 
         result = await loop.run_in_executor(None, _gather)
@@ -922,9 +862,12 @@ class Cmw500Controller:
         if self._driver is None:
             raise ConnectionError("CMW-500 driver not connected")
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(
-            None, lambda: self._driver.configure_sms(dcoding=dcoding, pid=pid)
-        )
+
+        def _do_config() -> None:
+            self._driver.configure_sms_dcoding(dcoding)
+            self._driver.configure_sms_pidentifier(pid)
+
+        await loop.run_in_executor(None, _do_config)
 
     async def configure_dau(
         self,

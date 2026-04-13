@@ -131,23 +131,29 @@ class CoreEngine:
                 )
                 await self.cmw500.connect()
 
+                # Останавливаем poll_loop на время конфигурации
+                self.cmw500.stop_poll()
+
                 # Автоконфигурация GSM Signaling + SMS (из docs/comands.txt)
                 cmw_cfg = self.config.cmw500
                 await self.cmw500.configure_gsm_signaling(
                     mcc=cmw_cfg.mcc,
                     mnc=cmw_cfg.mnc,
-                    rf_level=cmw_cfg.rf_level_tch,
+                    rf_level_dbm=cmw_cfg.rf_level_tch,
                     ps_service=cmw_cfg.ps_service,
                     ps_tlevel=cmw_cfg.ps_tlevel,
                     ps_cscheme_ul=cmw_cfg.ps_cscheme_ul,
-                    ps_dl_carrier=cmw_cfg.ps_dl_carrier,
-                    ps_dl_cscheme=cmw_cfg.ps_dl_cscheme,
+                    ps_dl_carrier=",".join(cmw_cfg.ps_dl_carrier),
+                    ps_dl_cscheme=",".join(cmw_cfg.ps_dl_cscheme),
                 )
                 await self.cmw500.configure_sms(
                     dcoding=cmw_cfg.sms_dcoding,
                     pid=cmw_cfg.sms_pidentifier,
                 )
                 await self.cmw500.configure_dau()
+
+                # Запускаем poll_loop после конфигурации
+                self.cmw500.start_poll()
 
                 # Обновляем cmw в CommandDispatcher для SMS-канала
                 self.command_dispatcher.cmw = self.cmw500

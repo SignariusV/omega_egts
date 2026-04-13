@@ -12,7 +12,7 @@ from typing import Any
 class CmwConfig:
     """Настройки CMW-500."""
 
-    ip: str | None = None
+    ip: str | None = "192.168.2.2"
     timeout: float = 5.0
     retries: int = 3
     sms_send_timeout: float = 10.0

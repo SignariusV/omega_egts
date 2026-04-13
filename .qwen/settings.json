@@ -11,7 +11,8 @@
       "Bash(findstr *)",
       "Bash(.venv\\scripts\\python.exe *)",
       "Bash(.venv\\scripts\\pip.exe *)",
-      "Bash(.venv\\scripts\\pytest *)"
+      "Bash(.venv\\scripts\\pytest *)",
+      "Bash(python *)"
     ]
   },
   "$version": 3
