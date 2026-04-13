@@ -671,3 +671,176 @@ class TestPollStates:
         assert len(events) == 0
         # Poll loop продолжает работать — disconnect прошёл без ошибок
         assert ctrl._connected is False
+
+
+class TestFullStatusCache:
+    """Тесты get_full_status() и TTL-кэша (KI-046)."""
+
+    async def test_get_full_status_returns_all_data(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """get_full_status() возвращает все данные."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")
+
+        await ctrl.connect()
+
+        mock_driver = MagicMock()
+        mock_driver.serial_number = "SERIAL123"
+        mock_driver.get_cs_state.return_value = "CONNected"
+        mock_driver.get_ps_state.return_value = "ACTive"
+        mock_driver.get_rssi.return_value = "-72"
+        mock_driver.get_ber.return_value = 0.002
+        mock_driver.get_rx_level.return_value = -80.0
+        ctrl._driver = mock_driver
+
+        result = await ctrl.get_full_status()
+
+        assert result["connected"] is True
+        assert result["serial"] == "SERIAL123"
+        assert result["cs_state"] == "CONNected"
+        assert result["ps_state"] == "ACTive"
+        assert result["rssi"] == "-72"
+        assert result["ber"] == 0.002
+        assert result["rx_level"] == -80.0
+        assert result["simulate"] is True
+        assert result["ip"] == "192.168.1.100"
+
+        await ctrl.disconnect()
+
+    async def test_get_full_status_uses_cache(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """get_full_status() возвращает кэшированные данные."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")
+
+        await ctrl.connect()
+
+        mock_driver = MagicMock()
+        mock_driver.serial_number = "SERIAL123"
+        mock_driver.get_cs_state.return_value = "CONNected"
+        mock_driver.get_ps_state.return_value = "DISConnect"
+        mock_driver.get_rssi.return_value = "-65"
+        mock_driver.get_ber.return_value = 0.001
+        mock_driver.get_rx_level.return_value = -70.0
+        ctrl._driver = mock_driver
+
+        # Первый вызов — собирает данные
+        await ctrl.get_full_status()
+        call_count = mock_driver.get_cs_state.call_count
+
+        # Второй вызов — возвращает кэш (менее 5 секунд прошло)
+        result = await ctrl.get_full_status()
+        assert mock_driver.get_cs_state.call_count == call_count
+        assert result["cs_state"] == "CONNected"
+
+        await ctrl.disconnect()
+
+    async def test_get_full_status_expires_after_ttl(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """get_full_status() обновляет данные после TTL."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")
+        ctrl._status_cache_ttl = 0.1  # 100мс для быстрого теста
+
+        await ctrl.connect()
+
+        mock_driver = MagicMock()
+        mock_driver.serial_number = "SERIAL123"
+        mock_driver.get_cs_state.return_value = "CONNected"
+        mock_driver.get_ps_state.return_value = "DISConnect"
+        mock_driver.get_rssi.return_value = "-65"
+        mock_driver.get_ber.return_value = 0.001
+        mock_driver.get_rx_level.return_value = -70.0
+        ctrl._driver = mock_driver
+
+        await ctrl.get_full_status()
+        call_count = mock_driver.get_cs_state.call_count
+
+        # Ждём TTL
+        await asyncio.sleep(0.15)
+
+        # После TTL — должен обновить
+        await ctrl.get_full_status()
+        assert mock_driver.get_cs_state.call_count > call_count
+
+        await ctrl.disconnect()
+
+    async def test_get_full_status_not_connected(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """get_full_status() без драйвера возвращает error."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._driver = None
+
+        result = await ctrl.get_full_status()
+
+        assert result["connected"] is False
+        assert "error" in result
+
+    async def test_invalidate_status_cache(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """invalidate_status_cache() сбрасывает кэш."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")
+
+        await ctrl.connect()
+
+        mock_driver = MagicMock()
+        mock_driver.serial_number = "SERIAL123"
+        mock_driver.get_cs_state.return_value = "CONNected"
+        mock_driver.get_ps_state.return_value = "DISConnect"
+        mock_driver.get_rssi.return_value = "-65"
+        mock_driver.get_ber.return_value = 0.001
+        mock_driver.get_rx_level.return_value = -70.0
+        ctrl._driver = mock_driver
+
+        await ctrl.get_full_status()
+        assert ctrl._status_cache is not None
+
+        ctrl.invalidate_status_cache()
+        assert ctrl._status_cache is None
+        assert ctrl._status_cache_ts == 0.0
+
+        await ctrl.disconnect()
+
+    async def test_disconnect_clears_cache(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """disconnect() очищает кэш статусов."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")
+
+        await ctrl.connect()
+
+        mock_driver = MagicMock()
+        mock_driver.serial_number = "SERIAL123"
+        mock_driver.get_cs_state.return_value = "CONNected"
+        mock_driver.get_ps_state.return_value = "DISConnect"
+        mock_driver.get_rssi.return_value = "-65"
+        mock_driver.get_ber.return_value = 0.001
+        mock_driver.get_rx_level.return_value = -70.0
+        ctrl._driver = mock_driver
+
+        await ctrl.get_full_status()
+        assert ctrl._status_cache is not None
+
+        await ctrl.disconnect()
+
+        assert ctrl._status_cache is None
+        assert ctrl._status_cache_ts == 0.0

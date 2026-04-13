@@ -432,4 +432,4 @@ class TestEndToEndStatus:
         status = await engine.cmw_status()
 
         assert status["connected"] is True
-        assert "status" in status
+        assert "error" not in status

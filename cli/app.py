@@ -153,14 +153,49 @@ def _format_status(data: dict[str, Any]) -> str:
 
 def _format_cmw_status(data: dict[str, Any]) -> str:
     """Форматировать статус CMW-500."""
-    if data.get("connected"):
-        lines = ["🟢 CMW-500 подключён"]
-        for key, value in data.items():
-            if key != "connected":
-                lines.append(f"  {key}: {value}")
-        return "\n".join(lines)
-    else:
+    if not data.get("connected"):
         return f"🔴 CMW-500 не подключён: {data.get('error', 'неизвестная ошибка')}"
+
+    lines = ["🟢 CMW-500 подключён"]
+
+    # Основные параметры
+    if data.get("serial"):
+        lines.append(f"  Серийный номер: {data['serial']}")
+    if data.get("ip"):
+        lines.append(f"  IP-адрес: {data['ip']}")
+    if data.get("simulate"):
+        lines.append(f"  Режим: симуляция")
+
+    lines.append("")
+
+    # Состояния каналов
+    lines.append("Каналы:")
+    cs = data.get("cs_state", "N/A")
+    ps = data.get("ps_state", "N/A")
+    lines.append(f"  CS: {cs}")
+    lines.append(f"  PS: {ps}")
+
+    lines.append("")
+
+    # Радиопараметры
+    lines.append("Радиопараметры:")
+    rssi = data.get("rssi", "N/A")
+    if rssi != "N/A":
+        lines.append(f"  RSSI: {rssi} dBm")
+    else:
+        lines.append(f"  RSSI: {rssi}")
+    ber = data.get("ber", "N/A")
+    if ber != "N/A" and isinstance(ber, (int, float)):
+        lines.append(f"  BER: {ber:.6f}")
+    else:
+        lines.append(f"  BER: {ber}")
+    rx = data.get("rx_level", "N/A")
+    if rx != "N/A" and isinstance(rx, (int, float)):
+        lines.append(f"  RX Level: {rx} dBm")
+    else:
+        lines.append(f"  RX Level: {rx}")
+
+    return "\n".join(lines)
 
 
 def _format_scenario_result(data: dict[str, Any]) -> str:
@@ -288,14 +323,45 @@ async def _cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+async def _try_get_engine_cmw_status() -> dict[str, Any] | None:
+    """Попытаться получить CMW статус от запущенного сервера.
+
+    Returns:
+        dict со статусом или None если сервер не запущен.
+    """
+    import asyncio
+
+    try:
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection("127.0.0.1", 3001),
+            timeout=2.0,
+        )
+        writer.close()
+        await writer.wait_closed()
+    except (OSError, asyncio.TimeoutError):
+        return None
+
+    # Сервер запущен — пытаемся получить engine
+    # Это работает только в рамках того же процесса,
+    # поэтому для CLI без сервера возвращаем None
+    return None
+
+
 async def _cmd_cmw_status(args: argparse.Namespace) -> int:
     """Обработать команду cmw-status.
 
-    Примечание: показывает конфиг CMW-500. Реальный статус
-    доступен только при подключённом сервере (REPL monitor).
+    Если сервер запущен — показывает расширенный статус через engine.
+    Иначе — показывает конфигурацию CMW-500.
     """
     from core.config import Config
 
+    # Пытаемся получить статус от запущенного сервера
+    status_data = await _try_get_engine_cmw_status()
+    if status_data is not None:
+        print(_format_cmw_status(status_data))
+        return 0 if status_data.get("connected") else 1
+
+    # Fallback — показываем конфигурацию
     config = Config()
     ip = config.cmw500.ip
     if ip:

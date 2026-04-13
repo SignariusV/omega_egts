@@ -432,6 +432,8 @@ class Cmw500Controller:
         self._last_rssi = None
         self._last_ber = None
         self._last_rx_level = None
+        self._status_cache = None
+        self._status_cache_ts = 0.0
         await self.bus.emit("cmw.disconnected", {})
 
     # ──────────────────── Выполнение команд ──────────────
@@ -500,6 +502,11 @@ class Cmw500Controller:
     _last_rssi: str | None = None
     _last_ber: float | None = None
     _last_rx_level: float | None = None
+
+    # Кэш статусов с TTL (KI-046)
+    _status_cache: dict[str, Any] | None = None
+    _status_cache_ts: float = 0.0
+    _status_cache_ttl: float = 5.0  # секунд
 
     async def _poll_states(self) -> None:
         """Опрос состояний CMW-500 и эмит EventBus-событий.
@@ -774,6 +781,80 @@ class Cmw500Controller:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self._driver.get_sms_in_status)
 
+    # ──────────────────── Расширенный статус (TTL-кэш) ──────
+
+    async def get_full_status(self) -> dict[str, Any]:
+        """Полный статус CMW-500 с TTL-кэшем (KI-046).
+
+        Вместо 3+ SCPI-запросов на каждый вызов, кэширует
+        результат на ``_status_cache_ttl`` секунд.
+
+        Returns:
+            Словарь: connected, serial, cs_state, ps_state,
+            rssi, ber, rx_level, simulate, ip.
+        """
+        import time
+
+        now = time.monotonic()
+        if (
+            self._status_cache is not None
+            and now - self._status_cache_ts < self._status_cache_ttl
+        ):
+            return self._status_cache
+
+        if self._driver is None:
+            result = {
+                "connected": False,
+                "error": "driver not open",
+            }
+            return result
+
+        loop = asyncio.get_running_loop()
+
+        def _gather() -> dict[str, Any]:
+            """Синхронно собрать все данные."""
+            data: dict[str, Any] = {"connected": True}
+            try:
+                data["serial"] = self._driver.serial_number
+            except Exception:
+                pass
+            try:
+                data["cs_state"] = self._driver.get_cs_state()
+            except Exception:
+                data["cs_state"] = "N/A"
+            try:
+                data["ps_state"] = self._driver.get_ps_state()
+            except Exception:
+                data["ps_state"] = "N/A"
+            try:
+                data["rssi"] = self._driver.get_rssi()
+            except Exception:
+                data["rssi"] = "N/A"
+            try:
+                data["ber"] = self._driver.get_ber()
+            except Exception:
+                data["ber"] = "N/A"
+            try:
+                data["rx_level"] = self._driver.get_rx_level()
+            except Exception:
+                data["rx_level"] = "N/A"
+            return data
+
+        result = await loop.run_in_executor(None, _gather)
+        result["simulate"] = self._simulate
+        result["ip"] = self._ip
+
+        # Обновляем кэш
+        self._status_cache = result
+        self._status_cache_ts = now
+
+        return result
+
+    def invalidate_status_cache(self) -> None:
+        """Сбросить кэш статусов."""
+        self._status_cache = None
+        self._status_cache_ts = 0.0
+
     # ──────────────────── Configure API (async-обёртки) ─────
 
     async def configure_gsm_signaling(
@@ -872,6 +953,20 @@ class Cmw500Emulator(Cmw500Controller):
         self._poll_task.add_done_callback(self._on_poll_done)
         self._connected = True
         await self.bus.emit("cmw.connected", {"ip": self._ip})
+
+    async def get_full_status(self) -> dict[str, Any]:
+        """Статус эмулятора — моковые данные."""
+        return {
+            "connected": True,
+            "serial": "EMULATOR",
+            "cs_state": "CONNected",
+            "ps_state": "DISConnect",
+            "rssi": self._mock_rssi,
+            "ber": 0.001,
+            "rx_level": -70.0,
+            "simulate": True,
+            "ip": self._ip,
+        }
 
     def set_incoming_sms_handler(
         self, handler: Callable[[bytes], bytes | None]

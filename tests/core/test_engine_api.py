@@ -65,6 +65,17 @@ def _patch_all_components():
         "RSSI": -65,
         "status": "registered",
     })
+    cmw_mock.get_full_status = AsyncMock(return_value={
+        "connected": True,
+        "serial": "MOCK123",
+        "cs_state": "CONNected",
+        "ps_state": "DISConnect",
+        "rssi": "-65",
+        "ber": 0.001,
+        "rx_level": -70.0,
+        "simulate": False,
+        "ip": "192.168.1.100",
+    })
     cmw_mock.is_connected = True
     cmw_cls = MagicMock(return_value=cmw_mock)
 
@@ -232,7 +243,12 @@ async def test_cmw_status_connected(config: Config, bus: EventBus):
         status = await engine.cmw_status()
 
         assert status["connected"] is True
-        assert "status" in status
+        # Расширенный статус содержит хотя бы один из параметров
+        has_status_info = any(
+            k in status
+            for k in ("cs_state", "ps_state", "rssi", "serial", "ip")
+        )
+        assert has_status_info
 
         await engine.stop()
     finally:
@@ -595,10 +611,10 @@ async def test_get_status_cmw_error(config: Config, bus: EventBus):
 
 @pytest.mark.asyncio
 async def test_cmw_status_get_status_error(config: Config, bus: EventBus):
-    """cmw_status — get_status() выбрасывает исключение."""
+    """cmw_status — get_full_status() выбрасывает исключение."""
     patchers, cmw_mock, *_ = _patch_all_components()
     try:
-        cmw_mock.get_status.side_effect = RuntimeError("SCPI timeout")
+        cmw_mock.get_full_status.side_effect = RuntimeError("SCPI timeout")
 
         from core.engine import CoreEngine
 

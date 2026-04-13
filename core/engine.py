@@ -240,11 +240,18 @@ class CoreEngine:
         return result
 
     async def cmw_status(self) -> dict[str, Any]:
-        """Статус CMW-500 для команды ``cmw-status``.
+        """Расширенный статус CMW-500 для команды ``cmw-status``.
 
         Возвращает:
         - ``connected`` — подключён ли
-        - ``status`` — ответ CMW-500 (строка SCPI)
+        - ``serial`` — серийный номер
+        - ``cs_state`` — состояние CS-канала
+        - ``ps_state`` — состояние PS-канала
+        - ``rssi`` — уровень сигнала
+        - ``ber`` — битовая ошибка
+        - ``rx_level`` — уровень приёма
+        - ``simulate`` — режим симуляции
+        - ``ip`` — адрес подключения
         - ``error`` — сообщение об ошибке
         """
         if self.cmw500 is None:
@@ -254,8 +261,7 @@ class CoreEngine:
             }
 
         try:
-            status = await self.cmw500.get_status()
-            return {"connected": True, "status": status}
+            return await self.cmw500.get_full_status()
         except Exception as exc:
             return {"connected": False, "error": str(exc)}
 
