@@ -164,7 +164,7 @@ def _format_cmw_status(data: dict[str, Any]) -> str:
     if data.get("ip"):
         lines.append(f"  IP-адрес: {data['ip']}")
     if data.get("simulate"):
-        lines.append(f"  Режим: симуляция")
+        lines.append("  Режим: симуляция")
 
     lines.append("")
 
@@ -332,13 +332,13 @@ async def _try_get_engine_cmw_status() -> dict[str, Any] | None:
     import asyncio
 
     try:
-        reader, writer = await asyncio.wait_for(
+        _, writer = await asyncio.wait_for(
             asyncio.open_connection("127.0.0.1", 3001),
             timeout=2.0,
         )
         writer.close()
         await writer.wait_closed()
-    except (OSError, asyncio.TimeoutError):
+    except (OSError, TimeoutError):
         return None
 
     # Сервер запущен — пытаемся получить engine

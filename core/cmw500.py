@@ -12,9 +12,9 @@ import asyncio
 import random
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from core.event_bus import EventBus
-
 
 # ════════════════════════════════════════════════════════════
 # VisaCmw500Driver — обёртка над RsCmwGsmSig
