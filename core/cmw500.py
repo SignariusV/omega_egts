@@ -1,4 +1,10 @@
-"""Cmw500Controller — контроллер CMW-500 через SCPI/VISA over LAN."""
+"""Cmw500Controller — контроллер CMW-500 через RsCmwGsmSig.
+
+Архитектура:
+- VisaCmw500Driver — обёртка над RsCmwGsmSig (SCPI query/write + Sense API)
+- Cmw500Controller — логика: очередь команд, retry, SMS, poll
+- Cmw500Emulator — эмулятор для разработки без реального прибора
+"""
 
 from __future__ import annotations
 
@@ -8,6 +14,280 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from core.event_bus import EventBus
+
+
+# ════════════════════════════════════════════════════════════
+# VisaCmw500Driver — обёртка над RsCmwGsmSig
+# ════════════════════════════════════════════════════════════
+
+
+class VisaCmw500Driver:
+    """Драйвер CMW-500 на базе RsCmwGsmSig.
+
+    Обеспечивает низкоуровневый SCPI (query/write) и доступ
+    к высокоуровневому Sense API. Режим симуляции (simulate=True)
+    позволяет разрабатывать без реального прибора.
+
+    Все публичные методы синхронные — вызываются из executor.
+    """
+
+    def __init__(
+        self,
+        ip: str,
+        simulate: bool = False,
+        id_query: bool = True,
+        reset: bool = False,
+    ) -> None:
+        self._ip = ip
+        self._simulate = simulate
+        self._id_query = id_query
+        self._reset = reset
+        self._driver: object | None = None
+
+    def open(self) -> str:
+        """Открыть сессию с прибором.
+
+        Returns:
+            Серийный номер прибора.
+        """
+        from RsCmwGsmSig import RsCmwGsmSig
+
+        options = "Simulate=True" if self._simulate else None
+        resource = f"TCPIP::{self._ip}::HISLIP"
+        self._driver = RsCmwGsmSig(
+            resource,
+            id_query=self._id_query,
+            reset=self._reset,
+            options=options,
+        )
+        self._driver.utilities.instrument_status_checking = True
+        self._driver.utilities.opc_query_after_write = False
+        return self.serial_number
+
+    def close(self) -> None:
+        """Закрыть сессию."""
+        if self._driver is not None:
+            self._driver.close()
+            self._driver = None
+
+    @property
+    def is_open(self) -> bool:
+        return self._driver is not None
+
+    @property
+    def serial_number(self) -> str:
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.utilities.instrument_serial_number
+
+    @property
+    def idn_string(self) -> str:
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.utilities.idn_string
+
+    # ──────────────────── Низкоуровневый SCPI ──────────
+
+    def query(self, scpi: str) -> str:
+        """SCPI-запрос с ожиданием ответа (команды с ``?``)."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.utilities.query_str(scpi)
+
+    def write(self, scpi: str) -> None:
+        """SCPI-команда без ожидания ответа."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.utilities.write_str(scpi)
+
+    # ──────────────────── Sense API (состояния) ────────
+
+    def get_cs_state(self) -> str:
+        """Состояние CS-канала: DISConnect, PREPare, CONNected, ACTive, REL ease."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.connection.cswitched.connection.get()
+
+    def get_ps_state(self) -> str:
+        """Состояние PS-канала: DISConnect, PREPare, CONNected, ACTive."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.call.pswitched.state.get()
+
+    def get_call_cs_state(self) -> str:
+        """Состояние CS-вызова: DISConnect, PREParation, CONNected, ACTive, HOLD."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.call.cswitched.state.get()
+
+    # ──────────────────── Sense API (радиопараметры) ───
+
+    def get_ber(self) -> float:
+        """BER — коэффициент битовых ошибок."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.rreport.cswitched.mbep.get()
+
+    def get_rx_level(self) -> float:
+        """Уровень приёма (dBm)."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.rreport.rx_level.sub.get()
+
+    def get_rx_quality(self) -> float:
+        """Качество приёма."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.rreport.rx_quality.sub.get()
+
+    def get_throughput(self) -> float:
+        """Пропускная способность (кбит/с)."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.connection.ethroughput.get()
+
+    # ──────────────────── Sense API (информация об УСВ) ──
+
+    def get_usv_ip(self) -> str:
+        """IPv4-адрес УСВ."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.mss_info.ms_address.ipv4.get()
+
+    def get_usv_class(self) -> str:
+        """Класс терминала."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.mss_info.ms_class.get()
+
+    # ──────────────────── Sense API (SMS-статусы) ──────
+
+    def get_sms_out_status(self) -> str:
+        """Статус последней исходящей SMS."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.sms.outgoing.info.get()
+
+    def get_sms_in_status(self) -> str:
+        """Статус входящих SMS."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        return self._driver.sense.sms.incoming.info.get()
+
+    # ──────────────────── Legacy SCPI (обратная совместимость) ──
+
+    def get_imei(self) -> str:
+        return self.query("CMW:GSM:SIGN:IMEI?")
+
+    def get_imsi(self) -> str:
+        return self.query("CMW:GSM:SIGN:IMSI?")
+
+    def get_rssi(self) -> str:
+        return self.query("CMW:GSM:SIGN:RSSI?")
+
+    def get_status(self) -> str:
+        return self.query("CMW:GSM:SIGN:CONN?")
+
+    # ──────────────────── Configure API ────────────────────
+
+    def configure_cell_mcc(self, mcc: int) -> None:
+        """MCC — код страны (250 = Россия)."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.cell.mnc.set(mcc)
+
+    def configure_cell_mnc(self, mnc: int) -> None:
+        """MNC — код оператора (60 = Волна, 01 = МТС)."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.cell.mnc.set(mnc)
+
+    def configure_rf_level_tch(self, level_dbm: float) -> None:
+        """Мощность TCH (dBm), обычно -40."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.rf_settings.level.tch.set(level_dbm)
+
+    def configure_ps_service(self, service: str) -> None:
+        """Тип PS-сервиса, обычно 'TMA'."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.connection.pswitched.service.set(service)
+
+    def configure_ps_tlevel(self, tlevel: str) -> None:
+        """Тип PS-канала, обычно 'EGPRS'."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.connection.pswitched.tlevel.set(tlevel)
+
+    def configure_ps_cscheme_ul(self, scheme: str) -> None:
+        """Схема кодирования UL, обычно 'MC9'."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.connection.pswitched.cscheme.ul.set(scheme)
+
+    def configure_ps_dl_carrier(self, carriers: str) -> None:
+        """Несущие DL — строка 'OFF,OFF,OFF,ON,ON,OFF,OFF,OFF'."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.connection.pswitched.sconfig.enable.dl.carrier.set(
+            carriers
+        )
+
+    def configure_ps_dl_cscheme(self, scheme: str) -> None:
+        """Кодирование DL — строка 'MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9'."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.connection.pswitched.sconfig.cscheme.dl.carrier.set(
+            scheme
+        )
+
+    def configure_sms_dcoding(self, dcoding: str) -> None:
+        """Кодирование SMS — обычно 'BIT8'."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.sms.outgoing.dcoding.set(dcoding)
+
+    def configure_sms_pidentifier(self, pid: int) -> None:
+        """PID SMS — обычно 1."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.configure.sms.outgoing.pidentifier.set(pid)
+
+    # ──────────────────── Полная конфигурация ─────────────
+
+    def configure_gsm_signaling(
+        self,
+        mcc: int = 250,
+        mnc: int = 60,
+        rf_level_dbm: float = -40.0,
+        ps_service: str = "TMA",
+        ps_tlevel: str = "EGPRS",
+        ps_cscheme_ul: str = "MC9",
+        ps_dl_carrier: str = "OFF,OFF,OFF,ON,ON,OFF,OFF,OFF",
+        ps_dl_cscheme: str = "MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9",
+    ) -> None:
+        """Полная настройка GSM Signaling.
+
+        Вызывается один раз при инициализации CMW-500.
+        """
+        self.configure_cell_mcc(mcc)
+        self.configure_cell_mnc(mnc)
+        self.configure_rf_level_tch(rf_level_dbm)
+        self.configure_ps_service(ps_service)
+        self.configure_ps_tlevel(ps_tlevel)
+        self.configure_ps_cscheme_ul(ps_cscheme_ul)
+        self.configure_ps_dl_carrier(ps_dl_carrier)
+        self.configure_ps_dl_cscheme(ps_dl_cscheme)
+
+    def configure_sms(
+        self,
+        dcoding: str = "BIT8",
+        pid: int = 1,
+    ) -> None:
+        """Настройка SMS-канала."""
+        self.configure_sms_dcoding(dcoding)
+        self.configure_sms_pidentifier(pid)
 
 
 @dataclass
@@ -36,7 +316,7 @@ READ_SMS = CmwCommand("read_sms", "CMW:GSM:SIGN:SMS:READ?", timeout=5.0, retry_c
 
 
 class Cmw500Controller:
-    """Контроллер CMW-500 через SCPI/VISA over LAN с очередью команд.
+    """Контроллер CMW-500 с очередью команд.
 
     Все команды проходят через asyncio.Queue, что гарантирует
     последовательное выполнение без конфликтов VISA-сессии.
@@ -52,10 +332,13 @@ class Cmw500Controller:
         bus: EventBus,
         ip: str,
         poll_interval: float = 2.0,
+        simulate: bool = False,
     ) -> None:
         self.bus = bus
         self._ip = ip
         self._poll_interval = poll_interval
+        self._simulate = simulate
+        self._driver: VisaCmw500Driver | None = None
         self._queue: asyncio.Queue[tuple[CmwCommand, tuple[object, ...], asyncio.Future[str]]] = (
             asyncio.Queue()
         )
@@ -68,12 +351,20 @@ class Cmw500Controller:
     async def connect(self) -> None:
         """Подключиться к CMW-500 и запустить worker-цикл + опрос SMS."""
         try:
+            self._driver = VisaCmw500Driver(self._ip, simulate=self._simulate)
+            serial = await asyncio.get_running_loop().run_in_executor(
+                None, self._driver.open
+            )
             self._worker = asyncio.create_task(self._worker_loop())
             self._worker.add_done_callback(self._on_worker_done)
             self._poll_task = asyncio.create_task(self._poll_loop())
             self._poll_task.add_done_callback(self._on_poll_done)
             self._connected = True
-            await self.bus.emit("cmw.connected", {"ip": self._ip})
+            await self.bus.emit("cmw.connected", {
+                "ip": self._ip,
+                "serial": serial,
+                "simulate": self._simulate,
+            })
         except Exception as e:
             await self.bus.emit("cmw.error", {"error": str(e), "command": "connect"})
             raise
@@ -130,6 +421,11 @@ class Cmw500Controller:
                 await self._poll_task
             except asyncio.CancelledError:
                 pass
+        if self._driver is not None:
+            await asyncio.get_running_loop().run_in_executor(
+                None, self._driver.close
+            )
+            self._driver = None
         await self.bus.emit("cmw.disconnected", {})
 
     # ──────────────────── Выполнение команд ──────────────
@@ -281,8 +577,7 @@ class Cmw500Controller:
     async def _send_scpi(self, scpi: str) -> str:
         """Отправить SCPI-команду и получить ответ.
 
-        Переопределяется в эмуляторе (Cmw500Emulator) и
-    замещается реальной VISA-реализацией при подключении к прибору.
+        Делегирует VisaCmw500Driver.query() через run_in_executor.
 
         Args:
             scpi: SCPI-строка команды.
@@ -291,10 +586,128 @@ class Cmw500Controller:
             Ответ прибора (без завершающего newline).
 
         Raises:
-            NotImplementedError: если не переопределён.
+            ConnectionError: Если драйвер не подключён.
         """
-        raise NotImplementedError(
-            "_send_scpi must be overridden in subclass or mocked"
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.query, scpi)
+
+    # ──────────────────── Sense API (async-обёртки) ──────
+
+    async def get_cs_state(self) -> str:
+        """Состояние CS-канала."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_cs_state)
+
+    async def get_ps_state(self) -> str:
+        """Состояние PS-канала."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_ps_state)
+
+    async def get_call_cs_state(self) -> str:
+        """Состояние CS-вызова."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_call_cs_state)
+
+    async def get_ber(self) -> float:
+        """BER — битовая ошибка."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_ber)
+
+    async def get_rx_level(self) -> float:
+        """Уровень приёма (dBm)."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_rx_level)
+
+    async def get_rx_quality(self) -> float:
+        """Качество приёма."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_rx_quality)
+
+    async def get_throughput(self) -> float:
+        """Пропускная способность (кбит/с)."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_throughput)
+
+    async def get_usv_ip(self) -> str:
+        """IPv4-адрес УСВ."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_usv_ip)
+
+    async def get_sms_out_status(self) -> str:
+        """Статус исходящих SMS."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_sms_out_status)
+
+    async def get_sms_in_status(self) -> str:
+        """Статус входящих SMS."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._driver.get_sms_in_status)
+
+    # ──────────────────── Configure API (async-обёртки) ─────
+
+    async def configure_gsm_signaling(
+        self,
+        mcc: int = 250,
+        mnc: int = 60,
+        rf_level_dbm: float = -40.0,
+        ps_service: str = "TMA",
+        ps_tlevel: str = "EGPRS",
+        ps_cscheme_ul: str = "MC9",
+        ps_dl_carrier: str = "OFF,OFF,OFF,ON,ON,OFF,OFF,OFF",
+        ps_dl_cscheme: str = "MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9",
+    ) -> None:
+        """Полная настройка GSM Signaling."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+
+        def _do_config() -> None:
+            self._driver.configure_gsm_signaling(
+                mcc=mcc,
+                mnc=mnc,
+                rf_level_dbm=rf_level_dbm,
+                ps_service=ps_service,
+                ps_tlevel=ps_tlevel,
+                ps_cscheme_ul=ps_cscheme_ul,
+                ps_dl_carrier=ps_dl_carrier,
+                ps_dl_cscheme=ps_dl_cscheme,
+            )
+
+        await loop.run_in_executor(None, _do_config)
+
+    async def configure_sms(
+        self,
+        dcoding: str = "BIT8",
+        pid: int = 1,
+    ) -> None:
+        """Настройка SMS-канала."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(
+            None, lambda: self._driver.configure_sms(dcoding=dcoding, pid=pid)
         )
 
 
@@ -340,6 +753,16 @@ class Cmw500Emulator(Cmw500Controller):
         self._mock_imsi: str = "250011234567890"
         self._mock_rssi: str = "-65"
         self._mock_status: str = "1"
+
+    async def connect(self) -> None:
+        """Подключиться (эмулятор — без реального драйвера)."""
+        # Эмулятор НЕ открывает VisaCmw500Driver — работает напрямую
+        self._worker = asyncio.create_task(self._worker_loop())
+        self._worker.add_done_callback(self._on_worker_done)
+        self._poll_task = asyncio.create_task(self._poll_loop())
+        self._poll_task.add_done_callback(self._on_poll_done)
+        self._connected = True
+        await self.bus.emit("cmw.connected", {"ip": self._ip})
 
     def set_incoming_sms_handler(
         self, handler: Callable[[bytes], bytes | None]

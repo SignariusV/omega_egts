@@ -17,6 +17,7 @@ from core.cmw500 import (
     SEND_SMS,
     Cmw500Controller,
     CmwCommand,
+    VisaCmw500Driver,
 )
 from core.event_bus import EventBus
 
@@ -28,9 +29,15 @@ def event_bus() -> EventBus:
     return EventBus()
 
 
+@pytest.fixture(autouse=True)
+def mock_driver_open(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Мокаем VisaCmw500Driver.open() — не пытаемся подключить реальное VISA."""
+    monkeypatch.setattr(VisaCmw500Driver, "open", lambda self: "MOCK_SERIAL")
+
+
 @pytest.fixture
-def controller(event_bus: EventBus) -> Cmw500Controller:
-    ctrl = Cmw500Controller(bus=event_bus, ip="192.168.1.100")
+def controller(event_bus: EventBus, mock_driver_open: None) -> Cmw500Controller:
+    ctrl = Cmw500Controller(bus=event_bus, ip="192.168.1.100", simulate=True)
     ctrl._send_scpi = AsyncMock()  # type: ignore[method-assign]
     return ctrl
 
@@ -122,7 +129,7 @@ class TestConnectDisconnect:
     async def test_connect_error_emits_cmw_error(
         self, event_bus: EventBus
     ) -> None:
-        ctrl = Cmw500Controller(bus=event_bus, ip="bad_host")
+        ctrl = Cmw500Controller(bus=event_bus, ip="bad_host", simulate=True)
 
         async def failing_worker() -> None:
             raise ConnectionError("bad host")
@@ -519,7 +526,7 @@ class TestPollLoop:
     ) -> None:
         """Poll loop уважает настройку poll_interval."""
         ctrl = Cmw500Controller(
-            bus=event_bus, ip="192.168.1.100", poll_interval=0.05
+            bus=event_bus, ip="192.168.1.100", poll_interval=0.05, simulate=True
         )
         ctrl._send_scpi = AsyncMock(return_value="")  # type: ignore[method-assign]
 

@@ -26,9 +26,10 @@ dependencies = [
     # EGTS протокол
     # struct, dataclasses — встроенные
     
-    # CMW-500 (SCPI/VISA)
+    # CMW-500 (SCPI/VISA) — драйвер Rohde & Schwarz
     "pyvisa>=1.13.0",
     "pyvisa-py>=0.7.0",
+    "RsCmwGsmSig>=3.7.30",
     
     # ASN.1 (для eCall/MSD)
     "asn1crypto>=1.5.1",
