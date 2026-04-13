@@ -562,14 +562,26 @@ configure.connection.pswitched.sconfig:  enable, cscheme, combined, ...
 
 **Дальнейшие шаги:** проверить лицензию GSM Signaling на CMW-500 или обновить ПО до стабильной версии.
 
-### 12.9 Найденные правильные SCPI-команды для состояний
+### 12.9 Исправления по результатам внешнего аудита
 
-Команды `CALL:GSM:SIGN:CSWitched:STATe?` **не работают** (Undefined header).
-Правильный формат для чтения состояний:
+| Параметр | Было (❌) | Стало (✅) |
+|----------|-----------|------------|
+| IMEI | `CMW:GSM:SIGN:IMEI?` | `CALL:GSM:SIGN1:IMEI?` |
+| IMSI | `CMW:GSM:SIGN:IMSI?` | `CALL:GSM:SIGN1:IMSI?` |
+| RSSI | `CMW:GSM:SIGN:RSSI?` | `CALL:GSM:SIGN1:RSSI?` |
+| Status | `CMW:GSM:SIGN:CONN?` | `CALL:GSM:SIGN1:CONNection:STATe?` |
+| CS state | `CALL:GSM:SIGN:CSWitched:STATe?` | `CALL:GSM:SIGN1:CONNection:CSWitched:STATe?` |
+| PS state | `CALL:GSM:SIGN:PSWitched:STATe?` | `CALL:GSM:SIGN1:CONNection:PSWitched:STATe?` |
+| MCC config | `write_str()` | `write_str_with_opc()` |
+| MNC config | `write_str()` | `write_str_with_opc()` |
 
-| Параметр | SCPI команда | Метод |
-|----------|--------------|-------|
-| CS state | `FETCh:GSM:SIGN:CSWitched:STATe?` | `utilities.query_str_with_opc()` |
-| PS state | `FETCh:GSM:SIGN:PSWitched:STATe?` | `utilities.query_str_with_opc()` |
+**Ключевые изменения:**
 
-**Обязательно** использовать `query_str_with_opc()` — команда ждёт `*OPC` (Operation Complete) перед чтением.
+1. **`CMW:` → `CALL:GSM:SIGN1:`** — `CMW:` не SCPI-корень, правильная команда начинается с `CALL:`
+2. **Добавлен инстанс `1`** — `SIGN1` вместо `SIGN`
+3. **Добавлен `CONNection`** — путь `CALL:GSM:SIGN1:CONNection:CSWitched:STATe?`
+4. **`opc_query_after_write = True`** — синхронизация после каждой записи
+5. **`instrument_status_checking = True`** — включена проверка ошибок (после `*CLS`)
+6. **`*CLS` перед включением** — очистка очереди ошибок
+7. **`visa_timeout = 60000`** — увеличено до 60 секунд
+8. **`write_str_with_opc()`** для конфигурационных команд — ждёт завершения

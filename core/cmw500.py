@@ -63,11 +63,12 @@ class VisaCmw500Driver:
             reset=self._reset,
             options=options,
         )
-        # Увеличиваем таймаут для реального прибора (5с → 30с)
+        # Увеличиваем таймаут для реального прибора (по умолчанию 5с → 60с)
         if not self._simulate:
-            self._driver.utilities.visa_timeout = 30000  # 30 секунд
-        self._driver.utilities.instrument_status_checking = False  # Отключаем автопроверку (в буфере могут быть старые ошибки)
-        self._driver.utilities.opc_query_after_write = False
+            self._driver.utilities.visa_timeout = 60000  # 60 секунд
+        self._driver.utilities.write_str("*CLS")  # Очистка очереди ошибок
+        self._driver.utilities.instrument_status_checking = True  # Включаем проверку ошибок
+        self._driver.utilities.opc_query_after_write = True  # Синхронизация после каждой записи
         return self.serial_number
 
     def close(self) -> None:
@@ -79,6 +80,18 @@ class VisaCmw500Driver:
     @property
     def is_open(self) -> bool:
         return self._driver is not None
+
+    def start_signaling(self) -> None:
+        """Запустить GSM сигналинг."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.utilities.write_str_with_opc("CALL:GSM:SIGN1:ACTivate")
+
+    def stop_signaling(self) -> None:
+        """Остановить GSM сигналинг."""
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        self._driver.utilities.write_str_with_opc("CALL:GSM:SIGN1:DEactivate")
 
     @property
     def serial_number(self) -> str:
@@ -113,7 +126,7 @@ class VisaCmw500Driver:
         if self._driver is None:
             raise RuntimeError("Driver not opened")
         return self._driver.utilities.query_str_with_opc(
-            "FETCh:GSM:SIGN:CSWitched:STATe?"
+            "CALL:GSM:SIGN1:CONNection:CSWitched:STATe?"
         ).strip()
 
     def get_ps_state(self) -> str:
@@ -121,7 +134,7 @@ class VisaCmw500Driver:
         if self._driver is None:
             raise RuntimeError("Driver not opened")
         return self._driver.utilities.query_str_with_opc(
-            "FETCh:GSM:SIGN:PSWitched:STATe?"
+            "CALL:GSM:SIGN1:CONNection:PSWitched:STATe?"
         ).strip()
 
     def get_call_cs_state(self) -> str:
@@ -189,16 +202,26 @@ class VisaCmw500Driver:
     # ──────────────────── Legacy SCPI (обратная совместимость) ──
 
     def get_imei(self) -> str:
-        return self.query("CMW:GSM:SIGN:IMEI?")
+        return self._driver.utilities.query_str("CALL:GSM:SIGN1:IMEI?").strip()
 
     def get_imsi(self) -> str:
-        return self.query("CMW:GSM:SIGN:IMSI?")
+        return self._driver.utilities.query_str("CALL:GSM:SIGN1:IMSI?").strip()
 
     def get_rssi(self) -> str:
-        return self._driver.utilities.query_str("CALL:GSM:SIGN:RSSI?").strip()
+        return self._driver.utilities.query_str("CALL:GSM:SIGN1:RSSI?").strip()
 
     def get_status(self) -> str:
-        return self._driver.utilities.query_str("CMW:GSM:SIGN:CONN?").strip()
+        """Статус подключения УСВ: DISConnected/CONNected/CAMPed/REGistered."""
+        result = self._driver.utilities.query_str(
+            "CALL:GSM:SIGN1:CONNection:STATe?"
+        ).strip()
+        status_map = {
+            "0": "DISConnected",
+            "1": "CONNected",
+            "2": "CAMPed",
+            "3": "REGistered",
+        }
+        return status_map.get(result, result)
 
     # ──────────────────── Configure API ────────────────────
 
@@ -889,6 +912,20 @@ class Cmw500Controller:
 
         await loop.run_in_executor(None, _do_config)
 
+    async def start_signaling(self) -> None:
+        """Запустить GSM сигналинг."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self._driver.start_signaling)
+
+    async def stop_signaling(self) -> None:
+        """Остановить GSM сигналинг."""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self._driver.stop_signaling)
+
 
 # ════════════════════════════════════════════════════════════
 # Эмулятор CMW-500 для разработки и тестов
@@ -974,6 +1011,14 @@ class Cmw500Emulator(Cmw500Controller):
         ipv4_type: str = "DHCPv4",
     ) -> None:
         """Эмулятор: заглушка конфигурации DAU."""
+        pass
+
+    async def start_signaling(self) -> None:
+        """Эмулятор: заглушка запуска сигналинга."""
+        pass
+
+    async def stop_signaling(self) -> None:
+        """Эмулятор: заглушка остановки сигналинга."""
         pass
 
     def set_incoming_sms_handler(
