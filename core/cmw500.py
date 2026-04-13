@@ -426,6 +426,12 @@ class Cmw500Controller:
                 None, self._driver.close
             )
             self._driver = None
+        # Сброс кэша состояний
+        self._last_cs_state = None
+        self._last_ps_state = None
+        self._last_rssi = None
+        self._last_ber = None
+        self._last_rx_level = None
         await self.bus.emit("cmw.disconnected", {})
 
     # ──────────────────── Выполнение команд ──────────────
@@ -486,12 +492,108 @@ class Cmw500Controller:
                 "connection_id": None,
             })
 
-    async def _poll_loop(self) -> None:
-        """Фоновый цикл опроса входящих SMS.
+    # ──────────────────── Периодический мониторинг состояний ──
 
-        Периодически вызывает _poll_incoming_sms() с интервалом
-        ``_poll_interval`` секунд. Ошибки не прерывают цикл —
-        они логируются через cmw.error и цикл продолжается.
+    # Кэш предыдущих значений — эмитим событие только при изменении
+    _last_cs_state: str | None = None
+    _last_ps_state: str | None = None
+    _last_rssi: str | None = None
+    _last_ber: float | None = None
+    _last_rx_level: float | None = None
+
+    async def _poll_states(self) -> None:
+        """Опрос состояний CMW-500 и эмит EventBus-событий.
+
+        Проверяет:
+        - CS state → ``cmw.cs_state_changed``
+        - PS state → ``cmw.ps_state_changed``
+        - RSSI → ``cmw.rssi_updated``
+        - BER → ``cmw.ber_updated``
+        - RX level → ``cmw.rx_level_updated``
+
+        Событие эмитится только при изменении значения.
+        """
+        if self._driver is None:
+            return
+
+        loop = asyncio.get_running_loop()
+
+        # CS state
+        try:
+            cs_state = await loop.run_in_executor(
+                None, lambda: self._driver.get_cs_state()  # type: ignore[union-attr]
+            )
+            if cs_state != self._last_cs_state:
+                self._last_cs_state = cs_state
+                await self.bus.emit("cmw.cs_state_changed", {
+                    "state": cs_state,
+                })
+        except Exception:
+            pass  # Игнорируем ошибки — прибор может быть не готов
+
+        # PS state
+        try:
+            ps_state = await loop.run_in_executor(
+                None, lambda: self._driver.get_ps_state()  # type: ignore[union-attr]
+            )
+            if ps_state != self._last_ps_state:
+                self._last_ps_state = ps_state
+                await self.bus.emit("cmw.ps_state_changed", {
+                    "state": ps_state,
+                })
+        except Exception:
+            pass
+
+        # RSSI
+        try:
+            rssi = await loop.run_in_executor(
+                None, lambda: self._driver.get_rssi()  # type: ignore[union-attr]
+            )
+            if rssi != self._last_rssi:
+                self._last_rssi = rssi
+                await self.bus.emit("cmw.rssi_updated", {
+                    "rssi": rssi,
+                })
+        except Exception:
+            pass
+
+        # BER
+        try:
+            ber = await loop.run_in_executor(
+                None, lambda: self._driver.get_ber()  # type: ignore[union-attr]
+            )
+            if self._last_ber is None or abs(ber - self._last_ber) > 0.01:
+                self._last_ber = ber
+                await self.bus.emit("cmw.ber_updated", {
+                    "ber": ber,
+                })
+        except Exception:
+            pass
+
+        # RX level
+        try:
+            rx_level = await loop.run_in_executor(
+                None, lambda: self._driver.get_rx_level()  # type: ignore[union-attr]
+            )
+            if (
+                self._last_rx_level is None
+                or abs(rx_level - self._last_rx_level) > 0.5
+            ):
+                self._last_rx_level = rx_level
+                await self.bus.emit("cmw.rx_level_updated", {
+                    "rx_level": rx_level,
+                })
+        except Exception:
+            pass
+
+    async def _poll_loop(self) -> None:
+        """Фоновый цикл опроса.
+
+        Периодически вызывает:
+        - _poll_incoming_sms() — входящие SMS
+        - _poll_states() — состояния (CS, PS, RSSI, BER)
+
+        Ошибки не прерывают цикл — они логируются через cmw.error.
         """
         while self._connected:
             try:
@@ -500,6 +602,13 @@ class Cmw500Controller:
                 await self.bus.emit("cmw.error", {
                     "error": str(e),
                     "command": "poll_sms",
+                })
+            try:
+                await self._poll_states()
+            except Exception as e:
+                await self.bus.emit("cmw.error", {
+                    "error": str(e),
+                    "command": "poll_states",
                 })
             await asyncio.sleep(self._poll_interval)
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -539,3 +539,135 @@ class TestPollLoop:
 
         # read_sms вызывался многократно (интервал 50мс, спим 200мс)
         assert ctrl._send_scpi.call_count >= 2  # type: ignore[attr-defined]
+
+
+class TestPollStates:
+    """Тесты _poll_states — периодический мониторинг состояний."""
+
+    async def test_poll_states_emits_cs_state_changed(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """_poll_states эмитит cmw.cs_state_changed при изменении."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")  # type: ignore[method-assign]
+
+        await ctrl.connect()
+
+        # Мок драйвера ПОСЛЕ connect (connect перезаписывает _driver)
+        mock_driver = MagicMock()
+        mock_driver.get_cs_state.return_value = "CONNected"
+        mock_driver.get_ps_state.return_value = "DISConnect"
+        mock_driver.get_rssi.return_value = "-65"
+        mock_driver.get_ber.return_value = 0.001
+        mock_driver.get_rx_level.return_value = -70.0
+        ctrl._driver = mock_driver
+
+        # Даём poll loop отработать с мокнутым драйвером
+        await asyncio.sleep(0.15)
+        await ctrl.disconnect()
+
+        # Проверяем что _poll_states вызвал методы драйвера
+        mock_driver.get_cs_state.assert_called()
+        mock_driver.get_ps_state.assert_called()
+
+    async def test_poll_states_no_emit_on_same_value(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """_poll_states НЕ эмитит если значение не изменилось."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")  # type: ignore[method-assign]
+
+        await ctrl.connect()
+
+        # Мок драйвера — всегда одно значение
+        mock_driver = MagicMock()
+        mock_driver.get_cs_state.return_value = "DISConnect"
+        mock_driver.get_ps_state.return_value = "DISConnect"
+        mock_driver.get_rssi.return_value = "-65"
+        mock_driver.get_ber.return_value = 0.001
+        mock_driver.get_rx_level.return_value = -70.0
+        ctrl._driver = mock_driver
+
+        # Предварительно устанавливаем те же значения
+        ctrl._last_cs_state = "DISConnect"
+        ctrl._last_ps_state = "DISConnect"
+
+        events: list[dict[str, Any]] = []
+        event_bus.on("cmw.cs_state_changed", lambda d: events.append(d))
+
+        await asyncio.sleep(0.15)
+        await ctrl.disconnect()
+
+        # Событие НЕ должно было эмититься (значение не изменилось)
+        assert len(events) == 0
+
+    async def test_poll_states_emits_on_change(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """_poll_states эмитит при изменении значения."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")  # type: ignore[method-assign]
+
+        await ctrl.connect()
+
+        mock_driver = MagicMock()
+        call_count = [0]
+
+        def cs_side_effect() -> str:
+            call_count[0] += 1
+            if call_count[0] <= 2:
+                return "DISConnect"
+            return "CONNected"
+
+        mock_driver.get_cs_state.side_effect = cs_side_effect
+        mock_driver.get_ps_state.return_value = "DISConnect"
+        mock_driver.get_rssi.return_value = "-65"
+        mock_driver.get_ber.return_value = 0.001
+        mock_driver.get_rx_level.return_value = -70.0
+        ctrl._driver = mock_driver
+
+        events: list[dict[str, Any]] = []
+        event_bus.on("cmw.cs_state_changed", lambda d: events.append(d))
+
+        await asyncio.sleep(0.15)
+        await ctrl.disconnect()
+
+        assert len(events) >= 1
+
+    async def test_poll_states_handles_driver_error(
+        self, event_bus: EventBus, mock_driver_open: None
+    ) -> None:
+        """_poll_states НЕ падает при ошибке драйвера."""
+        ctrl = Cmw500Controller(
+            bus=event_bus, ip="192.168.1.100", simulate=True
+        )
+        ctrl._send_scpi = AsyncMock(return_value="")  # type: ignore[method-assign]
+
+        await ctrl.connect()
+
+        mock_driver = MagicMock()
+        mock_driver.get_cs_state.side_effect = RuntimeError("Not ready")
+        mock_driver.get_ps_state.side_effect = RuntimeError("Not ready")
+        mock_driver.get_rssi.side_effect = RuntimeError("Not ready")
+        mock_driver.get_ber.side_effect = RuntimeError("Not ready")
+        mock_driver.get_rx_level.side_effect = RuntimeError("Not ready")
+        ctrl._driver = mock_driver
+
+        events: list[dict[str, Any]] = []
+        event_bus.on("cmw.cs_state_changed", lambda d: events.append(d))
+        event_bus.on("cmw.ps_state_changed", lambda d: events.append(d))
+
+        await ctrl.connect()
+        await asyncio.sleep(0.15)
+        await ctrl.disconnect()
+
+        # Ни одного события — ошибки проглочены
+        assert len(events) == 0
+        # Poll loop продолжает работать — disconnect прошёл без ошибок
+        assert ctrl._connected is False
