@@ -9,12 +9,15 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import random
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
 from core.event_bus import EventBus
+
+logger = logging.getLogger(__name__)
 
 # ════════════════════════════════════════════════════════════
 # VisaCmw500Driver — обёртка над RsCmwGsmSig
@@ -520,7 +523,8 @@ class Cmw500Controller:
 
         Событие эмитится только при изменении значения.
         """
-        if self._driver is None:
+        driver = self._driver  # локальная ссылка — защита от disconnect
+        if driver is None:
             return
 
         loop = asyncio.get_running_loop()
@@ -528,59 +532,59 @@ class Cmw500Controller:
         # CS state
         try:
             cs_state = await loop.run_in_executor(
-                None, lambda: self._driver.get_cs_state()  # type: ignore[union-attr]
+                None, driver.get_cs_state
             )
             if cs_state != self._last_cs_state:
                 self._last_cs_state = cs_state
                 await self.bus.emit("cmw.cs_state_changed", {
                     "state": cs_state,
                 })
-        except Exception:
-            pass  # Игнорируем ошибки — прибор может быть не готов
+        except Exception as e:
+            logger.debug("CMW poll CS state error: %s", e)
 
         # PS state
         try:
             ps_state = await loop.run_in_executor(
-                None, lambda: self._driver.get_ps_state()  # type: ignore[union-attr]
+                None, driver.get_ps_state
             )
             if ps_state != self._last_ps_state:
                 self._last_ps_state = ps_state
                 await self.bus.emit("cmw.ps_state_changed", {
                     "state": ps_state,
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("CMW poll PS state error: %s", e)
 
         # RSSI
         try:
             rssi = await loop.run_in_executor(
-                None, lambda: self._driver.get_rssi()  # type: ignore[union-attr]
+                None, driver.get_rssi
             )
             if rssi != self._last_rssi:
                 self._last_rssi = rssi
                 await self.bus.emit("cmw.rssi_updated", {
                     "rssi": rssi,
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("CMW poll RSSI error: %s", e)
 
         # BER
         try:
             ber = await loop.run_in_executor(
-                None, lambda: self._driver.get_ber()  # type: ignore[union-attr]
+                None, driver.get_ber
             )
             if self._last_ber is None or abs(ber - self._last_ber) > 0.01:
                 self._last_ber = ber
                 await self.bus.emit("cmw.ber_updated", {
                     "ber": ber,
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("CMW poll BER error: %s", e)
 
         # RX level
         try:
             rx_level = await loop.run_in_executor(
-                None, lambda: self._driver.get_rx_level()  # type: ignore[union-attr]
+                None, driver.get_rx_level
             )
             if (
                 self._last_rx_level is None
@@ -590,8 +594,8 @@ class Cmw500Controller:
                 await self.bus.emit("cmw.rx_level_updated", {
                     "rx_level": rx_level,
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("CMW poll RX level error: %s", e)
 
     async def _poll_loop(self) -> None:
         """Фоновый цикл опроса.
