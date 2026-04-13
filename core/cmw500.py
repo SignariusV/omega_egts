@@ -292,6 +292,28 @@ class VisaCmw500Driver:
         self.configure_sms_dcoding(dcoding)
         self.configure_sms_pidentifier(pid)
 
+    def configure_dau(
+        self,
+        meas_range: str = "GSM Sig1",
+        dns_type: str = "Foreign",
+        ipv4_type: str = "DHCPv4",
+    ) -> None:
+        """Настройка DAU (Data Access Unit).
+
+        Args:
+            meas_range: Диапазон измерений (например, 'GSM Sig1').
+            dns_type: Тип DNS (Foreign).
+            ipv4_type: Тип IPv4-адреса (DHCPv4).
+        """
+        if self._driver is None:
+            raise RuntimeError("Driver not opened")
+        # CONF:DATA:MEAS:RAN 'GSM Sig1'
+        self._driver.configure.data.meas.range.set(meas_range)
+        # CONF:DATA:CONT:DNS:PRIM:STYP Foreign
+        self._driver.configure.data.control.dns.primary.stype.set(dns_type)
+        # CONF:DATA:CONT:IPV4:ADDR:TYPE DHCPv4
+        self._driver.configure.data.control.ipv4.address.type.set(ipv4_type)
+
 
 @dataclass
 class CmwCommand:
