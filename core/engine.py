@@ -278,18 +278,29 @@ class CoreEngine:
             return {"status": "error", "error": "ScenarioManager не инициализирован"}
 
         try:
-            self.scenario_mgr.load(Path(scenario_path))
+            scenario_path_obj = Path(scenario_path)
+            # Если передана директория — добавляем scenario.json
+            if scenario_path_obj.is_dir():
+                scenario_path_obj = scenario_path_obj / "scenario.json"
+
+            self.scenario_mgr.load(scenario_path_obj)
+            # Используем таймаут из сценария, если не задан — дефолт 60с
+            scenario_timeout = (
+                self.scenario_mgr.metadata.timeout
+                if self.scenario_mgr.metadata and self.scenario_mgr.metadata.timeout
+                else 60.0
+            )
             result = await self.scenario_mgr.execute(
                 bus=self.bus,
                 connection_id=connection_id,
-                timeout=self.config.timeouts.egts_sl_not_auth_to,
+                timeout=scenario_timeout,
             )
             history = self.scenario_mgr.context.history
             return {
                 "name": self.scenario_mgr.metadata.name,
                 "status": result,
                 "steps_total": len(history),
-                "steps_passed": sum(1 for h in history if h.status == "PASS"),
+                "steps_passed": sum(1 for h in history if h.result == "PASS"),
             }
         except Exception as exc:
             return {"status": "error", "error": str(exc)}

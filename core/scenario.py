@@ -577,6 +577,18 @@ class ScenarioManager:
 
         # Создание шагов через StepFactory
         self._steps = [StepFactory.create(sd) for sd in step_defs]
+
+        # Разрешаем относительные пути packet_file относительно директории сценария
+        scenario_dir = path.resolve().parent
+        for step in self._steps:
+            if hasattr(step, "packet_file") and step.packet_file:
+                pf = Path(step.packet_file)
+                if not pf.is_absolute():
+                    resolved = scenario_dir / pf
+                    if resolved.exists():
+                        step.packet_file = str(resolved)
+                    # Иначе оставляем как есть — FileNotFoundError будет при execute
+
         self._context = ScenarioContext(
             scenario_version=self._metadata.version,
             gost_version=self._metadata.gost_version,
