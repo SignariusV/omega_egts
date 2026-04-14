@@ -31,6 +31,7 @@ from ..types import (
     EGTS_COMMAND_TYPE,
     EGTS_CONFIRMATION_TYPE,
     EGTS_PARAM_ACTION,
+    CommandCode as EGTS_COMMAND_CODE,
 )
 
 # Кодировки (CHS)
@@ -258,6 +259,73 @@ def parse_command_details(cd: bytes) -> dict[str, Any]:
         "ccd": ccd,
         "dt": dt,
     }
+
+
+def parse_comconf_cd(cd: bytes) -> dict[str, Any]:
+    """
+    Парсинг CD (Command Data) для подтверждения команды (CT=CT_COMCONF).
+
+    CD = ADR(2) + CCD(2) + DT(...)  — без поля SZ+ACT (Таблица 31 ГОСТ).
+
+    Args:
+        cd: Байты данных команды из SRD подзаписи COMMAND_DATA.
+
+    Returns:
+        Dict с полями: adr, ccd, dt
+    """
+    if len(cd) < 4:
+        raise ValueError(
+            f"Слишком маленькие данные COMCONF CD: {len(cd)} байт (минимум 4: ADR+CCD)"
+        )
+
+    # ADR (2 байта) - адрес модуля
+    adr = int.from_bytes(cd[0:2], "little")
+
+    # CCD (2 байта) - код команды/параметра
+    ccd = int.from_bytes(cd[2:4], "little")
+
+    # DT (данные) - оставшиеся байты
+    dt = cd[4:]
+
+    result: dict[str, Any] = {
+        "adr": adr,
+        "ccd": ccd,
+        "dt": dt,
+    }
+
+    # Текстовое имя CCD
+    try:
+        result["ccd_text"] = EGTS_COMMAND_CODE(ccd).name
+    except ValueError:
+        result["ccd_text"] = f"Unknown (0x{ccd:04X})"
+
+    # DT как текст если это строка
+    if dt:
+        try:
+            result["dt_text"] = dt.decode("cp1251")
+        except UnicodeDecodeError:
+            result["dt_hex"] = dt.hex()
+
+    return result
+
+
+def serialize_comconf_cd(data: dict[str, Any]) -> bytes:
+    """
+    Сериализация CD для подтверждения команды (CT=CT_COMCONF).
+
+    Args:
+        data: Dict с полями: adr, ccd, dt
+
+    Returns:
+        Байты CD (ADR + CCD + DT)
+    """
+    result = data.get("adr", 0).to_bytes(2, "little")
+    result += data.get("ccd", 0).to_bytes(2, "little")
+    dt = data.get("dt", b"")
+    if isinstance(dt, str):
+        dt = dt.encode("cp1251")
+    result += dt
+    return result
 
 
 def create_command(

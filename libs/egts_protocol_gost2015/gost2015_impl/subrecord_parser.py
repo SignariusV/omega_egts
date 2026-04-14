@@ -84,31 +84,51 @@ def _init_parsers() -> None:
         return data.get("raw", b"")
 
     def _parse_command_data_with_cd(data: bytes) -> dict[str, Any]:
-        """Парсинг COMMAND_DATA с полным разбором CD."""
-        from .services.commands import parse_command_data, parse_command_details
+        """Парсинг COMMAND_DATA с полным разбором CD (COM и COMCONF)."""
+        from .services.commands import (
+            parse_command_data,
+            parse_command_details,
+            parse_comconf_cd,
+        )
+        from .types import EGTS_COMMAND_TYPE
 
         result = parse_command_data(data)
 
-        # Разбираем CD → ADR, SZ, ACT, CCD, DT
+        # Разбираем CD в зависимости от CT
         cd = result.get("cd", b"")
-        if cd and len(cd) >= 5:  # ADR(2) + SZ+ACT(1) + CCD(2) минимум
+        ct = result.get("ct", 0)
+
+        if cd and len(cd) >= 4:
             try:
-                cd_parsed = parse_command_details(cd)
+                # COMCONF (CT=1): ADR(2) + CCD(2) + DT — без SZ+ACT
+                if ct == EGTS_COMMAND_TYPE.COMCONF.value:
+                    cd_parsed = parse_comconf_cd(cd)
+                # COM (CT=5) и другие: ADR(2) + SZ+ACT(1) + CCD(2) + DT
+                else:
+                    cd_parsed = parse_command_details(cd)
+
                 result.update(cd_parsed)
+
                 # Текстовые имена
                 try:
                     from .types import EGTS_PARAM_ACTION, EGTS_COMMAND_CODE
-                    act_val = cd_parsed.get("act")
-                    try:
-                        result["act_text"] = EGTS_PARAM_ACTION(act_val).name
-                    except ValueError:
-                        result["act_text"] = f"Unknown ({act_val})"
+
                     ccd_val = cd_parsed.get("ccd")
-                    try:
-                        result["ccd_text"] = EGTS_COMMAND_CODE(ccd_val).name
-                    except ValueError:
-                        result["ccd_text"] = f"Unknown ({ccd_val})"
-                    # DT как текст если SZ показывает длину
+                    if ccd_val is not None:
+                        try:
+                            result["ccd_text"] = EGTS_COMMAND_CODE(ccd_val).name
+                        except ValueError:
+                            result["ccd_text"] = f"Unknown (0x{ccd_val:04X})"
+
+                    # ACT есть только у COM
+                    if "act" in cd_parsed:
+                        act_val = cd_parsed.get("act")
+                        try:
+                            result["act_text"] = EGTS_PARAM_ACTION(act_val).name
+                        except ValueError:
+                            result["act_text"] = f"Unknown ({act_val})"
+
+                    # DT как текст
                     dt = cd_parsed.get("dt", b"")
                     if dt:
                         try:
