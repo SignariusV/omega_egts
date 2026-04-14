@@ -29,7 +29,7 @@ class TestConfigDefaults:
     def test_cmw_defaults(self) -> None:
         """CMW-конфиг имеет верные дефолты."""
         cfg = Config()
-        assert cfg.cmw500.ip is None
+        assert cfg.cmw500.ip == "192.168.2.2"  # Дефолтный IP CMW-500
         assert cfg.cmw500.timeout == 5.0
         assert cfg.cmw500.retries == 3
         assert cfg.cmw500.sms_send_timeout == 10.0
@@ -170,7 +170,7 @@ class TestMergeWithCli:
         assert merged.cmw500.timeout == 15.0
         # Остальные поля cmw500 — из оригинала
         assert merged.cmw500.retries == 3
-        assert merged.cmw500.ip is None
+        assert merged.cmw500.ip == "192.168.2.2"
 
     def test_override_multiple_nested(self) -> None:
         """CLI может переопределить несколько вложенных полей."""
@@ -260,10 +260,10 @@ class TestConfigStr:
         assert "cmw=10.0.0.1" in s
 
     def test_str_without_cmw_ip(self) -> None:
-        """Строка показывает 'не настроен' если CMW-IP отсутствует."""
+        """Строка показывает IP CMW когда он настроен."""
         cfg = Config()
         s = str(cfg)
-        assert "cmw=не настроен" in s
+        assert "cmw=192.168.2.2" in s
 
 
 # --- Sub-dataclasses standalone ---

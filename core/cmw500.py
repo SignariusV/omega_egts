@@ -415,17 +415,35 @@ class Cmw500Controller:
         self._poll_task: asyncio.Task[None] | None = None
         self._connected = False
 
+        # Кэш предыдущих значений — эмитим событие только при изменении
+        self._last_cs_state: str | None = None
+        self._last_ps_state: str | None = None
+        self._last_rssi: str | None = None
+        self._last_ber: float | None = None
+        self._last_rx_level: float | None = None
+
+        # Кэш статусов с TTL (KI-046)
+        self._status_cache: dict[str, Any] | None = None
+        self._status_cache_ts: float = 0.0
+        self._status_cache_ttl: float = 5.0  # секунд
+
     # ──────────────────── Подключение ────────────────────
 
     def stop_poll(self) -> None:
         """Временно остановить опрос состояний (на время конфигурации)."""
         if self._poll_task and not self._poll_task.done():
             self._poll_task.cancel()
+        self._poll_task = None  # Очищаем для возможности перезапуска
 
     def start_poll(self) -> None:
         """Запустить опрос состояний после конфигурации."""
-        if not self._connected or self._poll_task is not None:
+        if not self._connected:
             return
+        # Если задача заверён или отменён — сбрасываем
+        if self._poll_task is not None and self._poll_task.done():
+            self._poll_task = None
+        if self._poll_task is not None:
+            return  # Уже работает
         self._poll_task = asyncio.create_task(self._poll_loop())
         self._poll_task.add_done_callback(self._on_poll_done)
 
@@ -576,18 +594,6 @@ class Cmw500Controller:
             })
 
     # ──────────────────── Периодический мониторинг состояний ──
-
-    # Кэш предыдущих значений — эмитим событие только при изменении
-    _last_cs_state: str | None = None
-    _last_ps_state: str | None = None
-    _last_rssi: str | None = None
-    _last_ber: float | None = None
-    _last_rx_level: float | None = None
-
-    # Кэш статусов с TTL (KI-046)
-    _status_cache: dict[str, Any] | None = None
-    _status_cache_ts: float = 0.0
-    _status_cache_ttl: float = 5.0  # секунд
 
     async def _poll_states(self) -> None:
         """Опрос состояний CMW-500 и эмит EventBus-событий.
