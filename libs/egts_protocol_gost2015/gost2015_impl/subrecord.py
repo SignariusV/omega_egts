@@ -5,12 +5,17 @@
 - SRT (1 байт) - тип подзаписи
 - SRL (2 байта) - длина данных SRD
 - SRD (0-65495 байт) - данные подзаписи
+
+Поддержка полного парсинга SRD:
+- parse_subrecord_data() — парсит SRD → dict через services/*
+- serialize_subrecord_data() — сериализует dict → SRD
 """
 
 from dataclasses import dataclass, field
 from typing import Any
 
 from .types import MAX_SUBRECORD_SIZE, MIN_SUBRECORD_SIZE, SRL_SIZE, SRT_SIZE, SUBRECORD_HEADER_SIZE
+from .subrecord_parser import parse_subrecord_data, serialize_subrecord_data
 
 
 @dataclass
@@ -73,15 +78,18 @@ class Subrecord:
         return header + srd
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> "Subrecord":
+    def from_bytes(cls, data: bytes, parse_srd: bool = True) -> "Subrecord":
         """
         Парсинг подзаписи из байтов
 
         Args:
             data: Байты подзаписи (начиная с SRT)
+            parse_srd: Если True — автоматически парсить SRD в dict
 
         Returns:
             Subrecord: Распарсенная подзапись
+            - Если parse_srd=True и есть парсер: data=dict, raw_data=bytes
+            - Если parse_srd=False или нет парсера: data=bytes, raw_data=bytes
 
         Raises:
             ValueError: Если данные меньше минимального размера, SRL превышает
@@ -115,14 +123,23 @@ class Subrecord:
         # SRD (данные)
         srd = data[offset : offset + srl]
 
-        return cls(
-            subrecord_type=subrecord_type,
-            data=srd,  # Пока сохраняем как bytes
-            raw_data=srd,
-        )
+        # Автоматический парсинг SRD → dict
+        if parse_srd:
+            parsed_data = parse_subrecord_data(subrecord_type, srd)
+            return cls(
+                subrecord_type=subrecord_type,
+                data=parsed_data,
+                raw_data=srd,
+            )
+        else:
+            return cls(
+                subrecord_type=subrecord_type,
+                data=srd,
+                raw_data=srd,
+            )
 
 
-def parse_subrecords(data: bytes, service_type: int) -> list[Subrecord]:
+def parse_subrecords(data: bytes, service_type: int, parse_srd: bool = True) -> list[Subrecord]:
     """
     Парсинг списка подзаписей из данных записи
 
@@ -130,9 +147,12 @@ def parse_subrecords(data: bytes, service_type: int) -> list[Subrecord]:
         data: Байты данных записи (RD)
         service_type: Тип сервиса для определения формата подзаписей
             (используется на более высоких уровнях парсинга, пока не применяется)
+        parse_srd: Если True — автоматически парсить SRD в dict
 
     Returns:
         List[Subrecord]: Список распарсенных подзаписей
+        - Если parse_srd=True: subrecord.data = dict (распарсенные поля)
+        - Если parse_srd=False: subrecord.data = bytes (сырые байты)
 
     Raises:
         ValueError: Если SRL превышает MAX_SUBRECORD_SIZE или данных недостаточно
@@ -170,11 +190,20 @@ def parse_subrecords(data: bytes, service_type: int) -> list[Subrecord]:
         srd = data[offset : offset + srl]
         offset += srl
 
-        subrecord = Subrecord(
-            subrecord_type=srt,
-            data=srd,
-            raw_data=srd,
-        )
+        # Автоматический парсинг SRD → dict
+        if parse_srd:
+            parsed_data = parse_subrecord_data(srt, srd)
+            subrecord = Subrecord(
+                subrecord_type=srt,
+                data=parsed_data,
+                raw_data=srd,
+            )
+        else:
+            subrecord = Subrecord(
+                subrecord_type=srt,
+                data=srd,
+                raw_data=srd,
+            )
         subrecords.append(subrecord)
 
     return subrecords

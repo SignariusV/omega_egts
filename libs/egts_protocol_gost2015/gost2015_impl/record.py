@@ -250,10 +250,10 @@ class Record:
         # Сохраняем сырые данные подзаписей для обратной совместимости
         record._raw_data = record_data
 
-        # Парсим подзаписи сразу — ГОСТ 33465 SRT/SRL/SRD
+        # Парсим подзаписи сразу — ГОСТ 33465 SRT/SRL/SRD + автоматический парсинг SRD
         from .subrecord import parse_subrecords
 
-        record.subrecords = parse_subrecords(record_data, ServiceType(service_type))
+        record.subrecords = parse_subrecords(record_data, ServiceType(service_type), parse_srd=True)
 
         return record
 
@@ -268,10 +268,10 @@ class Record:
         if not hasattr(self, "_raw_data") or not self._raw_data:
             return self.subrecords
 
-        # Парсинг подзаписей будет реализован в Subrecord
+        # Парсинг подзаписей с автоматическим парсингом SRD
         from .subrecord import parse_subrecords
 
-        return parse_subrecords(self._raw_data, self.service_type)
+        return parse_subrecords(self._raw_data, self.service_type, parse_srd=True)
 
     @staticmethod
     def parse_records(data: bytes, service_type: int | None = None) -> list["Record"]:

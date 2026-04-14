@@ -64,10 +64,12 @@ class TestSubrecordParse:
         subrecord = Subrecord.from_bytes(raw)
 
         assert subrecord.subrecord_type == SubrecordType.EGTS_SR_TERM_IDENTITY
-        assert subrecord.data == b""
+        # Теперь data = dict (распарсенные поля), raw_data = bytes
+        assert isinstance(subrecord.data, dict)
+        assert subrecord.raw_data == b""
 
     def test_subrecord_parse_with_data(self) -> None:
-        """Парсинг подзаписи с данными"""
+        """Парсинг подзаписи с данными (данные слишком маленькие для парсинга)"""
         raw = bytes([
             SubrecordType.EGTS_SR_MODULE_DATA, 0x04, 0x00,
             0xAA, 0xBB, 0xCC, 0xDD,
@@ -75,8 +77,10 @@ class TestSubrecordParse:
         subrecord = Subrecord.from_bytes(raw)
 
         assert subrecord.subrecord_type == SubrecordType.EGTS_SR_MODULE_DATA
-        assert len(subrecord.data) == 4
-        assert subrecord.data == b"\xaa\xbb\xcc\xdd"
+        # Парсер вернул dict с parse_error
+        assert isinstance(subrecord.data, dict)
+        assert "parse_error" in subrecord.data
+        assert subrecord.raw_data == b"\xaa\xbb\xcc\xdd"
 
     def test_subrecord_parse_roundtrip(self) -> None:
         """Круговой тест: сборка → парсинг → сверка"""
@@ -88,7 +92,9 @@ class TestSubrecordParse:
         parsed = Subrecord.from_bytes(raw)
 
         assert parsed.subrecord_type == SubrecordType.EGTS_SR_AUTH_PARAMS
-        assert parsed.data == b"\x01\x02\x03\x04\x05"
+        # data теперь dict, raw_data = оригинальные байты
+        assert isinstance(parsed.data, dict)
+        assert parsed.raw_data == b"\x01\x02\x03\x04\x05"
 
 
 class TestParseSubrecords:
@@ -104,7 +110,8 @@ class TestParseSubrecords:
 
         assert len(subrecords) == 1
         assert subrecords[0].subrecord_type == SubrecordType.EGTS_SR_TERM_IDENTITY
-        assert subrecords[0].data == b"\xaa\xbb"
+        assert subrecords[0].raw_data == b"\xaa\xbb"
+        assert isinstance(subrecords[0].data, dict)
 
     def test_parse_multiple_subrecords(self) -> None:
         """Парсинг нескольких подзаписей"""
@@ -116,9 +123,9 @@ class TestParseSubrecords:
 
         assert len(subrecords) == 2
         assert subrecords[0].subrecord_type == SubrecordType.EGTS_SR_TERM_IDENTITY
-        assert subrecords[0].data == b"\xaa\xbb"
+        assert subrecords[0].raw_data == b"\xaa\xbb"
         assert subrecords[1].subrecord_type == SubrecordType.EGTS_SR_MODULE_DATA
-        assert subrecords[1].data == b"\xcc"
+        assert subrecords[1].raw_data == b"\xcc"
 
     def test_parse_empty_data(self) -> None:
         """Парсинг пустых данных"""
@@ -192,7 +199,10 @@ class TestSubrecordEdgeCases:
         parsed = Subrecord.from_bytes(raw)
 
         assert parsed.subrecord_type == SubrecordType.EGTS_SR_RECORD_RESPONSE
-        assert parsed.data == b"\x01\x00\x00"
+        # Теперь data = dict с распарсенными полями
+        assert isinstance(parsed.data, dict)
+        assert parsed.data.get("crn") == 1
+        assert parsed.data.get("rst") == 0
 
     def test_subrecord_large_data(self) -> None:
         """Подзапись с большими данными"""
@@ -205,5 +215,6 @@ class TestSubrecordEdgeCases:
         parsed = Subrecord.from_bytes(raw)
 
         assert parsed.subrecord_type == SubrecordType.EGTS_SR_ACCEL_DATA
-        assert len(parsed.data) == 2560
-        assert parsed.data == large_data
+        # data = dict (распарсенный ACCEL_DATA), raw_data = bytes
+        assert isinstance(parsed.data, dict)
+        assert len(parsed.raw_data) == 2560

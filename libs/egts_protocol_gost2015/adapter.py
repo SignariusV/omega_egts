@@ -96,23 +96,34 @@ class EgtsProtocol2015(IEgtsProtocol):
                 extra["subrecord_type"] = sub.subrecord_type
 
                 # RECORD_RESPONSE SRD: CRN (2 байта) + RST (1 байт) — ГОСТ 33465 таблица 18
-                if sub.subrecord_type == "EGTS_SR_RECORD_RESPONSE" and isinstance(sub.data, bytes):
-                    srd = sub.data
-                    if len(srd) >= 3:
-                        crn = int.from_bytes(srd[0:2], "little")
-                        rst = srd[2]
+                if sub.subrecord_type == "EGTS_SR_RECORD_RESPONSE":
+                    srd_data = sub.data
+                    if isinstance(srd_data, dict):
+                        crn = srd_data.get("crn")
+                        rst = srd_data.get("rst")
+                        if crn is not None:
+                            extra["confirmed_record_number"] = crn
+                        if rst is not None:
+                            extra["record_status"] = rst
+                    elif isinstance(srd_data, bytes) and len(srd_data) >= 3:
+                        crn = int.from_bytes(srd_data[0:2], "little")
+                        rst = srd_data[2]
                         extra["confirmed_record_number"] = crn
                         extra["record_status"] = rst
 
                 # COMMAND_DATA SRD: CT(4 бита) + CCT(4 бита) + CID(4 байта) + SID(4 байта) + ...
                 # ГОСТ 33465 таблица 29 — извлекаем ct и cid для ExpectStep checks
-                if sub.subrecord_type == "EGTS_SR_COMMAND_DATA" and isinstance(sub.data, bytes):
-                    srd = sub.data
-                    if len(srd) >= 10:  # CT/CCT(1) + CID(4) + SID(4) + FLAGS(1) минимум
-                        ct_cct = srd[0]
+                if sub.subrecord_type == "EGTS_SR_COMMAND_DATA":
+                    srd_data = sub.data
+                    if isinstance(srd_data, dict):
+                        extra["ct"] = srd_data.get("ct")
+                        extra["cct"] = srd_data.get("cct")
+                        extra["cid"] = srd_data.get("cid")
+                    elif isinstance(srd_data, bytes) and len(srd_data) >= 10:
+                        ct_cct = srd_data[0]
                         ct = (ct_cct >> 4) & 0x0F
                         cct = ct_cct & 0x0F
-                        cid = int.from_bytes(srd[1:5], "little")
+                        cid = int.from_bytes(srd_data[1:5], "little")
                         extra["ct"] = ct
                         extra["cct"] = cct
                         extra["cid"] = cid
