@@ -280,6 +280,9 @@ class EgtsProtocol2015(IEgtsProtocol):
             event_id=internal.event_id,
             timestamp=internal.timestamp,
             rst_service_type=int(internal.rst_service_type),
+            ssod=internal.ssod,
+            rsod=internal.rsod,
+            rpp=internal.rpp,
         )
 
     def _map_subrecord_to_iface(
@@ -352,14 +355,34 @@ class EgtsProtocol2015(IEgtsProtocol):
             event_id=iface.event_id,
             timestamp=iface.timestamp,
             rst_service_type=rst_type,
+            ssod=iface.ssod,
+            rsod=iface.rsod,
+            rpp=iface.rpp,
         )
 
     def _map_subrecord_to_internal(
         self, iface: IfaceSubrecord
     ) -> InternalSubrecord:
         """IfaceSubrecord → InternalSubrecord."""
+        from .gost2015_impl.types import SubrecordType
+
+        # Конвертируем str → int для subrecord_type
+        srt = iface.subrecord_type
+        if isinstance(srt, str):
+            # "EGTS_SR_TERM_IDENTITY" → SubrecordType.EGTS_SR_TERM_IDENTITY → int
+            try:
+                srt = SubrecordType[srt].value
+            except KeyError:
+                # Неизвестный тип — пробуем распарсить как число
+                try:
+                    srt = int(srt)
+                except ValueError:
+                    srt = SubrecordType.UNKNOWN.value
+        elif not isinstance(srt, int):
+            srt = int(srt) if srt is not None else SubrecordType.UNKNOWN.value
+
         return InternalSubrecord(
-            subrecord_type=iface.subrecord_type,
+            subrecord_type=srt,
             data=iface.data,
             raw_data=iface.raw_data,
         )

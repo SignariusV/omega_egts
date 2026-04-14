@@ -115,19 +115,46 @@ class TestRecord:
         assert rec._raw_data == b""
 
     def test_record_rf_flags(self) -> None:
-        """rf_flags собирает флаги записи"""
-        rec = Record(
-            record_id=1,
-            service_type=1,
-            first_record=True,
-            last_record=True,
-            ongoing_record=True,
-        )
-        flags = rec.rf_flags
+        """rf_flags собирает флаги RFL согласно ГОСТ 33465 таблица 14.
 
-        assert flags & 0x80  # FRF
-        assert flags & 0x40  # LRF
-        assert flags & 0x20  # ORF
+        Биты RFL:
+        - 7: SSOD (Source Service On Device)
+        - 6: RSOD (Recipient Service On Device)
+        - 5-3: RPP (Record Processing Priority)
+        - 2: TMFE (Time Field Exists)
+        - 1: EVFE (Event ID Field Exists)
+        - 0: OBFE (Object ID Field Exists)
+        """
+        # Базовый случай — все false
+        rec = Record(record_id=1, service_type=1)
+        flags = rec.rf_flags
+        assert flags == 0
+
+        # SSOD/RSOD
+        rec_ssod = Record(record_id=1, service_type=1, ssod=True, rsod=True)
+        flags_ssod = rec_ssod.rf_flags
+        assert flags_ssod & 0x80  # SSOD
+        assert flags_ssod & 0x40  # RSOD
+
+        # RPP
+        rec_rpp = Record(record_id=1, service_type=1, rpp=5)
+        flags_rpp = rec_rpp.rf_flags
+        assert (flags_rpp >> 3) & 0x07 == 5  # RPP в битах 5-3
+
+        # TMFE (timestamp != None)
+        rec_tm = Record(record_id=1, service_type=1, timestamp=12345)
+        flags_tm = rec_tm.rf_flags
+        assert flags_tm & 0x04  # TMFE
+
+        # EVFE (event_id != None)
+        rec_ev = Record(record_id=1, service_type=1, event_id=42)
+        flags_ev = rec_ev.rf_flags
+        assert flags_ev & 0x02  # EVFE
+
+        # OBFE (object_id != None)
+        rec_ob = Record(record_id=1, service_type=1, object_id=100)
+        flags_ob = rec_ob.rf_flags
+        assert flags_ob & 0x01  # OBFE
 
     def test_record_parse_error(self) -> None:
         """parse_error сохраняется"""

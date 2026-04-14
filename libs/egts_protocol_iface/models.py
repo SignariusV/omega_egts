@@ -52,6 +52,9 @@ class Record:
         event_id: Идентификатор события (EVID, опционально)
         timestamp: Время формирования записи (TM, опционально)
         rst_service_type: Тип сервиса-получателя (RST)
+        ssod: Сервис-отправитель на УСВ (Source Service On Device, RFL бит 7)
+        rsod: Сервис-получатель на УСВ (Recipient Service On Device, RFL бит 6)
+        rpp: Приоритет обработки записи (Record Processing Priority, RFL биты 5-3, 0-7)
         parse_error: Текст ошибки парсинга
         extra: Расширения
         _raw_data: Сырые данные записи (внутреннее поле парсера)
@@ -72,6 +75,12 @@ class Record:
     timestamp: int | None = None
 
     rst_service_type: int = 0
+
+    # SSOD/RSOD/RPP — из RFL (ГОСТ 33465 таблица 14)
+    ssod: bool = False  # Source Service On Device (бит 7)
+    rsod: bool = False  # Recipient Service On Device (бит 6)
+    rpp: int = 0  # Record Processing Priority (биты 5-3)
+
     parse_error: str | None = None
     extra: dict[str, object] = field(default_factory=dict)
 
@@ -82,15 +91,29 @@ class Record:
     def rf_flags(self) -> int:
         """Собрать флаги RFL в байт (для сборки пакета).
 
-        Биты: 7=FRF, 6=LRF, 5=ORF
+        Биты: 7=FRF, 6=LRF, 5=ORF, 4-3=зарезервировано, 2-0=RPP??
+        Нет, согласно ГОСТ 33465 таблица 14:
+        - Бит 7: SSOD
+        - Бит 6: RSOD
+        - Биты 5-3: RPP
+        - Бит 2: TMFE
+        - Бит 1: EVFE
+        - Бит 0: OBFE
+        FRF/LRF/ORF — это другие обозначения, маппим так:
+        FRF → OBFE (бит 0), LRF → EVFE (бит 1), ORF → TMFE (бит 2)
         """
         flags = 0
-        if self.first_record:
-            flags |= 0x80
-        if self.last_record:
-            flags |= 0x40
-        if self.ongoing_record:
-            flags |= 0x20
+        if self.object_id is not None:
+            flags |= 0x01  # OBFE
+        if self.event_id is not None:
+            flags |= 0x02  # EVFE
+        if self.timestamp is not None:
+            flags |= 0x04  # TMFE
+        flags |= (self.rpp & 0x07) << 3  # RPP биты 5-3
+        if self.rsod:
+            flags |= 0x40  # RSOD
+        if self.ssod:
+            flags |= 0x80  # SSOD
         return flags
 
 
