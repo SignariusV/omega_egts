@@ -83,6 +83,51 @@ def _init_parsers() -> None:
             return firmware.serialize_service_part_data(parts)
         return data.get("raw", b"")
 
+    def _parse_command_data_with_cd(data: bytes) -> dict[str, Any]:
+        """Парсинг COMMAND_DATA с полным разбором CD."""
+        from .services.commands import parse_command_data, parse_command_details
+
+        result = parse_command_data(data)
+
+        # Разбираем CD → ADR, SZ, ACT, CCD, DT
+        cd = result.get("cd", b"")
+        if cd and len(cd) >= 5:  # ADR(2) + SZ+ACT(1) + CCD(2) минимум
+            try:
+                cd_parsed = parse_command_details(cd)
+                result.update(cd_parsed)
+                # Текстовые имена
+                try:
+                    from .types import EGTS_PARAM_ACTION, EGTS_COMMAND_CODE
+                    act_val = cd_parsed.get("act")
+                    try:
+                        result["act_text"] = EGTS_PARAM_ACTION(act_val).name
+                    except ValueError:
+                        result["act_text"] = f"Unknown ({act_val})"
+                    ccd_val = cd_parsed.get("ccd")
+                    try:
+                        result["ccd_text"] = EGTS_COMMAND_CODE(ccd_val).name
+                    except ValueError:
+                        result["ccd_text"] = f"Unknown ({ccd_val})"
+                    # DT как текст если SZ показывает длину
+                    dt = cd_parsed.get("dt", b"")
+                    if dt:
+                        try:
+                            result["dt_text"] = dt.decode("cp1251")
+                        except UnicodeDecodeError:
+                            result["dt_hex"] = dt.hex()
+                except ImportError:
+                    pass
+            except (ValueError, IndexError):
+                # Ошибка парсинга CD — оставляем как есть
+                pass
+
+        return result
+
+    def _serialize_command_data_with_cd(data: dict[str, Any]) -> bytes:
+        """Сериализация COMMAND_DATA — используем оригинальный сериализатор."""
+        from .services.commands import serialize_command_data
+        return serialize_command_data(data)
+
     _parsers.update({
         # RECORD_RESPONSE — подтверждение записи (SRT=0)
         int(SubrecordType.EGTS_SR_RECORD_RESPONSE): (
@@ -110,10 +155,10 @@ def _init_parsers() -> None:
             auth.parse_service_info,
             auth.serialize_service_info,
         ),
-        # Commands сервис
+        # Commands сервис (с полным разбором CD)
         int(SubrecordType.EGTS_SR_COMMAND_DATA): (
-            commands.parse_command_data,
-            commands.serialize_command_data,
+            _parse_command_data_with_cd,
+            _serialize_command_data_with_cd,
         ),
         # Ecall сервис
         int(SubrecordType.EGTS_SR_ACCEL_DATA): (
