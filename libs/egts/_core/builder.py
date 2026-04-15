@@ -39,6 +39,14 @@ def serialize_record(rec: Record) -> bytes:
     RL(2) + RN(2) + RFL(1) + SST(1) + RST(1)
       + [OID(4) если OBFE] + [EVID(2) если EVFE] + [TM(4) если TMFE]
       + подзаписи...
+
+    Флаги RFL по ГОСТ 33465-2015 таблица 14:
+      бит 7: SSOD
+      бит 6: RSOD
+      биты 5-3: RPP
+      бит 2: OBFE (Object ID Flag Extended)
+      бит 1: EVFE (Event ID Flag Extended)
+      бит 0: TMFE (Time Mark Flag Extended)
     """
     # Сериализуем подзаписи
     subrecords_data = b''
@@ -50,16 +58,6 @@ def serialize_record(rec: Record) -> bytes:
     evfe = rec.event_id is not None
     tmfe = rec.timestamp is not None
 
-    rfl = 0
-    if rec.ssod:
-        rfl |= 0x80
-    if rec.rsod:
-        rfl |= 0x40
-    rfl |= (rec.rpp & 0x07) << 5  # RPP биты 6-7? Нет, RPP биты 5-7
-
-    # Пересчитаем RFL правильно по ГОСТ таблица 14:
-    # RFL: SSOD(7)|RSOD(6)|RPP(5-3)|reserved(2)|TMFE(1)|EVFE(0) — нет OID
-    # По ГОСТ: бит 0=EVFE, бит 1=TMFE, бит 2=OBFE, биты 3-5=RPP, 6=RSOD, 7=SSOD
     rfl = 0
     if rec.ssod:
         rfl |= 0x80

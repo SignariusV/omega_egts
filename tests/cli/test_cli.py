@@ -124,6 +124,11 @@ class TestBatchCommand:
         assert args.scenarios == ["auth", "telemetry"]
         assert args.output == "report.json"
 
+    def test_batch_required_scenario(self, parser):
+        """batch требует хотя бы один --scenario."""
+        with pytest.raises(SystemExit):
+            parser.parse_args(["batch"])
+
 
 class TestExportCommand:
     """Тесты команды export."""

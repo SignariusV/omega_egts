@@ -1,59 +1,36 @@
-# Python
+```
+# Python compiled files
+*.pyc
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
-*.spec
 
-# Virtual environment
+# Coverage reports
+.coverage
+
+# Dependencies and build artifacts
 .venv/
 venv/
-env/
-ENV/
+node_modules/
+dist/
+build/
+.mypy_cache/
+.pytest_cache/
+target/
+.gradle/
 
-# IDE
-.idea/
+# Logs and temporary files
+*.log
+*.tmp
+
+# Environment files
+.env
+.env.local
+*.env.*
+
+# Editors and IDEs
 .vscode/
-*.swp
-*.swo
-*~
+.idea/
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
-
-# Logs
-logs/
-*.log
-
-# Config (секреты)
-config/credentials.json
-.env
-
-# Test coverage
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-.pytest_cache/
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# ruff
-.ruff_cache/
-
-# Generated
-scenarios/*.hex
-export/
-
-# VISA
-visa.conf
-visa32.dll
-visax64.dll
+```
