@@ -163,44 +163,23 @@ class Gost2015Protocol(IEgtsProtocol):
 
     @staticmethod
     def _parse_header(data: bytes) -> Packet:
-        """Разобрать заголовок транспортного уровня."""
-        prv = data[0]
-        skid = data[1]
-        flags = data[2]
-        hl = data[3]
-        he = data[4]
-        fdl = int.from_bytes(data[5:7], 'little')
-        pid = int.from_bytes(data[7:9], 'little')
-        pt = data[9]
+        """Разобрать заголовок из байтов (без CRC проверки).
 
-        prf = bool(flags & 0x80)
-        rte = bool(flags & 0x40)
-        ena = (flags >> 4) & 0x03
-        cmp_flag = bool(flags & 0x08)
-        priority = flags & 0x03
+        Делегирует parse_header() из _core.parser, но НЕ парсит RPID/PR
+        (они обрабатываются отдельно в parse_packet()).
+        """
+        from libs.egts._core.parser import parse_header
 
-        peer_address = recipient_address = ttl = None
-        if rte and hl >= 15:
-            peer_address = int.from_bytes(data[10:12], 'little')
-            recipient_address = int.from_bytes(data[12:14], 'little')
-            ttl = data[14]
+        # parse_header() может распарсить RPID/PR для PT=0, но мы их игнорируем
+        # потому что в Gost2015Protocol.parse_packet() они извлекаются отдельно
+        packet = parse_header(data)
 
-        return Packet(
-            protocol_version=prv,
-            security_key_id=skid,
-            prefix=prf,
-            routing=rte,
-            encryption=ena,
-            compressed=cmp_flag,
-            priority=priority,
-            header_encoding=he,
-            packet_id=pid,
-            packet_type=pt,
-            peer_address=peer_address,
-            recipient_address=recipient_address,
-            ttl=ttl,
-            header_length=hl,
-        )
+        # Сбрасываем RPID/PR которые мог распарсить parse_header()
+        # чтобы обработать их самостоятельно с правильным offset
+        packet.response_packet_id = None
+        packet.processing_result = None
+
+        return packet
 
     @staticmethod
     def _parse_records(packet: Packet, sfrd: bytes, warnings: list[str]) -> None:
