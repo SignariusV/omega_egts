@@ -293,8 +293,15 @@ class ExpectStep:
             step_channel = self.channel
             if step_channel is not None and data.get("channel") != step_channel:
                 return
-            if self._matches(packet_data.extra):
-                self._capture(ctx, packet_data.extra)
+            # Извлечение данных из подзаписей (замена extra)
+            extra = {}
+            if hasattr(packet_data, "packet") and packet_data.packet:
+                for rec in packet_data.packet.records:
+                    for sr in rec.subrecords:
+                        if isinstance(sr.data, dict):
+                            extra.update(sr.data)
+            if self._matches(extra):
+                self._capture(ctx, extra)
                 result_container["status"] = "PASS"
                 event.set()
 

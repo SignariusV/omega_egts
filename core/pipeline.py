@@ -28,12 +28,12 @@ from typing import Protocol
 
 from core.event_bus import EventBus
 from core.session import SessionManager
-from libs.egts_protocol_iface import (
+from core.egts_adapter import (
     EGTS_PC_DATACRC_ERROR,
     EGTS_PC_HEADERCRC_ERROR,
     PACKET_HEADER_MIN_SIZE,
 )
-from libs.egts_protocol_iface.models import ParseResult, ResponseRecord, Subrecord
+from libs.egts.models import ParseResult, ResponseRecord, Subrecord
 
 logger = logging.getLogger(__name__)
 

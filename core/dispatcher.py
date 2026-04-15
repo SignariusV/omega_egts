@@ -26,13 +26,13 @@ from core.pipeline import (
     PacketPipeline,
     ParseMiddleware,
 )
-from libs.egts_protocol_iface import create_protocol as create_egts_protocol
+from core.egts_adapter import create_protocol
 
 if TYPE_CHECKING:
     from core.cmw500 import Cmw500Controller
     from core.event_bus import EventBus
     from core.session import SessionManager
-    from libs.egts_protocol_iface import IEgtsProtocol
+    from libs.egts.protocol import IEgtsProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -316,7 +316,7 @@ class CommandDispatcher:
 
     def _get_sms_protocol(self) -> IEgtsProtocol:
         """Получить протокол для SMS-сессии."""
-        return create_egts_protocol("2015")
+        return create_protocol("2015")
 
     async def _on_command(self, data: dict[str, Any]) -> None:
         """Обработать команду отправки.

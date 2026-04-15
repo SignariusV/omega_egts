@@ -149,6 +149,14 @@ class Gost2015Protocol(IEgtsProtocol):
     def calculate_crc16(self, data: bytes) -> int:
         return crc16(data)
 
+    def validate_crc8(self, header_data: bytes, expected: int) -> bool:
+        """Проверить CRC-8 заголовка."""
+        return crc8(header_data) == expected
+
+    def validate_crc16(self, body_data: bytes, expected: int) -> bool:
+        """Проверить CRC-16 тела."""
+        return crc16(body_data) == expected
+
     # ──────────────────────────────────────────────────────
     # Private helpers
     # ──────────────────────────────────────────────────────

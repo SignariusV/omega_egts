@@ -33,6 +33,14 @@ class IEgtsProtocol(Protocol):
         """Вычислить CRC-16 данных."""
         ...
 
+    def validate_crc8(self, header_data: bytes, expected: int) -> bool:
+        """Проверить CRC-8 заголовка."""
+        ...
+
+    def validate_crc16(self, body_data: bytes, expected: int) -> bool:
+        """Проверить CRC-16 тела."""
+        ...
+
     @property
     def version(self) -> str:
         """Версия ГОСТ (например '2015')."""

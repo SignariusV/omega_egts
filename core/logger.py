@@ -285,8 +285,11 @@ class LogManager:
             result["packet_type"] = getattr(packet, "packet_type", None)
             result["packet_id"] = getattr(packet, "packet_id", None)
 
-        # Извлечение extra (tid, imei, imsi, service)
-        if hasattr(parsed, "extra") and parsed.extra is not None:
-            result.update(parsed.extra)
+        # Извлечение данных из подзаписей (замена extra)
+        if hasattr(parsed, "records"):
+            for rec in getattr(parsed, "records", []):
+                for sr in getattr(rec, "subrecords", []):
+                    if isinstance(sr.data, dict):
+                        result.update(sr.data)
 
         return result if result else None

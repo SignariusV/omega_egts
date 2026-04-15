@@ -180,11 +180,17 @@ class TestAuthScenario:
                     f"Пакет {idx}: PR={response[0]:#x}, ожидался 0x01"
                 )
 
-                # Проверяем через библиотеку
-                from libs.egts_protocol_gost2015.gost2015_impl.packet import Packet
+                # Проверяем через новую библиотеку
+                import libs.egts._gost2015  # noqa: F401 — регистрирует протокол
+                from libs.egts.registry import get_protocol
 
-                resp_pkt = Packet.from_bytes(response)
-                assert resp_pkt.packet_type.value == 0, (
+                proto = get_protocol("2015")
+                resp_result = proto.parse_packet(response)
+                assert resp_result.is_success, (
+                    f"Пакет {idx}: RESPONSE не распарсился: {resp_result.errors}"
+                )
+                resp_pkt = resp_result.packet
+                assert resp_pkt.packet_type == 0, (
                     f"Пакет {idx}: Тип пакета должен быть RESPONSE (0)"
                 )
                 assert resp_pkt.processing_result == 0, (
@@ -192,21 +198,21 @@ class TestAuthScenario:
                 )
 
                 # RECORD_RESPONSE
-                records = resp_pkt.parse_records()
-                assert len(records) >= 1, (
+                assert len(resp_pkt.records) >= 1, (
                     f"Пакет {idx}: RESPONSE должен содержать хотя бы одну запись"
                 )
 
                 # Находим RECORD_RESPONSE подзапись
                 found_record_response = False
-                for rec in records:
-                    for sub in rec.parsed_subrecords:
-                        if sub.subrecord_type == 0x00:  # EGTS_SR_RECORD_RESPONSE
+                for rec in resp_pkt.records:
+                    for sub in rec.subrecords:
+                        if sub.subrecord_type == 0:  # RECORD_RESPONSE
                             found_record_response = True
-                            rst = sub.raw_data[2]
-                            assert rst == 0, (
-                                f"Пакет {idx}: RST={rst}, ожидался 0 (OK)"
-                            )
+                            if isinstance(sub.data, dict):
+                                rst = sub.data.get("rst", 0)
+                                assert rst == 0, (
+                                    f"Пакет {idx}: RST={rst}, ожидался 0 (OK)"
+                                )
                             break
                     if found_record_response:
                         break
@@ -219,9 +225,15 @@ class TestAuthScenario:
             expected_pids = [42, 43, 44]
             for idx, result in enumerate(results):
                 response = result["response_bytes"]
-                from libs.egts_protocol_gost2015.gost2015_impl.packet import Packet
+                import libs.egts._gost2015  # noqa: F401
+                from libs.egts.registry import get_protocol
 
-                resp_pkt = Packet.from_bytes(response)
+                proto = get_protocol("2015")
+                resp_result = proto.parse_packet(response)
+                assert resp_result.is_success, (
+                    f"Пакет {idx}: RESPONSE не распарсился: {resp_result.errors}"
+                )
+                resp_pkt = resp_result.packet
                 assert resp_pkt.response_packet_id == expected_pids[idx], (
                     f"Пакет {idx}: RPID={resp_pkt.response_packet_id}, ожидался {expected_pids[idx]}"
                 )
