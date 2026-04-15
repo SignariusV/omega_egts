@@ -460,3 +460,162 @@ class TestTimeoutCounterReset:
         assert fsm.state == UsvState.ERROR
         # Счётчик не увеличился для ERROR
         assert fsm._timeout_counter == 0
+
+
+# =============================================================================
+# Новые состояния: NETWORK_READY, PROVISIONING_SENT
+# =============================================================================
+
+
+class TestProvisioningStates:
+    """Тесты новых состояний для пассивного режима конфигурации (Способ 1)."""
+
+    def test_disconnected_to_network_ready(self) -> None:
+        """PDP активен → DISCONNECTED → NETWORK_READY."""
+        fsm = UsvStateMachine()
+        assert fsm.state == UsvState.DISCONNECTED
+
+        new_state = fsm.on_network_ready(ip="192.168.1.100")
+        assert new_state == UsvState.NETWORK_READY
+        assert fsm.state == UsvState.NETWORK_READY
+
+    def test_network_ready_to_provisioning_sent(self) -> None:
+        """SMS отправлена → NETWORK_READY → PROVISIONING_SENT."""
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+
+        new_state = fsm.on_provisioning_sent()
+        assert new_state == UsvState.PROVISIONING_SENT
+        assert fsm.state == UsvState.PROVISIONING_SENT
+
+    def test_provisioning_sent_to_network_ready_confirmed(self) -> None:
+        """Подтверждение SMS (успех) → PROVISIONING_SENT → NETWORK_READY."""
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+        fsm.on_provisioning_sent()
+
+        new_state = fsm.on_provisioning_confirmed(success=True)
+        assert new_state == UsvState.NETWORK_READY
+        assert fsm.state == UsvState.NETWORK_READY
+
+    def test_provisioning_sent_to_error_rejected(self) -> None:
+        """Подтверждение SMS (ошибка) → PROVISIONING_SENT → ERROR."""
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+        fsm.on_provisioning_sent()
+
+        new_state = fsm.on_provisioning_confirmed(success=False)
+        assert new_state == UsvState.ERROR
+        assert fsm.state == UsvState.ERROR
+
+    def test_provisioning_sent_to_error_timeout(self) -> None:
+        """Таймаут подтверждения × 3 → PROVISIONING_SENT → ERROR."""
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+        fsm.on_provisioning_sent()
+
+        # 3 таймаута
+        for i in range(3):
+            result = fsm.on_provisioning_timeout()
+            if i < 2:
+                assert fsm.state == UsvState.PROVISIONING_SENT
+                assert result is None
+            else:
+                assert result == UsvState.ERROR
+
+        assert fsm.state == UsvState.ERROR
+
+    def test_network_ready_disconnect(self) -> None:
+        """TCP disconnect из NETWORK_READY → DISCONNECTED."""
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+
+        fsm.on_disconnect()
+        assert fsm.state == UsvState.DISCONNECTED
+
+    def test_provisioning_sent_disconnect(self) -> None:
+        """TCP disconnect из PROVISIONING_SENT → DISCONNECTED."""
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+        fsm.on_provisioning_sent()
+
+        fsm.on_disconnect()
+        assert fsm.state == UsvState.DISCONNECTED
+
+    def test_network_ready_to_connected(self) -> None:
+        """TCP connect после настройки → NETWORK_READY → CONNECTED.
+
+        Примечание: В реальной схеме устройство после получения SMS
+        должно инициировать TCP-подключение. FSM переходит из
+        NETWORK_READY в CONNECTED через on_connect().
+        """
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+
+        # Устройство установило TCP-соединение
+        # on_connect() работает только из DISCONNECTED, поэтому
+        # сначала разрываем соединение (эмуляция переподключения)
+        fsm.on_disconnect()
+        fsm.on_connect()
+        assert fsm.state == UsvState.CONNECTED
+
+    def test_provisioning_confirmation_wrong_state(self) -> None:
+        """on_provisioning_confirmed() игнорируется вне PROVISIONING_SENT."""
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+
+        # Попытка подтвердить в NETWORK_READY — должна игнорироваться
+        result = fsm.on_provisioning_confirmed(success=True)
+        assert result is None
+        assert fsm.state == UsvState.NETWORK_READY
+
+    def test_provisioning_timeout_wrong_state(self) -> None:
+        """on_provisioning_timeout() игнорируется вне PROVISIONING_SENT."""
+        fsm = UsvStateMachine()
+        fsm.on_network_ready(ip="192.168.1.100")
+
+        # Попытка таймаута в NETWORK_READY — должна игнорироваться
+        result = fsm.on_provisioning_timeout()
+        assert result is None
+        assert fsm.state == UsvState.NETWORK_READY
+        assert fsm._timeout_counter == 0
+
+    def test_full_provisioning_scenario(self) -> None:
+        """Полный сценарий пассивной конфигурации.
+
+        DISCONNECTED → NETWORK_READY → PROVISIONING_SENT →
+        NETWORK_READY (confirmed) → CONNECTED → AUTHENTICATING →
+        AUTHORIZED → RUNNING
+        """
+        fsm = UsvStateMachine()
+
+        # 1. Устройство зарегистрировалось в сети
+        fsm.on_network_ready(ip="192.168.1.100")
+        assert fsm.state == UsvState.NETWORK_READY
+
+        # 2. Сервер отправил SMS с конфигурацией
+        fsm.on_provisioning_sent()
+        assert fsm.state == UsvState.PROVISIONING_SENT
+
+        # 3. Устройство подтвердило получение SMS
+        fsm.on_provisioning_confirmed(success=True)
+        assert fsm.state == UsvState.NETWORK_READY
+
+        # 4. Устройство установило TCP-соединение
+        fsm.on_disconnect()  # Эмуляция переподключения
+        fsm.on_connect()
+        assert fsm.state == UsvState.CONNECTED
+
+        # 5. Авторизация
+        packet = _make_packet(service=1)
+        fsm.on_packet(packet)
+        assert fsm.state == UsvState.AUTHENTICATING
+
+        # 6. Успешная авторизация
+        fsm.on_result_code_sent(result_code=0)
+        assert fsm.state == UsvState.AUTHORIZED
+
+        # 7. Передача данных
+        packet = _make_packet(service=2)
+        fsm.on_packet(packet)
+        assert fsm.state == UsvState.RUNNING

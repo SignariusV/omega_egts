@@ -31,20 +31,24 @@ class UsvState(Enum):
     """Состояния УСВ с точки зрения сервера (телематической платформы).
 
     Таблица состояний:
-    ┌────────────────┬─────────────────────────────────────────┬────────────────────┐
-    │ Состояние      │ Описание                                │ Таймаут сервера    │
-    ├────────────────┼─────────────────────────────────────────┼────────────────────┤
-    │ DISCONNECTED   │ Нет TCP-соединения                      │ —                  │
-    │ CONNECTED      │ TCP установлен, ждём первый пакет       │ 6с (NOT_AUTH_TO)   │
-    │ AUTHENTICATING │ Получен TERM_IDENTITY, идёт авторизация │ 5с × 3 (RESPONSE)  │
-    │ CONFIGURING    │ TID=0, ждём повторную авторизацию       │ 5с × 3 (RESPONSE)  │
-    │ AUTHORIZED     │ RESULT_CODE(0) отправлен, ждём данные   │ 5с × 3 (RESPONSE)  │
-    │ RUNNING        │ Основной режим — обмен данными          │ 5с × 3 (RESPONSE)  │
-    │ ERROR          │ Критическая ошибка протокола            │ —                  │
-    └────────────────┴─────────────────────────────────────────┴────────────────────┘
+    ┌────────────────────┬─────────────────────────────────────────┬────────────────────┐
+    │ Состояние          │ Описание                                │ Таймаут сервера    │
+    ├────────────────────┼─────────────────────────────────────────┼────────────────────┤
+    │ DISCONNECTED       │ Нет TCP-соединения                      │ —                  │
+    │ NETWORK_READY      │ PDP активен, IP получен, ждём SMS       │ provisioning_timeout│
+    │ PROVISIONING_SENT  │ SMS отправлена, ждём подтверждения      │ sms_retry_interval │
+    │ CONNECTED          │ TCP установлен, ждём первый пакет       │ 6с (NOT_AUTH_TO)   │
+    │ AUTHENTICATING     │ Получен TERM_IDENTITY, идёт авторизация │ 5с × 3 (RESPONSE)  │
+    │ CONFIGURING        │ TID=0, ждём повторную авторизацию       │ 5с × 3 (RESPONSE)  │
+    │ AUTHORIZED         │ RESULT_CODE(0) отправлен, ждём данные   │ 5с × 3 (RESPONSE)  │
+    │ RUNNING            │ Основной режим — обмен данными          │ 5с × 3 (RESPONSE)  │
+    │ ERROR              │ Критическая ошибка протокола            │ —                  │
+    └────────────────────┴─────────────────────────────────────────┴────────────────────┘
     """
 
     DISCONNECTED = "disconnected"
+    NETWORK_READY = "network_ready"
+    PROVISIONING_SENT = "provisioning_sent"
     CONNECTED = "connected"
     AUTHENTICATING = "authenticating"
     CONFIGURING = "configuring"
@@ -159,6 +163,69 @@ class UsvStateMachine:
         Из любого состояния → DISCONNECTED
         """
         self._transition(UsvState.DISCONNECTED, "TCP disconnect")
+
+    def on_network_ready(self, ip: str) -> UsvState | None:
+        """PDP-контекст активирован, IP-адрес получен от CMW-500.
+
+        Переход: DISCONNECTED → NETWORK_READY
+
+        Args:
+            ip: IP-адрес устройства в сети
+
+        Returns:
+            Новое состояние или None
+        """
+        if self._state == UsvState.DISCONNECTED:
+            return self._transition(UsvState.NETWORK_READY, f"PDP active, IP={ip}")
+        return None
+
+    def on_provisioning_sent(self) -> UsvState | None:
+        """SMS с конфигурацией отправлена.
+
+        Переход: NETWORK_READY → PROVISIONING_SENT
+
+        Returns:
+            Новое состояние или None
+        """
+        if self._state == UsvState.NETWORK_READY:
+            return self._transition(UsvState.PROVISIONING_SENT, "SMS config sent")
+        return None
+
+    def on_provisioning_confirmed(self, success: bool) -> UsvState | None:
+        """Получено подтверждение конфигурации (CT_COMCONF).
+
+        Переходы:
+        - PROVISIONING_SENT → NETWORK_READY (успех)
+        - PROVISIONING_SENT → ERROR (ошибка)
+
+        Args:
+            success: True если подтверждение успешное
+
+        Returns:
+            Новое состояние или None
+        """
+        if self._state != UsvState.PROVISIONING_SENT:
+            return None
+
+        if success:
+            return self._transition(UsvState.NETWORK_READY, "Provisioning confirmed")
+        return self._transition(UsvState.ERROR, "Provisioning rejected")
+
+    def on_provisioning_timeout(self) -> UsvState | None:
+        """Таймаут ожидания подтверждения SMS.
+
+        Увеличивает счётчик попыток. При достижении лимита → ERROR.
+
+        Returns:
+            Новое состояние или None
+        """
+        if self._state != UsvState.PROVISIONING_SENT:
+            return None
+
+        self._timeout_counter += 1
+        if self._timeout_counter >= TL_RESEND_ATTEMPTS:
+            return self._transition(UsvState.ERROR, "Provisioning failed (timeout)")
+        return None
 
     def on_packet(self, packet: dict[str, Any]) -> UsvState | None:
         """Обработка входящего пакета.
