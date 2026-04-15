@@ -479,6 +479,7 @@ class EGTSTesterCLI(Cmd):
         "cmw-status": "Статус CMW-500",
         "run-scenario": "Запустить сценарий <path> [--connection-id ID]",
         "replay": "Replay лога <log_path> [--scenario PATH]",
+        "batch": "Пакетный запуск --scenario <name> [--scenario <name> ...] [--output FILE]",
         "export": "Выгрузка данных <type> --format <fmt> --output <file>",
         "help": "Справка по командам",
         "quit": "Выйти из REPL",
@@ -696,6 +697,55 @@ class EGTSTesterCLI(Cmd):
 
         result = self._run(self._engine.export(data_type, fmt, output))
         print(_format_export_result(result))
+
+    def do_batch(self, arg: str) -> None:
+        """Пакетный запуск: batch --scenario <name> [--scenario <name> ...] [--output FILE]"""
+        if not arg.strip():
+            print("Использование: batch --scenario <name> [--scenario <name> ...] [--output FILE]")
+            return
+
+        parts = arg.split()
+        scenarios: list[str] = []
+        output_file = None
+        i = 0
+        while i < len(parts):
+            if parts[i] == "--scenario" and i + 1 < len(parts):
+                scenarios.append(parts[i + 1])
+                i += 2
+            elif parts[i] == "--output" and i + 1 < len(parts):
+                output_file = parts[i + 1]
+                i += 2
+            else:
+                i += 1
+
+        if not scenarios:
+            print("Использование: batch --scenario <name> [--scenario <name> ...] [--output FILE]")
+            return
+
+        self._ensure_engine()
+        if not self._engine.is_running:
+            print("Сначала запустите сервер: start")
+            return
+
+        from core.config import Config
+        from core.engine import CoreEngine
+        from core.event_bus import EventBus
+
+        results: list[dict[str, Any]] = []
+        for scenario_name in scenarios:
+            scenario_path = _resolve_scenario_path(scenario_name)
+            print(f"\n▶ Запуск сценария: {scenario_name}")
+            result = self._run(self._engine.run_scenario(scenario_path))
+            results.append({"name": scenario_name, **result})
+            print(_format_scenario_result(result))
+
+        # Сохранить отчёт
+        if output_file:
+            Path(output_file).write_text(json.dumps(results, ensure_ascii=False, indent=2))
+            print(f"\n📄 Отчёт сохранён: {output_file}")
+
+        passed = sum(1 for r in results if r.get("status") == "PASS")
+        print(f"\nИтого: {passed}/{len(results)} сценариев прошли")
 
     def do_exit(self, arg: str) -> bool:
         """Выйти из REPL: exit"""
