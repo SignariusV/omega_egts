@@ -34,6 +34,9 @@ def _mock_core_engine():
     engine.export = AsyncMock(return_value={
         "rows": 5, "file": "out.csv",
     })
+    engine.batch_run = AsyncMock(return_value=[
+        {"name": "auth", "status": "PASS", "steps_total": 3, "steps_passed": 3},
+    ])
     return engine
 
 
@@ -312,6 +315,53 @@ class TestDoExport:
 
         captured = capsys.readouterr()
         assert "Использование" in captured.out
+
+
+class TestDoBatch:
+    """Тесты команды REPL: batch."""
+
+    def test_batch_minimal(self, repl_with_engine, capsys):
+        """batch --scenario auth."""
+        repl_with_engine._engine.is_running = True
+
+        repl_with_engine.do_batch("--scenario auth")
+
+        repl_with_engine._engine.run_scenario.assert_called()
+        captured = capsys.readouterr()
+        assert "Запуск сценария" in captured.out
+
+    def test_batch_multiple_scenarios(self, repl_with_engine):
+        """batch --scenario auth --scenario sms."""
+        repl_with_engine._engine.is_running = True
+
+        repl_with_engine.do_batch("--scenario auth --scenario sms")
+
+        assert repl_with_engine._engine.run_scenario.call_count == 2
+
+    def test_batch_with_output(self, repl_with_engine, tmp_path):
+        """batch с --output."""
+        repl_with_engine._engine.is_running = True
+        output_file = tmp_path / "report.json"
+
+        repl_with_engine.do_batch(f"--scenario auth --output {output_file}")
+
+        assert output_file.exists()
+
+    def test_batch_requires_scenario(self, repl_with_engine, capsys):
+        """batch без --scenario — сообщение."""
+        repl_with_engine.do_batch("")
+
+        captured = capsys.readouterr()
+        assert "Использование" in captured.out
+
+    def test_batch_requires_running_server(self, repl_with_engine, capsys):
+        """batch без запущенного сервера — сообщение."""
+        repl_with_engine._engine.is_running = False
+
+        repl_with_engine.do_batch("--scenario auth")
+
+        captured = capsys.readouterr()
+        assert "Сначала запустите" in captured.out
 
 
 class TestDoExit:
