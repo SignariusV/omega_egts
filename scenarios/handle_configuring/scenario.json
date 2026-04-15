@@ -1,0 +1,20 @@
+{
+  "name": "handle_configuring",
+  "scenario_version": "1",
+  "gost_version": "33465-2015",
+  "timeout": 60,
+  "description": "Обработка режима конфигурирования (TID=0, RESULT_CODE=153)",
+  "steps": [
+    {
+      "type": "expect",
+      "name": "wait_reauth",
+      "checks": {
+        "service": 1,
+        "tid_greater_than": 0
+      },
+      "channel": "tcp",
+      "timeout": 45,
+      "description": "Ожидание повторной авторизации с корректным TID>0"
+    }
+  ]
+}

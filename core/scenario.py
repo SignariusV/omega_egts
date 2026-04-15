@@ -652,3 +652,38 @@ class ScenarioManager:
                 return result
 
         return "PASS"
+
+    def load_by_name(self, name: str) -> None:
+        """Загрузить сценарий по имени из директории scenarios/.
+
+        Args:
+            name: Имя сценария (директория в scenarios/).
+
+        Raises:
+            FileNotFoundError: Если файл scenario.json не найден.
+        """
+        path = Path("scenarios") / name / "scenario.json"
+        if not path.exists():
+            raise FileNotFoundError(f"Сценарий '{name}' не найден: {path}")
+        self.load(path)
+
+    async def execute_by_name(
+        self,
+        scenario_name: str,
+        bus: EventBus,
+        connection_id: str | None = None,
+        timeout: float | None = None,
+    ) -> str:
+        """Запустить сценарий по имени.
+
+        Args:
+            scenario_name: Имя сценария (директория в scenarios/).
+            bus: EventBus для взаимодействия.
+            connection_id: Идентификатор подключения.
+            timeout: Общий таймаут сценария.
+
+        Returns:
+            PASS, FAIL, TIMEOUT или ERROR.
+        """
+        self.load_by_name(scenario_name)
+        return await self.execute(bus=bus, connection_id=connection_id, timeout=timeout)

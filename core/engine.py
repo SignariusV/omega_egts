@@ -104,6 +104,10 @@ class CoreEngine:
             parser_factory = _ParserFactory(registry=registry)
             self.scenario_mgr = _ScenarioManager(parser_factory=parser_factory)
 
+            # Подписка на события FSM для автоматического запуска сценариев
+            self._running_scenarios: set[tuple[str, str]] = set()  # (connection_id, scenario_name)
+            self.bus.on("fsm.scenario_triggered", self._on_scenario_triggered)
+
             # 4. PacketDispatcher
             self.packet_dispatcher = PacketDispatcher(
                 bus=self.bus, session_mgr=self.session_mgr
@@ -214,6 +218,34 @@ class CoreEngine:
         self.scenario_mgr = None
         self.log_mgr = None
         self.session_mgr = None
+        self._running_scenarios.clear()
+
+    async def _on_scenario_triggered(self, data: dict[str, Any]) -> None:
+        """Обработчик события запуска сценария от FSM.
+
+        Args:
+            data: Данные события с connection_id и scenario_name.
+        """
+        conn_id: str = data["connection_id"]
+        scenario_name: str = data["scenario_name"]
+
+        key = (conn_id, scenario_name)
+        if key in self._running_scenarios:
+            logger.warning("Сценарий '%s' уже выполняется для %s — пропуск", scenario_name, conn_id)
+            return
+
+        self._running_scenarios.add(key)
+        try:
+            logger.info("Автоматический запуск сценария '%s' для %s", scenario_name, conn_id)
+            await self.scenario_mgr.execute_by_name(
+                scenario_name=scenario_name,
+                bus=self.bus,
+                connection_id=conn_id
+            )
+        except Exception as e:
+            logger.error("Ошибка выполнения сценария '%s' для %s: %s", scenario_name, conn_id, e)
+        finally:
+            self._running_scenarios.discard(key)
 
     @property
     def is_running(self) -> bool:
