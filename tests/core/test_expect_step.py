@@ -157,9 +157,14 @@ class TestExpectStepExecute:
         # Симуляция: через 50мс эмитим packet.processed
         async def emit_packet_later() -> None:
             await asyncio.sleep(0.05)
-            # Создаём мок для parsed
-            parsed_mock = MagicMock()
-            parsed_mock.extra = {"service": 1, "data": {"TID": 12345}}
+            # Создаём мок для ParseResult
+            from libs.egts.models import ParseResult, Packet, Record, Subrecord
+
+            sub = Subrecord(subrecord_type=9, data={"rcd": 0})
+            rec = Record(record_id=1, service_type=1, subrecords=[sub])
+            pkt = Packet(packet_id=1, packet_type=1, records=[rec])
+            parsed_mock = ParseResult(packet=pkt)
+
             ctx_mock = MagicMock()
             ctx_mock.parsed = parsed_mock
             await bus.emit(
@@ -210,14 +215,19 @@ class TestExpectStepExecute:
         step = ExpectStep(
             name="test",
             checks={"service": 1},
-            capture={"tid": "data.TID"},
+            capture={"tid": "tid"},
         )
         bus = EventBus()
 
         async def emit_packet_later() -> None:
             await asyncio.sleep(0.05)
-            parsed_mock = MagicMock()
-            parsed_mock.extra = {"service": 1, "data": {"TID": 99999}}
+            from libs.egts.models import ParseResult, Packet, Record, Subrecord
+
+            sub = Subrecord(subrecord_type=1, data={"tid": 99999})
+            rec = Record(record_id=1, service_type=1, subrecords=[sub])
+            pkt = Packet(packet_id=1, packet_type=1, records=[rec])
+            parsed_mock = ParseResult(packet=pkt)
+
             ctx_mock = MagicMock()
             ctx_mock.parsed = parsed_mock
             await bus.emit(

@@ -1,0 +1,2595 @@
+{
+  "summary": {
+    "total": 51,
+    "roundtrip_ok": 49,
+    "roundtrip_fail": 0,
+    "parse_fail": 2,
+    "direction_match": 0,
+    "direction_mismatch": 0
+  },
+  "results": [
+    {
+      "index": 1,
+      "hex": "0100000B0021001B0001321A002A004004043317...",
+      "hex_length": 46,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 27,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 42,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_GPRS_APN (SMS)(1)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 27,
+        "PT": 1,
+        "RL": 26,
+        "RN": 42,
+        "SRL": 23,
+        "CT": 101
+      }
+    },
+    {
+      "index": 2,
+      "hex": "0100000B001400270001DC0D004600800404330A...",
+      "hex_length": 33,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 39,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 70,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "CT_COMCONF (SMS)(2)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 39,
+        "PT": 1,
+        "RL": 13,
+        "RN": 70,
+        "SRL": 10,
+        "CT": 1
+      }
+    },
+    {
+      "index": 3,
+      "hex": "0100000B002A001C0001AB23002B004004043320...",
+      "hex_length": 55,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 28,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 43,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_SERVER_ADDRESS (SMS)(3)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 28,
+        "PT": 1,
+        "RL": 35,
+        "RN": 43,
+        "SRL": 32,
+        "CT": 101
+      }
+    },
+    {
+      "index": 4,
+      "hex": "0100000B0014002800016D0D004700800404330A...",
+      "hex_length": 33,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 40,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 71,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "CT_COMCONF (SMS)(4)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 40,
+        "PT": 1,
+        "RL": 13,
+        "RN": 71,
+        "SRL": 10,
+        "CT": 1
+      }
+    },
+    {
+      "index": 5,
+      "hex": "0100000B001D001D00013216002C004004043313...",
+      "hex_length": 42,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 29,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 44,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "Не определено",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_UNIT_ID (SMS)(5)",
+        "expected_direction": "Не определено"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 29,
+        "PT": 1,
+        "RL": 22,
+        "RN": 44,
+        "SRL": 19,
+        "CT": 101
+      }
+    },
+    {
+      "index": 6,
+      "hex": "0100000B0014002900012B0D004800800404330A...",
+      "hex_length": 33,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 41,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 72,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "CT_COMCONF (SMS)(6)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 41,
+        "PT": 1,
+        "RL": 13,
+        "RN": 72,
+        "SRL": 10,
+        "CT": 1
+      }
+    },
+    {
+      "index": 7,
+      "hex": "0100000B002E002A0001CC270049008001010124...",
+      "hex_length": 59,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 42,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 73,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "Не определено",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_SR_TERM_IDENTITY (7)",
+        "expected_direction": "Не определено"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 42,
+        "PT": 1,
+        "RL": 39,
+        "RN": 73,
+        "SRL": 36
+      }
+    },
+    {
+      "index": 8,
+      "hex": "0100000B0010001E00003B2A000006002D004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 30,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 45,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 30,
+        "PT": 0,
+        "PR": 0,
+        "RL": 6,
+        "RN": 45,
+        "SRL": 3,
+        "RST": 0
+      }
+    },
+    {
+      "index": 9,
+      "hex": "0100000B0023002B0001781C004A008001010319...",
+      "hex_length": 48,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 43,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 74,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_SR_VEHICLE_DATA (9)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 43,
+        "PT": 1,
+        "RL": 28,
+        "RN": 74,
+        "SRL": 25
+      }
+    },
+    {
+      "index": 10,
+      "hex": "0100000B0010001F00007D2B000006002E004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 31,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 46,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 31,
+        "PT": 0,
+        "PR": 0,
+        "RL": 6,
+        "RN": 46,
+        "SRL": 3,
+        "RST": 0
+      }
+    },
+    {
+      "index": 11,
+      "hex": "0100000B000B002000012604002F004001010901...",
+      "hex_length": 24,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 32,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 47,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_SR_RESULT_CODE (11)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 32,
+        "PT": 1,
+        "RL": 4,
+        "RN": 47,
+        "SRL": 1,
+        "RCD": 0
+      }
+    },
+    {
+      "index": 12,
+      "hex": "0100000B0010002C00006A20000006004B008001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 44,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 75,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "1. Состав команд для конфигурирования (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (12)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 44,
+        "PT": 0,
+        "PR": 0,
+        "RL": 6,
+        "RN": 75,
+        "SRL": 3,
+        "RST": 0
+      }
+    },
+    {
+      "index": 13,
+      "hex": "0100000B0019001100015612002000400404330F...",
+      "hex_length": 38,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 17,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 32,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_TRACK_DATA (1)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 17,
+        "PT": 1,
+        "RL": 18,
+        "RN": 32,
+        "SRL": 15,
+        "CT": 101
+      }
+    },
+    {
+      "index": 14,
+      "hex": "0100000B0014001D0001DF0D003C00800404330A...",
+      "hex_length": 33,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 29,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 60,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "CT_COMCONF (2)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 29,
+        "PT": 1,
+        "RL": 13,
+        "RN": 60,
+        "SRL": 10,
+        "CT": 1
+      }
+    },
+    {
+      "index": 15,
+      "hex": "0100000B002E001E00013827003D008001010124...",
+      "hex_length": 59,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 30,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 61,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "Не определено",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_SR_TERM_IDENTITY (3)",
+        "expected_direction": "Не определено"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 30,
+        "PT": 1,
+        "RL": 39,
+        "RN": 61,
+        "SRL": 36
+      }
+    },
+    {
+      "index": 16,
+      "hex": "0100000B001000120000401E0000060021004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 18,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 33,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 18,
+        "PT": 0,
+        "RPID": 30,
+        "PR": 0,
+        "RL": 6,
+        "RN": 33,
+        "SRL": 3,
+        "CRN": 61,
+        "RST": 0
+      }
+    },
+    {
+      "index": 17,
+      "hex": "0100000B0023001F00018C1C003E008001010319...",
+      "hex_length": 48,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 31,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 62,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_SR_VEHICLE_DATA (5)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 31,
+        "PT": 1,
+        "RL": 28,
+        "RN": 62,
+        "SRL": 25
+      }
+    },
+    {
+      "index": 18,
+      "hex": "0100000B001000130000061F0000060022004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 19,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 34,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 19,
+        "PT": 0,
+        "RPID": 31,
+        "PR": 0,
+        "RL": 6,
+        "RN": 34,
+        "SRL": 3,
+        "CRN": 62,
+        "RST": 0
+      }
+    },
+    {
+      "index": 19,
+      "hex": "0100000B000B00140001D2040023004001010901...",
+      "hex_length": 24,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 20,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 35,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_SR_RESULT_CODE (7)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 20,
+        "PT": 1,
+        "RL": 4,
+        "RN": 35,
+        "SRL": 1,
+        "RCD": 0
+      }
+    },
+    {
+      "index": 20,
+      "hex": "0100000B0010002000001114000006003F008001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 32,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 63,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 32,
+        "PT": 0,
+        "RPID": 20,
+        "PR": 0,
+        "RL": 6,
+        "RN": 63,
+        "SRL": 3,
+        "CRN": 35,
+        "RST": 0
+      }
+    },
+    {
+      "index": 21,
+      "hex": "0100000B006303210001FB5C034000800A0A3E59...",
+      "hex_length": 880,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 33,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 64,
+            "service_type": 10,
+            "rst_service_type": 10,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_SR_TRACK_DATA (9)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 33,
+        "PT": 1,
+        "RL": 860,
+        "RN": 64,
+        "SRL": 857,
+        "SA": 71
+      }
+    },
+    {
+      "index": 22,
+      "hex": "0100000B001000150000A321000006002400400A...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 21,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 36,
+            "service_type": 10,
+            "rst_service_type": 10,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "2. Передача траектории движения (ОК).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 21,
+        "PT": 0,
+        "RPID": 33,
+        "PR": 0,
+        "RL": 6,
+        "RN": 36,
+        "SRL": 3,
+        "CRN": 64,
+        "RST": 0
+      }
+    },
+    {
+      "index": 23,
+      "hex": "0100000B001900160001B512002500400404330F...",
+      "hex_length": 38,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 22,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 37,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_ ACCEL_DATA (1)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 22,
+        "PT": 1,
+        "RL": 18,
+        "RN": 37,
+        "SRL": 15,
+        "CT": 101
+      }
+    },
+    {
+      "index": 24,
+      "hex": "0100000B001400220001B30D004100800404330A...",
+      "hex_length": 33,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 34,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 65,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "CT_COMCONF (2)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 34,
+        "PT": 1,
+        "RL": 13,
+        "RN": 65,
+        "SRL": 10,
+        "CT": 1
+      }
+    },
+    {
+      "index": 25,
+      "hex": "0100000B002E00230001D8270042008001010124...",
+      "hex_length": 59,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 35,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 66,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "Не определено",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_SR_TERM_IDENTITY (3)",
+        "expected_direction": "Не определено"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 35,
+        "PT": 1,
+        "RL": 39,
+        "RN": 66,
+        "SRL": 36
+      }
+    },
+    {
+      "index": 26,
+      "hex": "0100000B0010001700002F230000060026004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 23,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 38,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 23,
+        "PT": 0,
+        "RPID": 35,
+        "PR": 0,
+        "RL": 6,
+        "RN": 38,
+        "SRL": 3,
+        "CRN": 66,
+        "RST": 0
+      }
+    },
+    {
+      "index": 27,
+      "hex": "0100000B002300240001C91C0043008001010319...",
+      "hex_length": 48,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 36,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 67,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_SR_VEHICLE_DATA (5)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 36,
+        "PT": 1,
+        "RL": 28,
+        "RN": 67,
+        "SRL": 25
+      }
+    },
+    {
+      "index": 28,
+      "hex": "0100000B0010001800009E240000060027004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 24,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 39,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 24,
+        "PT": 0,
+        "RPID": 36,
+        "PR": 0,
+        "RL": 6,
+        "RN": 39,
+        "SRL": 3,
+        "CRN": 67,
+        "RST": 0
+      }
+    },
+    {
+      "index": 29,
+      "hex": "0100000B000B00190001EF040028004001010901...",
+      "hex_length": 24,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 25,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 40,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_SR_RESULT_CODE (7)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 25,
+        "PT": 1,
+        "RL": 4,
+        "RN": 40,
+        "SRL": 1,
+        "RCD": 0
+      }
+    },
+    {
+      "index": 30,
+      "hex": "0100000B0010002500007E190000060044008001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 37,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 68,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 37,
+        "PT": 0,
+        "RPID": 25,
+        "PR": 0,
+        "RL": 6,
+        "RN": 68,
+        "SRL": 3,
+        "CRN": 40,
+        "RST": 0
+      }
+    },
+    {
+      "index": 31,
+      "hex": "0100000B009F0C26000141980C4500800A0A14D5...",
+      "hex_length": 3244,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 38,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 69,
+            "service_type": 10,
+            "rst_service_type": 10,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 2
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_SR_ ACCEL_DATA (9)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 38,
+        "PT": 1,
+        "RL": 3224,
+        "RN": 69,
+        "SRL": 1213,
+        "SA": 151
+      }
+    },
+    {
+      "index": 32,
+      "hex": "0100000B0010001A00001226000006002900400A...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 26,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 41,
+            "service_type": 10,
+            "rst_service_type": 10,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "3. Передача профиля ускорения (ОК).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 26,
+        "PT": 0,
+        "RPID": 38,
+        "PR": 0,
+        "RL": 6,
+        "RN": 41,
+        "SRL": 3,
+        "CRN": 69,
+        "RST": 0
+      }
+    },
+    {
+      "index": 33,
+      "hex": "0100000B002E001800019D270037008001010124...",
+      "hex_length": 59,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 24,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 55,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "Не определено",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_TERM_IDENTITY (1)",
+        "expected_direction": "Не определено"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 24,
+        "PT": 1,
+        "RL": 39,
+        "RN": 55,
+        "SRL": 36
+      }
+    },
+    {
+      "index": 34,
+      "hex": "0100000B0010000C00001318000006001B004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 12,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 27,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (2)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 12,
+        "PT": 0,
+        "RPID": 24,
+        "PR": 0,
+        "RL": 6,
+        "RN": 27,
+        "SRL": 3,
+        "CRN": 55,
+        "RST": 0
+      }
+    },
+    {
+      "index": 35,
+      "hex": "0100000B002300190001291C0038008001010319...",
+      "hex_length": 48,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 25,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 56,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_VEHICLE_DATA (3)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 25,
+        "PT": 1,
+        "RL": 28,
+        "RN": 56,
+        "SRL": 25
+      }
+    },
+    {
+      "index": 36,
+      "hex": "0100000B0010000D00005519000006001C004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 13,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 28,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 13,
+        "PT": 0,
+        "RPID": 25,
+        "PR": 0,
+        "RL": 6,
+        "RN": 28,
+        "SRL": 3,
+        "CRN": 56,
+        "RST": 0
+      }
+    },
+    {
+      "index": 37,
+      "hex": "0100000B000B000E0001A804001D004001010901...",
+      "hex_length": 24,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 14,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 29,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_RESULT_CODE (5)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 14,
+        "PT": 1,
+        "RL": 4,
+        "RN": 29,
+        "SRL": 1,
+        "RCD": 0
+      }
+    },
+    {
+      "index": 38,
+      "hex": "0100000B0010001A0000120E0000060039008001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 26,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 57,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 26,
+        "PT": 0,
+        "RPID": 14,
+        "PR": 0,
+        "RL": 6,
+        "RN": 57,
+        "SRL": 3,
+        "CRN": 29,
+        "RST": 0
+      }
+    },
+    {
+      "index": 39,
+      "hex": "0100000B0017C80F0001BE10C81E00400909210D...",
+      "hex_length": 51236,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 15,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 30,
+            "service_type": 9,
+            "rst_service_type": 9,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_SERVICE_PART_DATA (7)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 15,
+        "PT": 1,
+        "RL": 51216,
+        "RN": 30,
+        "SRL": 51213,
+        "EPQ": 2
+      }
+    },
+    {
+      "index": 40,
+      "hex": "0100000B0010001B0000540F000106003A008009...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 27,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 58,
+            "service_type": 9,
+            "rst_service_type": 9,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (8)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 27,
+        "PT": 0,
+        "RPID": 15,
+        "PR": 1,
+        "RL": 6,
+        "RN": 58,
+        "SRL": 3,
+        "CRN": 30,
+        "RST": 0
+      }
+    },
+    {
+      "index": 41,
+      "hex": "0100000B0073721000018E6C721F004009092169...",
+      "hex_length": 29312,
+      "roundtrip_ok": false,
+      "parse_ok": false,
+      "errors": [
+        "Ошибка парсинга: CRC-8 заголовка не совпадает: ожидался 142, вычислен 47"
+      ],
+      "warnings": [],
+      "fields": {},
+      "direction": {
+        "expected": null,
+        "actual": null,
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_SERVICE_PART_DATA (9)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 16,
+        "PT": 1,
+        "RL": 29292,
+        "RN": 31,
+        "SRL": 29289,
+        "EPQ": 2
+      }
+    },
+    {
+      "index": 42,
+      "hex": "0100000B0010001C0000B7100000060038004009...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 28,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 56,
+            "service_type": 9,
+            "rst_service_type": 9,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "4. Передача обновлённого ПО (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (10)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 28,
+        "PT": 0,
+        "RPID": 16,
+        "PR": 0,
+        "RL": 6,
+        "RN": 59,
+        "SRL": 3,
+        "CRN": 31,
+        "RST": 0
+      }
+    },
+    {
+      "index": 43,
+      "hex": "0100000B002E001800019D270037008001010124...",
+      "hex_length": 59,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 24,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 55,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "Не определено",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "EGTS_SR_TERM_IDENTITY (1)",
+        "expected_direction": "Не определено"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 24,
+        "PT": 1,
+        "RL": 39,
+        "RN": 55,
+        "SRL": 36
+      }
+    },
+    {
+      "index": 44,
+      "hex": "0100000B0010000C00001318000006001B004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 12,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 27,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (2)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 12,
+        "PT": 0,
+        "RPID": 24,
+        "PR": 0,
+        "RL": 6,
+        "RN": 27,
+        "SRL": 3,
+        "CRN": 55,
+        "RST": 0
+      }
+    },
+    {
+      "index": 45,
+      "hex": "0100000B002300190001291C0038008001010319...",
+      "hex_length": 48,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 25,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 56,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "УСВ -> PLATFORM",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "EGTS_SR_VEHICLE_DATA (3)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 25,
+        "PT": 1,
+        "RL": 28,
+        "RN": 56,
+        "SRL": 25
+      }
+    },
+    {
+      "index": 46,
+      "hex": "0100000B0010000D00005519000006001C004001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 13,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 28,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (4)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 13,
+        "PT": 0,
+        "RPID": 25,
+        "PR": 0,
+        "RL": 6,
+        "RN": 28,
+        "SRL": 3,
+        "CRN": 56,
+        "RST": 0
+      }
+    },
+    {
+      "index": 47,
+      "hex": "0100000B000B000E0001A804001D004001010901...",
+      "hex_length": 24,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 14,
+        "packet_type": 1,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 29,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "EGTS_SR_RESULT_CODE (5)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 14,
+        "PT": 1,
+        "RL": 4,
+        "RN": 29,
+        "SRL": 1,
+        "RCD": 0
+      }
+    },
+    {
+      "index": 48,
+      "hex": "0100000B0010001A0000120E0000060039008001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 26,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 57,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "EGTS_SR_RECORD_RESPONSE (6)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 26,
+        "PT": 0,
+        "RPID": 14,
+        "PR": 0,
+        "RL": 6,
+        "RN": 57,
+        "SRL": 3,
+        "CRN": 29,
+        "RST": 0
+      }
+    },
+    {
+      "index": 49,
+      "hex": "0100000B003BC80F00016734001E00400404331B...",
+      "hex_length": 72,
+      "roundtrip_ok": false,
+      "parse_ok": false,
+      "errors": [
+        "Ошибка парсинга: Недостаточно данных для CRC-16"
+      ],
+      "warnings": [],
+      "fields": {},
+      "direction": {
+        "expected": null,
+        "actual": null,
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "EGTS_SR_COMMAND_DATA (7)",
+        "expected_direction": "УСВ -> PLATFORM"
+      },
+      "expected_fields": {
+        "HL": 11,
+        "PID": 15,
+        "PT": 1,
+        "RL": 52,
+        "RN": 30,
+        "SRL": 19,
+        "CT": 101
+      }
+    },
+    {
+      "index": 50,
+      "hex": "0100000B0010001B0000540F000006003A008001...",
+      "hex_length": 29,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 27,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 58,
+            "service_type": 1,
+            "rst_service_type": 1,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 1
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "EGTS_PT_RESPONSE (8)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 27,
+        "PT": 0,
+        "RPID": 15,
+        "PR": 0,
+        "RL": 6,
+        "RN": 58,
+        "SRL": 3,
+        "CRN": 30,
+        "RST": 0
+      }
+    },
+    {
+      "index": 51,
+      "hex": "0100000B0024001C00002C0F00001A003B008004...",
+      "hex_length": 49,
+      "roundtrip_ok": true,
+      "parse_ok": true,
+      "errors": [],
+      "warnings": [],
+      "fields": {
+        "packet_id": 28,
+        "packet_type": 0,
+        "priority": 0,
+        "skid": 0,
+        "prf": false,
+        "rte": false,
+        "ena": false,
+        "cmp": false,
+        "crc8_valid": true,
+        "records_count": 1,
+        "records": [
+          {
+            "record_id": 59,
+            "service_type": 4,
+            "rst_service_type": 4,
+            "first_record": false,
+            "last_record": false,
+            "ongoing_record": false,
+            "subrecords_count": 2
+          }
+        ]
+      },
+      "direction": {
+        "expected": "PLATFORM -> УСВ",
+        "actual": "",
+        "match": null
+      },
+      "metadata": {
+        "file": "5. Передача настроек для УСВ (OK).xlsx",
+        "sheet": "CT_COMCONF (9)",
+        "expected_direction": "PLATFORM -> УСВ"
+      },
+      "expected_fields": {
+        "PID": 28,
+        "PT": 0,
+        "RPID": 15,
+        "PR": 0,
+        "RL": 26,
+        "RN": 59,
+        "SRL": 10,
+        "CT": 1
+      }
+    }
+  ]
+}

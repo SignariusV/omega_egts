@@ -286,8 +286,13 @@ class LogManager:
             result["packet_id"] = getattr(packet, "packet_id", None)
 
         # Извлечение данных из подзаписей (замена extra)
-        if hasattr(parsed, "records"):
-            for rec in getattr(parsed, "records", []):
+        if hasattr(parsed, "packet") and parsed.packet is not None:
+            packet = parsed.packet
+            records = getattr(packet, "records", [])
+            # Добавляем service_type из первой записи
+            if records:
+                result["service"] = getattr(records[0], "service_type", None)
+            for rec in records:
                 for sr in getattr(rec, "subrecords", []):
                     if isinstance(sr.data, dict):
                         result.update(sr.data)

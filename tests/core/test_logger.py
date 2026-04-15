@@ -177,6 +177,7 @@ class TestPacketProcessed:
     async def test_logs_parsed_data(self, log_manager):
         """В лог записываются распарсенные данные."""
         from core.pipeline import PacketContext
+        from libs.egts.models import ParseResult, Packet, Record, Subrecord
 
         ctx = PacketContext(
             raw=b"\x01\x00\x01\x00\x00\x00\xA1\xB2\xC3\xD4",
@@ -184,11 +185,11 @@ class TestPacketProcessed:
             channel="tcp",
             crc_valid=True,
         )
-        # Устанавливаем parsed.extra напрямую
-        mock_parsed = MagicMock()
-        mock_parsed.packet = None
-        mock_parsed.extra = {"service": 2, "tid": 12345}
-        ctx.parsed = mock_parsed
+        # Создаём ParseResult с реальной моделью
+        sub = Subrecord(subrecord_type=1, data={"tid": 12345})
+        rec = Record(record_id=1, service_type=2, subrecords=[sub])
+        pkt = Packet(packet_id=1, packet_type=1, records=[rec])
+        ctx.parsed = ParseResult(packet=pkt)
 
         await log_manager._on_packet_processed({
             "ctx": ctx,

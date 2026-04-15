@@ -296,6 +296,9 @@ class ExpectStep:
             # Извлечение данных из подзаписей (замена extra)
             extra = {}
             if hasattr(packet_data, "packet") and packet_data.packet:
+                # Добавляем service_type из первой записи
+                if packet_data.packet.records:
+                    extra["service"] = packet_data.packet.records[0].service_type
                 for rec in packet_data.packet.records:
                     for sr in rec.subrecords:
                         if isinstance(sr.data, dict):
