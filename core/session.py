@@ -93,11 +93,18 @@ class UsvStateMachine:
         is_std_usv: Штатное УСВ (eCall-only, без авторизации)
     """
 
-    def __init__(self, is_std_usv: bool = False) -> None:
+    def __init__(self, bus: EventBus | None = None, connection_id: str | None = None, is_std_usv: bool = False) -> None:
+        self._bus = bus
+        self._connection_id = connection_id or "unknown"
         self._state = UsvState.DISCONNECTED
         self.is_std_usv = is_std_usv
         self._timeout_counter = 0
         self._last_transition: str | None = None
+        self._scenario_triggers: dict[UsvState, str] = {}   # state → scenario_name
+
+    def set_scenario_trigger(self, state: UsvState, scenario_name: str) -> None:
+        """Назначить сценарий, который будет автоматически запущен при входе в состояние"""
+        self._scenario_triggers[state] = scenario_name
 
     @property
     def state(self) -> UsvState:
@@ -130,6 +137,23 @@ class UsvStateMachine:
         # Сброс счётчика таймаутов при переходе
         if new_state != old_state:
             self._timeout_counter = 0
+
+        # Эмитим событие о входе в состояние (для логирования)
+        if self._bus is not None:
+            self._bus.emit("fsm.state_entered", {
+                "connection_id": self._connection_id,
+                "state": new_state.value,
+                "prev_state": old_state.value,
+                "reason": reason
+            })
+
+            # Если для этого состояния назначен сценарий — эмитим триггер
+            if new_state in self._scenario_triggers:
+                self._bus.emit("fsm.scenario_triggered", {
+                    "connection_id": self._connection_id,
+                    "state": new_state.value,
+                    "scenario_name": self._scenario_triggers[new_state]
+                })
 
         return new_state
 

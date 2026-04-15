@@ -1,0 +1,30 @@
+{
+  "name": "wait_provisioning_confirmation",
+  "scenario_version": "1",
+  "gost_version": "33465-2015",
+  "timeout": 120,
+  "description": "Ожидание подтверждения конфигурации от УСВ после отправки SMS",
+  "steps": [
+    {
+      "type": "expect",
+      "name": "wait_ct_comconf",
+      "checks": {
+        "service": 4,
+        "ct_comconf": true
+      },
+      "channel": "sms",
+      "timeout": 90,
+      "description": "Ожидание подтверждения команды (CT_COMCONF) с кодом успешного применения настроек"
+    },
+    {
+      "type": "expect",
+      "name": "wait_tcp_connect",
+      "checks": {
+        "state": "connected"
+      },
+      "channel": "fsm",
+      "timeout": 60,
+      "description": "Ожидание TCP-подключения после применения настроек УСВ"
+    }
+  ]
+}

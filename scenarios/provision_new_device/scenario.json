@@ -1,0 +1,44 @@
+{
+  "name": "provision_new_device",
+  "scenario_version": "1",
+  "gost_version": "33465-2015",
+  "timeout": 180,
+  "description": "Начальная конфигурация УСВ через SMS (пассивный режим по ГОСТ 6.7.2.9)",
+  "steps": [
+    {
+      "type": "expect",
+      "name": "wait_network_ready",
+      "checks": {
+        "state": "network_ready"
+      },
+      "channel": "fsm",
+      "timeout": 60,
+      "description": "Ожидание активации PDP контекста и получения IP от CMW-500"
+    },
+    {
+      "type": "send",
+      "name": "send_provisioning_sms",
+      "channel": "sms",
+      "build": {
+        "service": 4,
+        "subrecords": [
+          {
+            "subrecord_type": 51,
+            "raw_bytes": "base64:command_data_template"
+          }
+        ]
+      },
+      "description": "Отправка команды конфигурации с параметрами APN, IP сервера, UNIT_ID"
+    },
+    {
+      "type": "expect",
+      "name": "wait_ct_comconf",
+      "checks": {
+        "ct_comconf": true
+      },
+      "channel": "sms",
+      "timeout": 90,
+      "description": "Ожидание подтверждения команды (CT_COMCONF) от УСВ"
+    }
+  ]
+}
