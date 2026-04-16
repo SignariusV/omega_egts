@@ -139,7 +139,7 @@ class TestScpiEmulation:
         await emulator.connect()
         try:
             result = await emulator.get_status()
-            assert result == "1"
+            assert result == "CONNected"
         finally:
             await emulator.disconnect()
 
