@@ -1,17 +1,14 @@
 """Тесты Этапов 2-5: protocol, registry, CRC, subrecord, parser/builder."""
 
-import json
 import os
+
 import pytest
 
-from libs.egts.types import PacketType
-from libs.egts.models import Packet, ParseResult, ResponseRecord
-from libs.egts.protocol import IEgtsProtocol
-from libs.egts.registry import register_version, get_protocol, available_versions
 from libs.egts._core.crc import crc8, crc16
-from libs.egts._core.parser import parse_header, build_header
-from libs.egts._core.subrecord_registry import register_subrecord, get_parser
-from libs.egts._core.subrecord import SubrecordParser
+from libs.egts._core.parser import build_header, parse_header
+from libs.egts._core.subrecord_registry import get_parser, register_subrecord
+from libs.egts.models import Packet, ParseResult
+from libs.egts.registry import available_versions, get_protocol, register_version
 
 FIXTURES_DIR = "tests/fixtures/egts_packets"
 
@@ -154,7 +151,7 @@ class TestHeaderRoundtrip:
                 assert pkt.packet_id >= 0
             except Exception as e:
                 failures.append(f"{name}: {e}")
-        assert not failures, f"Ошибки парсинга:\n" + "\n".join(failures)
+        assert not failures, "Ошибки парсинга:\n" + "\n".join(failures)
 
     def test_header_roundtrip(self):
         """parse(build(pkt)) == pkt для всех эталонных пакетов."""
@@ -184,7 +181,7 @@ class TestHeaderRoundtrip:
             except Exception as e:
                 failures.append(f"{name}: {e}")
 
-        assert not failures, f"Roundtrip ошибки:\n" + "\n".join(failures)
+        assert not failures, "Roundtrip ошибки:\n" + "\n".join(failures)
 
     def test_response_header_fields(self):
         """RESPONSE-пакет: RPID и PR должны парситься."""

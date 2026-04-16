@@ -20,15 +20,12 @@ from __future__ import annotations
 # ──────────────────────────────────────────────────────────────
 # Импорт библиотеки
 # ──────────────────────────────────────────────────────────────
-
 # Импортируем парсеры подзаписей (они регистрируются автоматически)
 import libs.egts._gost2015  # noqa: F401
-
-from libs.egts.models import Packet, Record, Subrecord, ResponseRecord, ParseResult
-from libs.egts.types import PacketType, ServiceType, SubrecordType, ResultCode
-from libs.egts.registry import get_protocol, available_versions
+from libs.egts.models import Packet, ParseResult, Record, ResponseRecord, Subrecord
 from libs.egts.protocol import IEgtsProtocol
-
+from libs.egts.registry import available_versions, get_protocol
+from libs.egts.types import PacketType, ResultCode, ServiceType, SubrecordType
 
 # ──────────────────────────────────────────────────────────────
 # Helper
@@ -178,7 +175,7 @@ def demo_parse_packet(raw: bytes, proto: IEgtsProtocol) -> ParseResult:
 
     if result.is_success:
         pkt = result.packet
-        print(f"  ✅ Успешно!")
+        print("  ✅ Успешно!")
         print(f"  PRV={pkt.protocol_version}, PID={pkt.packet_id}, PT={pkt.packet_type}")
         print(f"  HL={pkt.header_length}, записей={len(pkt.records)}")
 
@@ -251,7 +248,7 @@ def demo_response_packet(proto: IEgtsProtocol) -> bytes:
     result = proto.parse_packet(response_bytes)
     if result.is_success:
         pkt = result.packet
-        print(f"  Распарсен:")
+        print("  Распарсен:")
         print(f"    PT={pkt.packet_type} (RESPONSE=0)")
         print(f"    RPID={pkt.response_packet_id}")
         print(f"    PR={pkt.processing_result}")
@@ -342,7 +339,7 @@ def demo_real_packet(proto: IEgtsProtocol) -> None:
     result = proto.parse_packet(raw)
     if result.is_success:
         pkt = result.packet
-        print(f"\n  ✅ Распарсен:")
+        print("\n  ✅ Распарсен:")
         print(f"    PRV={pkt.protocol_version}, PID={pkt.packet_id}, PT={pkt.packet_type}")
         print(f"    HL={pkt.header_length}, FDL={len(raw) - pkt.header_length - 2}")
         print(f"    Записей: {len(pkt.records)}")

@@ -6,9 +6,9 @@
 import logging
 
 import libs.egts._gost2015  # noqa: F401 — регистрирует протокол
+from libs.egts.models import ParseResult
 from libs.egts.registry import get_protocol
 from libs.egts.types import ResultCode
-from libs.egts.models import ParseResult, ResponseRecord, Subrecord
 
 logger = logging.getLogger(__name__)
 

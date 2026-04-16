@@ -1,6 +1,6 @@
 """Реестр версий EGTS протокола."""
 
-from typing import Callable
+from collections.abc import Callable
 
 from libs.egts.protocol import IEgtsProtocol
 
