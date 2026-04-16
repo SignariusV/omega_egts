@@ -51,8 +51,8 @@ def main():
         ("PS Service TMA", "CONFigure:GSM:SIGN1:CONNection:PSWitched:SERVice TMA"),
         ("PS TLevel EGPRS", "CONFigure:GSM:SIGN1:CONNection:PSWitched:TLEVel EGPRS"),
         ("PS CScheme UL MC9", "CONFigure:GSM:SIGN1:CONNection:PSWitched:CSCHeme:UL MC9"),
-        ("SMS DCODing BIT8", "CONFigure:GSM:SIGN1:SMS:OUTGoing:DCODing BIT8"),
-        ("SMS PID #H1", "CONFigure:GSM:SIGN1:SMS:OUTGoing:PIDentifier #H1"),
+        ("SMS DCODing BIT8", "CONFigure:GSM:SIGN:SMS:OUTGoing:DCODing BIT8"),
+        ("SMS PID #H1", "CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H1"),
         ("DAU Range", "CONFigure:DATA:MEAS:RAN 'GSM Sig1'"),
         ("DAU DNS", "CONFigure:DATA:CONTrol:DNS:PRIMary:STYPe Foreign"),
         ("DAU DHCP", "CONFigure:DATA:CONTrol:IPVFour:ADDRess:TYPE DHCPv4"),
@@ -70,14 +70,15 @@ def main():
     # ── Чтение ──
     print("--- Чтение ---")
     read_cmds = [
-        ("IMEI", "CALL:GSM:SIGN1:IMEI?"),
-        ("IMSI", "CALL:GSM:SIGN1:IMSI?"),
-        ("RSSI", "CALL:GSM:SIGN1:RSSI?"),
-        ("Status", "CALL:GSM:SIGN1:CONNection:STATe?"),
-        ("CS State", "CALL:GSM:SIGN1:CONNection:CSWitched:STATe?"),
-        ("PS State", "CALL:GSM:SIGN1:CONNection:PSWitched:STATe?"),
-        ("MCC?", "CONFigure:GSM:SIGN1:CELL:MCC?"),
-        ("MNC?", "CONFigure:GSM:SIGN1:CELL:MNC?"),
+        ("IMEI", "SENSe:GSM:SIGN1:MSSinfo:IMEI?"),
+        ("IMSI", "SENSe:GSM:SIGN1:MSSinfo:IMSI?"),
+        ("RSSI GSM Cell1", "SENSe:GSM:SIGN1:RREPort:NCELl:GSM:CELL1?"),
+        ("RSSI Range GSM Cell1", "SENSe:GSM:SIGN1:RREPort:NCELl:GSM:CELL1:RANGe?"),
+        ("Status", "SOURce:GSM:SIGN:CELL:STATe:ALL?"),
+        ("CS State", "FETCh:GSM:SIGN:CSWitched:STATe?"),
+        ("PS State", "FETCh:GSM:SIGN:PSWitched:STATe?"),
+        ("MCC?", "CONFigure:GSM:SIGN:CELL:MCC?"),
+        ("MNC?", "CONFigure:GSM:SIGN:CELL:MNC?"),
     ]
     for name, cmd in read_cmds:
         try:
@@ -99,20 +100,7 @@ def main():
 
     print()
 
-    # ── Help headers (первые 500 символов) ──
-    print("--- Поддерживаемые команды (GSM/Signaling) ---")
-    try:
-        headers = d.utilities.query_str("SYSTem:HELP:HEADers?")
-        lines = [l.strip() for l in headers.strip().split('\n') if 'GSM' in l.upper() or 'SIGN' in l.upper()]
-        for line in lines[:50]:
-            print(f"  {line}")
-        if len(lines) > 50:
-            print(f"  ... и ещё {len(lines) - 50} команд")
-    except Exception as e:
-        err = str(e).replace('\n', ' ')[:80]
-        print(f"  ❌ {err}")
 
-    print()
 
     d.close()
     print("✅ Готово")
@@ -121,3 +109,44 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+
+
+
+"""=== CMW-500 Тестирование ===
+IP: 192.168.2.2
+Режим: Реальный прибор
+
+✅ Подключено
+  IDN: Rohde&Schwarz,CMW,1201.0002k50/168170,3.7.140
+  Serial: 1201.0002k50/168170
+
+--- Configure ---
+  ✅ MCC 250
+  ✅ MNC 60
+  ✅ RF -40
+  ✅ PS Service TMA
+  ✅ PS TLevel EGPRS
+  ✅ PS CScheme UL MC9
+  ✅ SMS DCODing BIT8
+  ✅ SMS PID #H1
+  ✅ DAU Range
+  ✅ DAU DNS
+  ✅ DAU DHCP
+
+--- Чтение ---
+  ✅ IMEI: '"860803066444684"'
+  ✅ IMSI: '"250600003413771"'
+  ✅ RSSI GSM Cell1: 'INV'
+  ✅ RSSI Range GSM Cell1: 'INV,INV'
+  ✅ Status: 'ON,ADJ'
+  ✅ CS State: 'SYNC'
+  ✅ PS State: 'ATT'
+  ✅ MCC?: '250'
+  ✅ MNC?: '60'
+
+--- Ошибки прибора ---
+  0,"No error"
+
+✅ Готово"""

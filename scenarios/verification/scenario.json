@@ -12,7 +12,7 @@
       "channel": "sms",
       "packet_type": "EGTS_GPRS_APN",
       "packet_file": "packets/platform/gprs_apn.hex",
-      "timeout": 5,
+      "timeout": 30,
       "description": "Отправка настроек GPRS/APN (internet)"
     },
     {
@@ -20,7 +20,7 @@
       "type": "expect",
       "channel": "sms",
       "packet_type": "CT_COMCONF",
-      "timeout": 5,
+      "timeout": 30,
       "checks": {
         "subrecord_type": "EGTS_SR_COMMAND_DATA",
         "ct": 1,

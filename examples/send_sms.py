@@ -23,7 +23,7 @@ async def main() -> None:
         print(f"Подключено к CMW-500 по адресу {config.cmw500.ip}")
 
         # Формирование тестового EGTS-пакета (16 байт нулей)
-        egts_packet = bytes(16)
+        egts_packet = bytes.fromhex("0100000B0021001B0001321A002A00400404331700500000000000000000000000020302696E7465726E65740D48")
         print(f"Сформирован EGTS-пакет: {egts_packet.hex()}")
 
         # Отправка пакета через SMS

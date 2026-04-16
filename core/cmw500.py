@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # VisaCmw500Driver — низкоуровневая обёртка
 # ===================================================================
 
+
 class VisaCmw500Driver:
     """Низкоуровневая обёртка над RsCmwGsmSig с реальными командами из comands.txt."""
 
@@ -52,9 +53,7 @@ class VisaCmw500Driver:
         options = "Simulate=True" if self._simulate else None
         resource = f"TCPIP::{self._ip}::inst0::INSTR"
 
-        self._driver = RsCmwGsmSig(
-            resource, id_query=self._id_query, reset=self._reset, options=options
-        )
+        self._driver = RsCmwGsmSig(resource, id_query=self._id_query, reset=self._reset, options=options)
 
         if not self._simulate:
             self._driver.utilities.visa_timeout = 60000
@@ -99,14 +98,10 @@ class VisaCmw500Driver:
     # ==================== Sense & Status ====================
 
     def get_cs_state(self) -> str:
-        return self._drv.utilities.query_str_with_opc(
-            "CALL:GSM:SIGN1:CONNection:CSWitched:STATe?"
-        ).strip()
+        return self._drv.utilities.query_str_with_opc("CALL:GSM:SIGN1:CONNection:CSWitched:STATe?").strip()
 
     def get_ps_state(self) -> str:
-        return self._drv.utilities.query_str_with_opc(
-            "CALL:GSM:SIGN1:CONNection:PSWitched:STATe?"
-        ).strip()
+        return self._drv.utilities.query_str_with_opc("CALL:GSM:SIGN1:CONNection:PSWitched:STATe?").strip()
 
     def get_ber(self) -> float:
         return float(self._drv.utilities.query_str("SENSe:RReport:CSW:MBEP?").strip())
@@ -124,13 +119,15 @@ class VisaCmw500Driver:
         return self._drv.sense.mss_info.ms_address.ipv4.get()
 
     def get_imei(self) -> str:
-        return self._drv.utilities.query_str("CALL:GSM:SIGN1:IMEI?").strip()
+        result = self._drv.utilities.query_str_with_opc("SENSe:GSM:SIGN1:MSSinfo:IMEI?").strip()
+        return result.strip('"')
 
     def get_imsi(self) -> str:
-        return self._drv.utilities.query_str("CALL:GSM:SIGN1:IMSI?").strip()
+        result = self._drv.utilities.query_str_with_opc("SENSe:GSM:SIGN1:MSSinfo:IMSI?").strip()
+        return result.strip('"')
 
     def get_rssi(self) -> str:
-        return self._drv.utilities.query_str("CALL:GSM:SIGN1:RSSI?").strip()
+        return self._drv.utilities.query_str_with_opc("SENSe:GSM:SIGN1:RREPort:NCELl:GSM:CELL1?").strip()
 
     def get_status(self) -> str:
         result = self._drv.utilities.query_str("CALL:GSM:SIGN1:CONNection:STATe?").strip()
@@ -213,6 +210,7 @@ class VisaCmw500Driver:
 # ===================================================================
 # Cmw500Controller
 # ===================================================================
+
 
 @dataclass
 class CmwCommand:
@@ -363,7 +361,7 @@ class Cmw500Controller:
             except Exception as e:
                 last_error = e
                 if attempt < command.retry_count - 1:
-                    await asyncio.sleep(command.retry_delay * (2 ** attempt))
+                    await asyncio.sleep(command.retry_delay * (2**attempt))
         if last_error:
             raise last_error
         raise RuntimeError(f"Command {command.name} failed with 0 retries")
@@ -420,7 +418,7 @@ class Cmw500Controller:
                 retry_delay=0.5,
             ),
         )
-        
+
         # Очищаем буфер после чтения, чтобы предотвратить повторное чтение
         # одного и того же сообщения
         await self._execute_with_retry(
@@ -432,7 +430,7 @@ class Cmw500Controller:
                 retry_delay=0.5,
             ),
         )
-        
+
         if hex_data:
             return hex_data
         return None
@@ -440,9 +438,7 @@ class Cmw500Controller:
     async def _poll_incoming_sms(self) -> None:
         raw = await self.read_sms()
         if raw is not None:
-            await self.bus.emit(
-                "raw.packet.received", {"raw": raw, "channel": "sms", "connection_id": None}
-            )
+            await self.bus.emit("raw.packet.received", {"raw": raw, "channel": "sms", "connection_id": None})
 
     # ====================== Public API ======================
 
@@ -505,7 +501,9 @@ class Cmw500Controller:
                     CmwCommand(name="get_rx_level", func=self._driver.get_rx_level, timeout=3.0, retry_count=1)
                 )
                 serial = await self._execute_with_retry(
-                    CmwCommand(name="serial_number", func=lambda: self._driver.serial_number, timeout=2.0, retry_count=1)
+                    CmwCommand(
+                        name="serial_number", func=lambda: self._driver.serial_number, timeout=2.0, retry_count=1
+                    )
                 )
 
                 result = {
@@ -597,6 +595,7 @@ class Cmw500Controller:
 # ===================================================================
 # Cmw500Emulator — полноценный эмулятор
 # ===================================================================
+
 
 class MockDriver:
     """Мок-драйвер для эмулятора CMW-500."""
