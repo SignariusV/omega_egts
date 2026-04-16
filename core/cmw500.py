@@ -188,18 +188,26 @@ class VisaCmw500Driver:
         return True
 
     def read_sms_raw(self) -> str | None:
-        """Чтение входящей SMS через SENSe:SMS:INComing:DATA?
+        """Чтение входящей SMS через SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?
 
         Returns:
             HEX-данные SMS или None если нет SMS
         """
-        result = self._drv.utilities.query_str("SENSe:SMS:INComing:DATA?").strip()
+        result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?").strip()
         if not result or result == "0":
             return None
         # Убираем префикс #H если есть
         if result.startswith("#H"):
             result = result[2:]
         return result
+
+    def clear_sms_buffer(self) -> None:
+        """Очистка буфера входящих SMS.
+
+        Выполняет команду CLEan:GSM:SIGN<i>:SMS:INComing:INFO:MTEXt для сброса
+        всех параметров, связанных с последним полученным SMS сообщением.
+        """
+        self._drv.utilities.write_str("CLEan:GSM:SIGN1:SMS:INComing:INFO:MTEXt")
 
 
 # ===================================================================
@@ -386,7 +394,7 @@ class Cmw500Controller:
             CmwCommand(
                 name="send_sms",
                 func=self._driver.send_sms_raw,
-                timeout=10.0,
+                timeout=30.0,
                 retry_count=2,
                 retry_delay=1.0,
             ),
@@ -394,21 +402,39 @@ class Cmw500Controller:
         )
 
     async def read_sms(self) -> bytes | None:
-        """Прочитать входящую SMS от УСВ."""
+        """Прочитать входящую SMS от УСВ и очистить буфер.
+
+        Returns:
+            bytes | None: Данные SMS в виде байтов или None если SMS не найдено
+        """
         if self._driver is None:
             raise ConnectionError("CMW-500 not connected")
 
+        # Читаем SMS
         hex_data = await self._execute_with_retry(
             CmwCommand(
                 name="read_sms",
                 func=self._driver.read_sms_raw,
+                timeout=30,
+                retry_count=2,
+                retry_delay=0.5,
+            ),
+        )
+        
+        # Очищаем буфер после чтения, чтобы предотвратить повторное чтение
+        # одного и того же сообщения
+        await self._execute_with_retry(
+            CmwCommand(
+                name="clear_sms_buffer",
+                func=self._driver.clear_sms_buffer,
                 timeout=5.0,
                 retry_count=2,
                 retry_delay=0.5,
             ),
         )
+        
         if hex_data:
-            return bytes.fromhex(hex_data)
+            return hex_data
         return None
 
     async def _poll_incoming_sms(self) -> None:
