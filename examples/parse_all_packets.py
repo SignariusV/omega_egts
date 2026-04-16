@@ -13,16 +13,13 @@
 
 from __future__ import annotations
 
-import os
 from collections import Counter, defaultdict
 from pathlib import Path
 
 # Импортируем парсеры подзаписей (они регистрируются автоматически)
 import libs.egts._gost2015  # noqa: F401
-
+from libs.egts.models import ParseResult
 from libs.egts.registry import get_protocol
-from libs.egts.models import Packet, ParseResult
-from libs.egts.types import PacketType
 
 # ──────────────────────────────────────────────────────────────
 # Константы

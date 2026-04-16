@@ -26,13 +26,13 @@ import time
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from core.event_bus import EventBus
-from core.session import SessionManager
 from core.egts_adapter import (
     EGTS_PC_DATACRC_ERROR,
     EGTS_PC_HEADERCRC_ERROR,
     PACKET_HEADER_MIN_SIZE,
 )
+from core.event_bus import EventBus
+from core.session import SessionManager
 from libs.egts.models import ParseResult, ResponseRecord, Subrecord
 
 logger = logging.getLogger(__name__)

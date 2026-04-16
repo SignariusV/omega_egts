@@ -1,8 +1,8 @@
 """Сборка полного EGTS-пакета из модели."""
 
-from libs.egts.models import Packet, Record, Subrecord
 from libs.egts._core.crc import crc8, crc16
 from libs.egts._core.subrecord_registry import get_parser
+from libs.egts.models import Packet, Record, Subrecord
 
 
 def serialize_subrecord(sub: Subrecord) -> bytes:

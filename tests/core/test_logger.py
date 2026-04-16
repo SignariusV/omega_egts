@@ -13,14 +13,11 @@
 
 import asyncio
 import json
-import tempfile
 import time
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.event_bus import EventBus
 from core.logger import LogManager
 
 # ---------------------------------------------------------------------------
@@ -177,7 +174,7 @@ class TestPacketProcessed:
     async def test_logs_parsed_data(self, log_manager):
         """В лог записываются распарсенные данные."""
         from core.pipeline import PacketContext
-        from libs.egts.models import ParseResult, Packet, Record, Subrecord
+        from libs.egts.models import Packet, ParseResult, Record, Subrecord
 
         ctx = PacketContext(
             raw=b"\x01\x00\x01\x00\x00\x00\xA1\xB2\xC3\xD4",

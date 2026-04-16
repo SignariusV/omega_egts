@@ -34,7 +34,6 @@ from core.config import CmwConfig, Config, LogConfig, TimeoutsConfig
 from core.engine import CoreEngine
 from core.event_bus import EventBus
 
-
 # Пакеты из scenarios/auth/packets/usv/
 TERM_IDENTITY_HEX = (
     "0100000B002E002A0001CC2700490080010101240001000000"
@@ -110,7 +109,7 @@ async def _connect_and_send_sequence(
             if data:
                 entry["response_bytes"] = data
                 entry["response_hex"] = data.hex().upper()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
 
         results.append(entry)
@@ -225,7 +224,6 @@ class TestAuthScenario:
             expected_pids = [42, 43, 44]
             for idx, result in enumerate(results):
                 response = result["response_bytes"]
-                import libs.egts._gost2015  # noqa: F401
                 from libs.egts.registry import get_protocol
 
                 proto = get_protocol("2015")

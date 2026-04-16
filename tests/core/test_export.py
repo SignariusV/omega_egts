@@ -10,13 +10,9 @@
 from __future__ import annotations
 
 import csv
-import io
 import json
-from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
-
 
 # ====================================================================
 # Фикстуры
@@ -110,7 +106,7 @@ class TestExportCSV:
         output = tmp_path / "report.csv"
         export_csv(log_dir=log_dir_with_entries, output_path=output)
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -128,7 +124,7 @@ class TestExportCSV:
         output = tmp_path / "packets.csv"
         export_csv(log_dir=log_dir_with_entries, output_path=output, log_type_filter="packet")
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -146,7 +142,7 @@ class TestExportCSV:
             scenario_name_filter="Авторизация",
         )
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -160,7 +156,7 @@ class TestExportCSV:
         output = tmp_path / "sorted.csv"
         export_csv(log_dir=log_dir_with_entries, output_path=output)
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -178,7 +174,7 @@ class TestExportCSV:
         assert isinstance(result, dict)
         assert result["exported"] == 0
         # Только заголовок
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             content = f.read().strip()
         assert len(content.split("\n")) == 1  # header only
 
@@ -192,7 +188,7 @@ class TestExportCSV:
             scenario_name_filter="Несуществующий",
         )
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
         assert len(rows) == 0
@@ -223,7 +219,7 @@ class TestExportJSON:
         output = tmp_path / "report.json"
         export_json(log_dir=log_dir_with_entries, output_path=output)
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             data = json.load(f)
 
         assert isinstance(data, dict)
@@ -237,7 +233,7 @@ class TestExportJSON:
         output = tmp_path / "report.json"
         export_json(log_dir=log_dir_with_entries, output_path=output)
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             data = json.load(f)
 
         summary = data["summary"]
@@ -254,7 +250,7 @@ class TestExportJSON:
         output = tmp_path / "packets.json"
         export_json(log_dir=log_dir_with_entries, output_path=output, log_type_filter="packet")
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             data = json.load(f)
 
         assert len(data["entries"]) == 2
@@ -279,7 +275,7 @@ class TestExportJSON:
         output = tmp_path / "empty.json"
         export_json(log_dir=tmp_path, output_path=output)
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             data = json.load(f)
 
         assert data["entries"] == []
@@ -335,7 +331,7 @@ class TestExportScenarioResults:
         output = tmp_path / "scenario.csv"
         export_scenario_results_csv(result=scenario_results, output_path=output)
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -350,7 +346,7 @@ class TestExportScenarioResults:
         output = tmp_path / "scenario.json"
         export_scenario_results_json(result=scenario_results, output_path=output)
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             data = json.load(f)
 
         assert data["scenario_name"] == "Авторизация"
@@ -370,7 +366,7 @@ class TestExportScenarioResults:
         output = tmp_path / "empty.csv"
         export_scenario_results_csv(result=result, output_path=output)
 
-        with open(output, "r", encoding="utf-8") as f:
+        with open(output, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
         assert len(rows) == 0

@@ -727,9 +727,6 @@ class EGTSTesterCLI(Cmd):
             print("Сначала запустите сервер: start")
             return
 
-        from core.config import Config
-        from core.engine import CoreEngine
-        from core.event_bus import EventBus
 
         results: list[dict[str, Any]] = []
         for scenario_name in scenarios:
