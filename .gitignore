@@ -1,36 +1,50 @@
 ```
-# Python compiled files
-*.pyc
+# Python
 __pycache__/
-
-# Coverage reports
-.coverage
-
-# Dependencies and build artifacts
-.venv/
-venv/
-node_modules/
-dist/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
-.mypy_cache/
-.pytest_cache/
-target/
-.gradle/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Logs and temporary files
-*.log
+# Coverage
+.coverage
+coverage/
+
+# Testing
+.pytest_cache/
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 *.tmp
 
-# Environment files
+# Logs
+*.log
+
+# Environment
 .env
 .env.local
 *.env.*
 
-# Editors and IDEs
-.vscode/
-.idea/
-
-# System files
+# OS
 .DS_Store
 Thumbs.db
 ```
