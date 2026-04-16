@@ -1,9 +1,6 @@
 """Cmw500Controller — контроллер CMW-500 через RsCmwGsmSig.
 
-Архитектура:
-- VisaCmw500Driver — обёртка над RsCmwGsmSig (SCPI + Sense API)
-- Cmw500Controller — очередь команд, retry, SMS, poll + stop/start_poll
-- Cmw500Emulator — полноценный эмулятор
+Используются реальные SCPI-команды из comands.txt.
 """
 
 from __future__ import annotations
@@ -25,11 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 # ===================================================================
-# VisaCmw500Driver
+# VisaCmw500Driver — низкоуровневая обёртка
 # ===================================================================
 
 class VisaCmw500Driver:
-    """Низкоуровневая обёртка над RsCmwGsmSig."""
+    """Низкоуровневая обёртка над RsCmwGsmSig с реальными командами из comands.txt."""
 
     def __init__(
         self,
@@ -74,7 +71,6 @@ class VisaCmw500Driver:
 
     @property
     def _drv(self) -> RsCmwGsmSig:
-        """Безопасный доступ к драйверу."""
         if self._driver is None:
             raise RuntimeError("Driver not opened")
         return self._driver
@@ -95,22 +91,13 @@ class VisaCmw500Driver:
     def idn_string(self) -> str:
         return self._drv.utilities.idn_string
 
-    def query(self, scpi: str) -> str:
-        return self._drv.utilities.query_str(scpi)
-
-    def write(self, scpi: str) -> None:
-        self._drv.utilities.write_str(scpi)
-
-    # ==================== Sense & Legacy ====================
+    # ==================== Sense & Status ====================
 
     def get_cs_state(self) -> str:
         return self._drv.utilities.query_str_with_opc("CALL:GSM:SIGN1:CONNection:CSWitched:STATe?").strip()
 
     def get_ps_state(self) -> str:
         return self._drv.utilities.query_str_with_opc("CALL:GSM:SIGN1:CONNection:PSWitched:STATe?").strip()
-
-    def get_call_cs_state(self) -> str:
-        return self._drv.call.cswitched.state.get()
 
     def get_ber(self) -> float:
         return float(self._drv.utilities.query_str("SENSe:RReport:CSW:MBEP?").strip())
@@ -154,87 +141,44 @@ class VisaCmw500Driver:
         ps_dl_carrier: str = "OFF,OFF,OFF,ON,ON,OFF,OFF,OFF",
         ps_dl_cscheme: str = "MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9",
     ) -> None:
-        self.configure_cell_mcc(mcc)
-        self.configure_cell_mnc(mnc)
-        self.configure_rf_level_tch(rf_level_dbm)
-        self.configure_ps_service(ps_service)
-        self.configure_ps_tlevel(ps_tlevel)
-        self.configure_ps_cscheme_ul(ps_cscheme_ul)
-        self.configure_ps_dl_carrier(ps_dl_carrier)
-        self.configure_ps_dl_cscheme(ps_dl_cscheme)
-
-    def configure_cell_mcc(self, mcc: int) -> None:
+        """Конфигурация согласно comands.txt"""
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CELL:MCC {mcc}")
-
-    def configure_cell_mnc(self, mnc: int) -> None:
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CELL:MNC {mnc}")
-
-    def configure_rf_level_tch(self, level_dbm: float) -> None:
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:RFSettings:LEVel:TCH {level_dbm}")
-
-    def configure_ps_service(self, service: str) -> None:
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:SERVice {service}")
-
-    def configure_ps_tlevel(self, tlevel: str) -> None:
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:TLEVel {tlevel}")
-
-    def configure_ps_cscheme_ul(self, scheme: str) -> None:
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:CSCHeme:UL {scheme}")
-
-    def configure_ps_dl_carrier(self, carriers: str) -> None:
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:RFSettings:LEVel:TCH {rf_level_dbm}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:SERVice {ps_service}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:TLEVel {ps_tlevel}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:CSCHeme:UL {ps_cscheme_ul}")
         self._drv.utilities.write_str(
-            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:ENABle:DL:CARRier {carriers}"
+            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:ENABle:DL:CARRier {ps_dl_carrier}"
         )
-
-    def configure_ps_dl_cscheme(self, scheme: str) -> None:
         self._drv.utilities.write_str(
-            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:CSCHeme:DL:CARRier {scheme}"
+            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:CSCHeme:DL:CARRier {ps_dl_cscheme}"
         )
-
-    def configure_sms_dcoding(self, dcoding: str) -> None:
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:DCODing {dcoding}")
-
-    def configure_sms_pidentifier(self, pid: int) -> None:
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H{pid}")
 
     def configure_sms(self, dcoding: str = "BIT8", pid: int = 1) -> None:
-        self.configure_sms_dcoding(dcoding)
-        self.configure_sms_pidentifier(pid)
+        """Конфигурация SMS согласно comands.txt"""
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:DCODing {dcoding}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H{pid}")
 
-    def configure_dau(
-        self,
-        meas_range: str = "GSM Sig1",
-        dns_type: str = "Foreign",
-        ipv4_type: str = "DHCPv4",
-    ) -> None:
-        self._drv.utilities.write_str(f"CONFigure:DATA:MEAS:RAN '{meas_range}'")
-        self._drv.utilities.write_str(f"CONFigure:DATA:CONTrol:DNS:PRIMary:STYPe {dns_type}")
-        self._drv.utilities.write_str(f"CONFigure:DATA:CONTrol:IPVFour:ADDRess:TYPE {ipv4_type}")
+    def configure_dau(self) -> None:
+        """Конфигурация DAU согласно comands.txt"""
+        self._drv.utilities.write_str("CONFigure:DATA:MEAS:RAN 'GSM Sig1'")
+        self._drv.utilities.write_str("CONFigure:DATA:CONTrol:DNS:PRIMary:STYPe Foreign")
+        self._drv.utilities.write_str("CONFigure:DATA:CONTrol:IPVFour:ADDRess:TYPE DHCPv4")
+
+    # ==================== SMS Send ====================
+
+    def send_sms_raw(self, hex_data: str) -> None:
+        """Отправка SMS через CALL:GSM:SIGN:CSWitched:ACTion SMS"""
+        # Сначала устанавливаем данные SMS (как в comands.txt)
+        self._drv.utilities.write_str(f"CONF:GSM:SIGN1:SMS:OUTG:BIN #H{hex_data}")
+        # Запускаем отправку
+        self._drv.utilities.write_str_with_opc("CALL:GSM:SIGN:CSWitched:ACTion SMS")
 
 
 # ===================================================================
 # Cmw500Controller
 # ===================================================================
-
-@dataclass
-class CmwCommand:
-    name: str
-    scpi_template: str
-    timeout: float = 5.0
-    retry_count: int = 3
-    retry_delay: float = 1.0
-
-    def format(self, *args: object, **kwargs: object) -> str:
-        return self.scpi_template.format(*args, **kwargs)
-
-
-GET_IMEI = CmwCommand("get_imei", "CMW:GSM:SIGN:IMEI?", timeout=2.0, retry_count=3)
-GET_IMSI = CmwCommand("get_imsi", "CMW:GSM:SIGN:IMSI?", timeout=2.0, retry_count=3)
-GET_RSSI = CmwCommand("get_rssi", "CMW:GSM:SIGN:RSSI?", timeout=2.0, retry_count=2)
-GET_STATUS = CmwCommand("get_status", "CMW:GSM:SIGN:CONN?", timeout=2.0, retry_count=3)
-SEND_SMS = CmwCommand("send_sms", "CMW:GSM:SIGN:SMS:SEND {}", timeout=10.0, retry_count=2)
-READ_SMS = CmwCommand("read_sms", "CMW:GSM:SIGN:SMS:READ?", timeout=5.0, retry_count=3)
-
 
 class Cmw500Controller:
     """Контроллер CMW-500 с очередью команд, retry и поддержкой эмуляции."""
@@ -252,7 +196,7 @@ class Cmw500Controller:
         self._simulate = simulate
 
         self._driver: VisaCmw500Driver | None = None
-        self._queue: asyncio.Queue[tuple[CmwCommand, tuple[object, ...], asyncio.Future[str]]] = asyncio.Queue()
+        self._queue: asyncio.Queue[tuple[Callable, tuple, asyncio.Future]] = asyncio.Queue()
         self._worker: asyncio.Task[None] | None = None
         self._poll_task: asyncio.Task[None] | None = None
         self._connected = False
@@ -300,60 +244,29 @@ class Cmw500Controller:
         await self.bus.emit("cmw.disconnected", {})
 
     def stop_poll(self) -> None:
-        """Временно остановить опрос (используется перед конфигурацией)."""
         if self._poll_task and not self._poll_task.done():
             self._poll_task.cancel()
         self._poll_task = None
 
     def start_poll(self) -> None:
-        """Запустить опрос после конфигурации."""
-        if not self._connected:
-            return
-        if self._poll_task is not None and not self._poll_task.done():
+        if not self._connected or (self._poll_task and not self._poll_task.done()):
             return
         self._poll_task = asyncio.create_task(self._poll_loop())
         self._poll_task.add_done_callback(self._on_poll_done)
-
-    # ====================== Callbacks ======================
-
-    def _on_worker_done(self, task: asyncio.Task[None]) -> None:
-        if task.cancelled():
-            return
-        exc = task.exception()
-        if exc is not None:
-            self._connected = False
-            try:
-                asyncio.get_running_loop().create_task(
-                    self.bus.emit("cmw.error", {"error": str(exc), "command": "worker_loop"})
-                )
-            except RuntimeError:
-                pass
-
-    def _on_poll_done(self, task: asyncio.Task[None]) -> None:
-        if task.cancelled():
-            return
-        exc = task.exception()
-        if exc is not None:
-            try:
-                asyncio.get_running_loop().create_task(
-                    self.bus.emit("cmw.error", {"error": str(exc), "command": "poll_loop"})
-                )
-            except RuntimeError:
-                pass
 
     # ====================== Worker & Poll ======================
 
     async def _worker_loop(self) -> None:
         while self._connected:
             try:
-                command, args, future = await asyncio.wait_for(self._queue.get(), timeout=1.0)
+                cmd, args, future = await asyncio.wait_for(self._queue.get(), timeout=1.0)
             except TimeoutError:
                 continue
             except asyncio.CancelledError:
                 break
 
             try:
-                result = await self._execute_with_retry(command, *args)
+                result = await self._execute(cmd, *args)
                 if future and not future.cancelled():
                     future.set_result(result)
             except Exception as e:
@@ -362,25 +275,11 @@ class Cmw500Controller:
             finally:
                 self._queue.task_done()
 
-    async def _execute_with_retry(self, command: CmwCommand, *args: object) -> str:
-        last_error: Exception | None = None
-        for attempt in range(command.retry_count):
-            try:
-                scpi = command.format(*args)
-                result = await asyncio.wait_for(self._send_scpi(scpi), timeout=command.timeout)
-                return result
-            except Exception as e:
-                last_error = e
-                await asyncio.sleep(command.retry_delay * (2 ** attempt))
-        if last_error:
-            raise last_error
-        raise RuntimeError(f"Command {command.name} failed with 0 retries")
-
-    async def _send_scpi(self, scpi: str) -> str:
+    async def _execute(self, cmd: Callable, *args: Any) -> Any:
         if self._driver is None:
             raise ConnectionError("CMW-500 driver not connected")
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self._driver.query, scpi)
+        return await loop.run_in_executor(None, cmd, *args)
 
     async def _poll_loop(self) -> None:
         while self._connected:
@@ -393,12 +292,19 @@ class Cmw500Controller:
     # ====================== SMS ======================
 
     async def send_sms(self, egts_bytes: bytes) -> bool:
-        result = await self.execute(SEND_SMS, egts_bytes.hex())
-        return "OK" in result
+        """Отправка EGTS через SMS (использует реальную команду из comands.txt)"""
+        if self._driver is None:
+            raise ConnectionError("CMW-500 not connected")
+
+        hex_data = egts_bytes.hex().upper()
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self._driver.send_sms_raw, hex_data)
+        return True
 
     async def read_sms(self) -> bytes | None:
-        result = await self.execute(READ_SMS)
-        return bytes.fromhex(result) if result else None
+        # Реализация чтения входящих SMS (пока заглушка — зависит от конкретной модели CMW)
+        # В реальности обычно используется SENSe или специальный запрос
+        return None
 
     async def _poll_incoming_sms(self) -> None:
         raw = await self.read_sms()
@@ -409,25 +315,14 @@ class Cmw500Controller:
 
     # ====================== Public API ======================
 
-    async def execute(self, command: CmwCommand, *args: object) -> str:
-        if not self._connected:
-            raise ConnectionError("CMW-500 not connected")
-        loop = asyncio.get_running_loop()
-        future: asyncio.Future[str] = loop.create_future()
-        await self._queue.put((command, args, future))
-        return await future
-
     async def get_imei(self) -> str:
-        return await self.execute(GET_IMEI)
+        return await self._execute(self._driver.get_imei) if self._driver else ""
 
     async def get_imsi(self) -> str:
-        return await self.execute(GET_IMSI)
+        return await self._execute(self._driver.get_imsi) if self._driver else ""
 
     async def get_rssi(self) -> str:
-        return await self.execute(GET_RSSI)
-
-    async def get_status(self) -> str:
-        return await self.execute(GET_STATUS)
+        return await self._execute(self._driver.get_rssi) if self._driver else ""
 
     async def get_full_status(self) -> dict[str, Any]:
         now = time.monotonic()
@@ -447,18 +342,23 @@ class Cmw500Controller:
                 "ip": self._ip,
             }
         else:
-            result = {"connected": self._driver is not None and self._driver.is_open}
-            if self._driver:
-                try:
-                    result["serial"] = self._driver.serial_number
-                    result["cs_state"] = "N/A (Sense не поддерживается)"
-                    result["ps_state"] = "N/A (Sense не поддерживается)"
-                    result["rssi"] = "N/A"
-                    result["ber"] = "N/A"
-                    result["rx_level"] = "N/A"
-                except Exception as e:
-                    result["connected"] = False
-                    result["error"] = str(e)
+            if not self._driver or not self._driver.is_open:
+                return {"connected": False, "error": "Driver not open"}
+
+            try:
+                result = {
+                    "connected": True,
+                    "serial": self._driver.serial_number,
+                    "cs_state": self._driver.get_cs_state(),
+                    "ps_state": self._driver.get_ps_state(),
+                    "rssi": self._driver.get_rssi(),
+                    "ber": self._driver.get_ber(),
+                    "rx_level": self._driver.get_rx_level(),
+                    "simulate": False,
+                    "ip": self._ip,
+                }
+            except Exception as e:
+                result = {"connected": False, "error": str(e)}
 
         self._status_cache = result
         self._status_cache_ts = now
@@ -476,14 +376,13 @@ class Cmw500Controller:
         if self._driver is None:
             raise ConnectionError("CMW-500 driver not connected")
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, self._driver.configure_sms_dcoding, dcoding)
-        await loop.run_in_executor(None, self._driver.configure_sms_pidentifier, pid)
+        await loop.run_in_executor(None, self._driver.configure_sms, dcoding, pid)
 
-    async def configure_dau(self, **kwargs: Any) -> None:
+    async def configure_dau(self) -> None:
         if self._driver is None:
             raise ConnectionError("CMW-500 driver not connected")
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, lambda: self._driver.configure_dau(**kwargs))
+        await loop.run_in_executor(None, self._driver.configure_dau)
 
     async def start_signaling(self) -> None:
         if self._driver is None:
@@ -499,7 +398,7 @@ class Cmw500Controller:
 
 
 # ===================================================================
-# Cmw500Emulator
+# Cmw500Emulator (оставляем почти без изменений)
 # ===================================================================
 
 class Cmw500Emulator(Cmw500Controller):
@@ -516,7 +415,6 @@ class Cmw500Emulator(Cmw500Controller):
         sms_delay_max: float = 30.0,
     ) -> None:
         super().__init__(bus=bus, ip=ip, poll_interval=poll_interval, simulate=True)
-
         self._tcp_delay_min = tcp_delay_min
         self._tcp_delay_max = tcp_delay_max
         self._sms_delay_min = sms_delay_min
