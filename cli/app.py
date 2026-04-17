@@ -20,6 +20,14 @@
 
 from __future__ import annotations
 
+# Настройка Python-логирования ДО всего остального
+from core.python_logger import setup_python_logging
+setup_python_logging(
+    log_dir="logs",
+    console_level="ERROR",  # В консоль только ошибки
+    file_level="DEBUG",     # В файл всё
+)
+
 import argparse
 import asyncio
 import threading
@@ -493,6 +501,15 @@ class EGTSTesterCLI(Cmd):
 
     def __init__(self) -> None:
         super().__init__()
+        
+        # Настройка логирования (на случай если запущен напрямую)
+        from core.python_logger import setup_python_logging
+        setup_python_logging(
+            log_dir="logs",
+            console_level="ERROR",
+            file_level="DEBUG",
+        )
+        
         self._engine: Any = None
         self._config: Any = None
         self._bus: Any = None

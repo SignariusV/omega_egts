@@ -52,6 +52,8 @@ class LogConfig:
     rotation: str = "daily"
     max_size_mb: int = 100
     retention_days: int = 30
+    python_console_level: str = "ERROR"  # Уровень логирования в консоль
+    python_file_level: str = "DEBUG"     # Уровень логирования в файл
 
 
 def _validate_cmw(cmw: CmwConfig) -> None:
