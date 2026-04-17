@@ -158,6 +158,7 @@ def _patch_all_components():
     mod_map["core.dispatcher"].PacketDispatcher = pkt_cls
     mod_map["core.dispatcher"].CommandDispatcher = cmd_cls
     mod_map["core.cmw500"].Cmw500Controller = cmw_cls
+    mod_map["core.cmw500"].Cmw500Emulator = cmw_cls
     mod_map["core.packet_source"].ReplaySource = replay_cls
 
     for mod_name, mod in mod_map.items():

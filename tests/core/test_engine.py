@@ -54,6 +54,7 @@ def _patch_components():
     }
     mods["core.tcp_server"].TcpServerManager = MagicMock(return_value=tcp)
     mods["core.cmw500"].Cmw500Controller = MagicMock(return_value=cmw)
+    mods["core.cmw500"].Cmw500Emulator = MagicMock(return_value=cmw)
     mods["core.session"].SessionManager = MagicMock(return_value=sess)
     mods["core.logger"].LogManager = MagicMock(return_value=log)
     mods["core.scenario"].ScenarioManager = MagicMock(return_value=scen)

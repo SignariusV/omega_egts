@@ -130,7 +130,6 @@ class PacketDispatcher:
                 - channel: str — "tcp" или "sms"
                 - connection_id: str | None — идентификатор подключения
         """
-з
         raw: bytes = data.get("raw", b"")
         channel: str = data.get("channel", "tcp")
         connection_id: str | None = data.get("connection_id")
@@ -256,7 +255,7 @@ class PacketDispatcher:
                 "PacketDispatcher: protocol=None для SMS-сессии, "
                 "использую ГОСТ 2015 по умолчанию"
             )
-            protocol = create_egts_protocol("2015")
+            protocol = create_protocol("2015")
 
         self.session_mgr.create_session(
             connection_id=_SMS_DEFAULT_CONNECTION_ID,

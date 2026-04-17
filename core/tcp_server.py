@@ -265,7 +265,7 @@ class TcpServerManager:
                 "connection_id": connection_id,
                 "usv_id": connection_id,
                 "state": "DISCONNECTED",
-                "prev_state": conn.state.value if conn and conn.state else None,
+                "prev_state": conn.fsm.state.value if conn and conn.fsm else None,
                 "action": "disconnected",
                 "reason": "TCP connection closed",
                 "timestamp": time.monotonic(),

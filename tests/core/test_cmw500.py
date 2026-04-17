@@ -9,12 +9,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from core.cmw500 import (
-    GET_IMEI,
-    GET_IMSI,
-    GET_RSSI,
-    GET_STATUS,
-    READ_SMS,
-    SEND_SMS,
     Cmw500Controller,
     CmwCommand,
     VisaCmw500Driver,
