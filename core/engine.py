@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -9,6 +10,8 @@ from typing import Any
 
 from core.config import Config
 from core.event_bus import EventBus
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 import time
 from collections import OrderedDict
 from dataclasses import dataclass, field
@@ -21,6 +22,8 @@ from typing import Any
 from core.egts_adapter import TL_RESEND_ATTEMPTS, TL_RESPONSE_TO
 from core.event_bus import EventBus
 from libs.egts.protocol import IEgtsProtocol
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # Состояния FSM
