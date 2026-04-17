@@ -730,9 +730,12 @@ class SessionManager:
             await self.bus.emit(
                 "connection.changed",
                 {
+                    "connection_id": conn.connection_id,
                     "usv_id": conn.usv_id,
                     "state": UsvState.DISCONNECTED.value,
+                    "prev_state": conn.state.value if conn.state else None,
                     "action": "session_closed",
+                    "timestamp": time.monotonic(),
                 },
             )
 
@@ -795,8 +798,10 @@ class SessionManager:
                         "connection_id": conn.connection_id,
                         "usv_id": conn.usv_id,
                         "state": new_state.value,
+                        "prev_state": conn.state.value if conn.state else None,
                         "action": "state_transition",
                         "reason": f"FSM: {conn.fsm.last_transition}",
+                        "timestamp": time.monotonic(),
                     },
                 )
             except Exception:

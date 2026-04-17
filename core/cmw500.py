@@ -218,17 +218,28 @@ class VisaCmw500Driver:
         return True
 
     def read_sms_raw(self) -> str | None:
-        """Чтение входящей SMS через SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?
+        """Чтение входящей SMS через SENSe:GSM:SIGN:SMS:INComing:INFO:DATA?
 
         Returns:
             HEX-данные SMS или None если нет SMS
         """
-        result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?").strip()
+        # Сначала проверяем наличие SMS
+        count = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:COUNt?").strip()
+        if not count or count == "0":
+            return None
+        
+        # Читаем SMS в HEX-формате
+        result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:DATA?").strip()
         if not result or result == "0":
             return None
+        
         # Убираем префикс #H если есть
         if result.startswith("#H"):
             result = result[2:]
+        
+        # Очищаем буфер после чтения
+        self.clear_sms_buffer()
+        
         return result
 
     def clear_sms_buffer(self) -> None:

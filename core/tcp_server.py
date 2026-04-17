@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 import uuid
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -166,8 +167,10 @@ class TcpServerManager:
                 "connection_id": connection_id,
                 "usv_id": connection_id,
                 "state": "CONNECTED",
+                "prev_state": None,
                 "action": "connected",
                 "reason": f"Connected from {peername}",
+                "timestamp": time.monotonic(),
             },
         )
 
@@ -262,7 +265,9 @@ class TcpServerManager:
                 "connection_id": connection_id,
                 "usv_id": connection_id,
                 "state": "DISCONNECTED",
+                "prev_state": conn.state.value if conn and conn.state else None,
                 "action": "disconnected",
                 "reason": "TCP connection closed",
+                "timestamp": time.monotonic(),
             },
         )

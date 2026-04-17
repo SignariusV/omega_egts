@@ -74,6 +74,7 @@ class LogManager:
 
         # Подписка на события
         self._bus.on("packet.processed", self._on_packet_processed)
+        self._bus.on("packet.sent", self._on_packet_sent)
         self._bus.on("connection.changed", self._on_connection_changed)
         self._bus.on("scenario.step", self._on_scenario_step)
 
@@ -105,6 +106,7 @@ class LogManager:
 
         # Отписаться от событий
         self._bus.off("packet.processed", self._on_packet_processed)
+        self._bus.off("packet.sent", self._on_packet_sent)
         self._bus.off("connection.changed", self._on_connection_changed)
         self._bus.off("scenario.step", self._on_scenario_step)
         logger.info("LogManager: остановлен, буфер сброшен")
@@ -162,6 +164,7 @@ class LogManager:
         """
         stats: dict[str, int] = {
             "packets": 0,
+            "packets_sent": 0,
             "connections": 0,
             "scenarios": 0,
             "total": len(self._buffer),
@@ -170,11 +173,40 @@ class LogManager:
             log_type = entry.get("log_type", "")
             if log_type == "packet":
                 stats["packets"] += 1
+            elif log_type == "packet_sent":
+                stats["packets_sent"] += 1
             elif log_type == "connection":
                 stats["connections"] += 1
             elif log_type == "scenario":
                 stats["scenarios"] += 1
         return stats
+
+    async def _on_packet_sent(self, data: dict[str, Any]) -> None:
+        """Обработать событие packet.sent.
+
+        Логирует: hex отправленного пакета, connection_id, channel, pid, rn.
+        """
+        packet_bytes = data.get("packet_bytes", b"")
+        raw_hex = packet_bytes.hex().upper() if packet_bytes else ""
+
+        entry: dict[str, Any] = {
+            "log_type": "packet_sent",
+            "timestamp": time.monotonic(),
+            "connection_id": data.get("connection_id"),
+            "channel": data.get("channel"),
+            "hex": raw_hex,
+            "step_name": data.get("step_name"),
+            "pid": data.get("pid"),
+            "rn": data.get("rn"),
+        }
+
+        self._buffer.append(entry)
+        logger.debug(
+            "LogManager: packet_sent conn=%s channel=%s step=%s",
+            entry["connection_id"],
+            entry["channel"],
+            entry["step_name"],
+        )
 
     async def _on_packet_processed(self, data: dict[str, Any]) -> None:
         """Обработать событие packet.processed.
