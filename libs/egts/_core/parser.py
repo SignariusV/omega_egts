@@ -46,7 +46,7 @@ def parse_header(data: bytes) -> Packet:
     flags = data[2]
     hl = data[3]
     he = data[4]
-    fdl = int.from_bytes(data[5:7], 'little')
+    int.from_bytes(data[5:7], 'little')  # FDL (frame data length) - reserved
     pid = int.from_bytes(data[7:9], 'little')
     pt = data[9] if len(data) > 9 else 0
 

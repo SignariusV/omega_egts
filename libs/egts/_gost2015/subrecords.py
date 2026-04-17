@@ -111,19 +111,19 @@ _SERVICE_PART_MIN_SIZE = 7
 # SRT=0 RECORD_RESPONSE
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class RecordResponseParser:
     srt = 0
     name = "RECORD_RESPONSE"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 3:
             return {"raw": raw, "parse_error": f"Too short: {len(raw)}"}
         crn = int.from_bytes(raw[0:2], "little")
         rst = raw[2]
         return {"crn": crn, "rst": rst}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         crn = data.get("crn", 0)
         rst = data.get("rst", 0)
         return crn.to_bytes(2, "little") + bytes([rst])
@@ -133,18 +133,19 @@ class RecordResponseParser:
 # SRT=1 TERM_IDENTITY
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class TermIdentityParser:
     srt = 1
     name = "TERM_IDENTITY"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < _TID_MIN_SIZE:
             raise ValueError(f"TERM_IDENTITY too short: {len(raw)}")
         offset = 0
         tid = int.from_bytes(raw[offset:offset+_TID_SIZE], "little")
         offset += _TID_SIZE
-        flags = raw[offset]; offset += _TID_FLAGS_SIZE
+        flags = raw[offset]
+        offset += _TID_FLAGS_SIZE
 
         hdide = bool(flags & _TID_HDIDE_MASK)
         imeie = bool(flags & _TID_IMEIE_MASK)
@@ -155,7 +156,7 @@ class TermIdentityParser:
         bse = bool(flags & _TID_BSE_MASK)
         mne = bool(flags & _TID_MNE_MASK)
 
-        result = {
+        result: dict[str, object] = {
             "tid": tid, "flags": flags,
             "hdide": hdide, "imeie": imeie, "imsie": imsie,
             "lngce": lngce, "ssra": ssra,
@@ -186,19 +187,27 @@ class TermIdentityParser:
 
         return result
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         result = bytearray()
         result.extend(data.get("tid", 0).to_bytes(_TID_SIZE, "little"))
 
         flags = 0
-        if data.get("hdide", False): flags |= _TID_HDIDE_MASK
-        if data.get("imeie", False): flags |= _TID_IMEIE_MASK
-        if data.get("imsie", False): flags |= _TID_IMSIE_MASK
-        if data.get("lngce", False): flags |= _TID_LNGCE_MASK
-        if data.get("ssra", False): flags |= _TID_SSRA_MASK
-        if data.get("nide", False): flags |= _TID_NIDE_MASK
-        if data.get("bse", False): flags |= _TID_BSE_MASK
-        if data.get("mne", False): flags |= _TID_MNE_MASK
+        if data.get("hdide", False):
+            flags |= _TID_HDIDE_MASK
+        if data.get("imeie", False):
+            flags |= _TID_IMEIE_MASK
+        if data.get("imsie", False):
+            flags |= _TID_IMSIE_MASK
+        if data.get("lngce", False):
+            flags |= _TID_LNGCE_MASK
+        if data.get("ssra", False):
+            flags |= _TID_SSRA_MASK
+        if data.get("nide", False):
+            flags |= _TID_NIDE_MASK
+        if data.get("bse", False):
+            flags |= _TID_BSE_MASK
+        if data.get("mne", False):
+            flags |= _TID_MNE_MASK
         result.append(flags)
 
         if data.get("hdide", False):
@@ -226,21 +235,27 @@ class TermIdentityParser:
 # SRT=2 MODULE_DATA
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class ModuleDataParser:
     srt = 2
     name = "MODULE_DATA"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < _MODULE_DATA_MIN_SIZE:
             raise ValueError(f"MODULE_DATA too short: {len(raw)}")
         offset = 0
-        mt = raw[offset]; offset += 1
-        vid = int.from_bytes(raw[offset:offset+4], "little"); offset += 4
-        fwv = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
-        swv = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
-        md = raw[offset]; offset += 1
-        st = raw[offset]; offset += 1
+        mt = raw[offset]
+        offset += 1
+        vid = int.from_bytes(raw[offset:offset+4], "little")
+        offset += 4
+        fwv = int.from_bytes(raw[offset:offset+2], "little")
+        offset += 2
+        swv = int.from_bytes(raw[offset:offset+2], "little")
+        offset += 2
+        md = raw[offset]
+        offset += 1
+        st = raw[offset]
+        offset += 1
 
         srn = _decode_string_until_null(raw[offset:])
         offset += len(srn) + 1
@@ -248,7 +263,7 @@ class ModuleDataParser:
 
         return {"mt": mt, "vid": vid, "fwv": fwv, "swv": swv, "md": md, "st": st, "srn": srn, "dscr": dscr}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         result = bytearray()
         result.append(data.get("mt", 1))
         result.extend(data.get("vid", 0).to_bytes(4, "little"))
@@ -269,12 +284,12 @@ class ModuleDataParser:
 # SRT=3 VEHICLE_DATA
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class VehicleDataParser:
     srt = 3
     name = "VEHICLE_DATA"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < _VEHICLE_DATA_SIZE:
             raise ValueError(f"VEHICLE_DATA too short: {len(raw)}")
         vin = _decode_string(raw[0:17])
@@ -282,7 +297,7 @@ class VehicleDataParser:
         vpst = int.from_bytes(raw[21:25], "little")
         return {"vin": vin, "vht": vht, "vpst": vpst}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         vin = data.get("vin", "")
         vin_bytes = vin.encode("cp1251")[:_VEHICLE_VIN_SIZE].ljust(_VEHICLE_VIN_SIZE, b"\x00")
         vht_bytes = data.get("vht", 0).to_bytes(_VEHICLE_VHT_SIZE, "little")
@@ -294,16 +309,17 @@ class VehicleDataParser:
 # SRT=6 AUTH_PARAMS
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class AuthParamsParser:
     srt = 6
     name = "AUTH_PARAMS"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 1:
             raise ValueError(f"AUTH_PARAMS too short: {len(raw)}")
         offset = 0
-        flg = raw[offset]; offset += 1
+        flg = raw[offset]
+        offset += 1
         ena = bool(flg & 0x01)
         pke = bool((flg >> 1) & 0x01)
         isle = bool((flg >> 2) & 0x01)
@@ -314,30 +330,39 @@ class AuthParamsParser:
         pkl = pbk = isl = is_data = msz = ms = ssl = ss = exp = None
 
         if pke and offset + 2 <= len(raw):
-            pkl = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
+            pkl = int.from_bytes(raw[offset:offset+2], "little")
+            offset += 2
             if offset + pkl <= len(raw):
-                pbk = raw[offset:offset+pkl]; offset += pkl
+                pbk = raw[offset:offset+pkl]
+                offset += pkl
 
         if isle and offset + 2 <= len(raw):
-            isl = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
+            isl = int.from_bytes(raw[offset:offset+2], "little")
+            offset += 2
             if offset + isl <= len(raw):
-                is_data = raw[offset:offset+isl]; offset += isl
+                is_data = raw[offset:offset+isl]
+                offset += isl
 
         if mse and offset + 2 <= len(raw):
-            msz = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
+            msz = int.from_bytes(raw[offset:offset+2], "little")
+            offset += 2
             if offset + msz <= len(raw):
-                ms = raw[offset:offset+msz]; offset += msz
+                ms = raw[offset:offset+msz]
+                offset += msz
 
         if sse and offset + 2 <= len(raw):
-            ssl = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
+            ssl = int.from_bytes(raw[offset:offset+2], "little")
+            offset += 2
             if offset + ssl <= len(raw):
-                ss = raw[offset:offset+ssl]; offset += ssl
+                ss = raw[offset:offset+ssl]
+                offset += ssl
 
         if exe and offset < len(raw):
             offset += 1  # разделитель 0x00
             exp_end = raw.find(b"\x00", offset)
             if exp_end != -1:
-                exp = raw[offset:exp_end]; offset = exp_end + 1
+                exp = raw[offset:exp_end]
+                offset = exp_end + 1
 
         return {
             "flg": flg, "ena": ena, "pke": pke, "isle": isle,
@@ -346,14 +371,20 @@ class AuthParamsParser:
             "msz": msz, "ms": ms, "ssl": ssl, "ss": ss, "exp": exp,
         }
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         flg = data.get("flg", 0)
-        if data.get("ena", False): flg |= 0x01
-        if data.get("pke", False): flg |= 0x02
-        if data.get("isle", False): flg |= 0x04
-        if data.get("mse", False): flg |= 0x08
-        if data.get("sse", False): flg |= 0x10
-        if data.get("exe", False): flg |= 0x20
+        if data.get("ena", False):
+            flg |= 0x01
+        if data.get("pke", False):
+            flg |= 0x02
+        if data.get("isle", False):
+            flg |= 0x04
+        if data.get("mse", False):
+            flg |= 0x08
+        if data.get("sse", False):
+            flg |= 0x10
+        if data.get("exe", False):
+            flg |= 0x20
 
         result = bytearray([flg])
 
@@ -391,12 +422,12 @@ class AuthParamsParser:
 # SRT=7 AUTH_INFO
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class AuthInfoParser:
     srt = 7
     name = "AUTH_INFO"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 2:
             raise ValueError(f"AUTH_INFO too short: {len(raw)}")
         offset = 0
@@ -419,7 +450,7 @@ class AuthInfoParser:
 
         return {"unm": unm, "upsw": upsw, "ss": ss}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         result = bytearray()
         unm = data.get("unm", "")
         result.extend(unm.encode("cp1251") if isinstance(unm, str) else unm)
@@ -441,12 +472,12 @@ class AuthInfoParser:
 # SRT=8 SERVICE_INFO
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class ServiceInfoParser:
     srt = 8
     name = "SERVICE_INFO"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 1:
             raise ValueError(f"SERVICE_INFO too short: {len(raw)}")
         srvp = raw[0]
@@ -456,9 +487,12 @@ class ServiceInfoParser:
         services = []
         offset = 1
         while offset + 2 < len(raw):
-            st = raw[offset]; offset += 1
-            sst = raw[offset]; offset += 1
-            srvp_svc = raw[offset]; offset += 1
+            st = raw[offset]
+            offset += 1
+            sst = raw[offset]
+            offset += 1
+            srvp_svc = raw[offset]
+            offset += 1
             services.append({
                 "st": st, "sst": sst, "srvp": srvp_svc,
                 "srva": bool((srvp_svc >> 7) & 0x01),
@@ -467,7 +501,7 @@ class ServiceInfoParser:
 
         return {"srvp": srvp, "srva": srva, "srvrp": srvrp, "services": services}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         srvp = data.get("srvp", 0)
         if data.get("srva", False):
             srvp |= 0x80
@@ -508,18 +542,18 @@ _RESULT_CODES = {
 }
 
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class ResultCodeParser:
     srt = 9
     name = "RESULT_CODE"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 1:
             return {"rcd": 0, "rcd_text": "OK"}
         rcd = raw[0]
         return {"rcd": rcd, "rcd_text": _RESULT_CODES.get(rcd, f"Unknown ({rcd})")}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         return bytes([data.get("rcd", 0)])
 
 
@@ -527,26 +561,32 @@ class ResultCodeParser:
 # SRT=20 ACCEL_DATA
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class AccelDataParser:
     srt = 20
     name = "ACCEL_DATA"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 5:
             raise ValueError(f"ACCEL_DATA too short: {len(raw)}")
         offset = 0
-        sa = raw[offset]; offset += 1
-        atm = int.from_bytes(raw[offset:offset+4], "little"); offset += 4
+        sa = raw[offset]
+        offset += 1
+        atm = int.from_bytes(raw[offset:offset+4], "little")
+        offset += 4
 
         measurements = []
         for _ in range(sa):
             if offset + 8 > len(raw):
                 break
-            rtm = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
-            xaav = int.from_bytes(raw[offset:offset+2], "little", signed=True); offset += 2
-            yaav = int.from_bytes(raw[offset:offset+2], "little", signed=True); offset += 2
-            zaav = int.from_bytes(raw[offset:offset+2], "little", signed=True); offset += 2
+            rtm = int.from_bytes(raw[offset:offset+2], "little")
+            offset += 2
+            xaav = int.from_bytes(raw[offset:offset+2], "little", signed=True)
+            offset += 2
+            yaav = int.from_bytes(raw[offset:offset+2], "little", signed=True)
+            offset += 2
+            zaav = int.from_bytes(raw[offset:offset+2], "little", signed=True)
+            offset += 2
             measurements.append({
                 "rtm": rtm,
                 "xaav": xaav * 0.1,
@@ -556,7 +596,7 @@ class AccelDataParser:
 
         return {"sa": sa, "atm": atm, "measurements": measurements}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         measurements = data.get("measurements", [])
         result = bytearray()
         result.append(len(measurements))
@@ -579,21 +619,25 @@ class AccelDataParser:
 # SRT=33 SERVICE_PART_DATA
 # ──────────────────────────────────────────────────────────────
 
-def _parse_odh(data: bytes) -> dict:
+def _parse_odh(data: bytes) -> dict[str, object]:
     """Разобрать ODH (Object Data Header)."""
     if len(data) < 7:
         raise ValueError(f"ODH too short: {len(data)}")
     offset = 0
-    oa = data[offset]; offset += 1
-    ot_mt = data[offset]; offset += 1
+    oa = data[offset]
+    offset += 1
+    ot_mt = data[offset]
+    offset += 1
     ot = (ot_mt >> 6) & 0x03
     mt = ot_mt & 0x3F
-    cmi = data[offset]; offset += 1
+    cmi = data[offset]
+    offset += 1
     ver = int.from_bytes(data[offset:offset+2], "little")
     major = (ver >> 8) & 0xFF
     minor = ver & 0xFF
     offset += 2
-    wos = int.from_bytes(data[offset:offset+2], "little"); offset += 2
+    wos = int.from_bytes(data[offset:offset+2], "little")
+    offset += 2
 
     file_name = ""
     fn_start = offset
@@ -612,18 +656,21 @@ def _parse_odh(data: bytes) -> dict:
     }
 
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class ServicePartDataParser:
     srt = 33
     name = "SERVICE_PART_DATA"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 7:
             raise ValueError(f"SERVICE_PART_DATA too short: {len(raw)}")
         offset = 0
-        entity_id = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
-        part_number = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
-        total_parts = int.from_bytes(raw[offset:offset+2], "little"); offset += 2
+        entity_id = int.from_bytes(raw[offset:offset+2], "little")
+        offset += 2
+        part_number = int.from_bytes(raw[offset:offset+2], "little")
+        offset += 2
+        total_parts = int.from_bytes(raw[offset:offset+2], "little")
+        offset += 2
 
         odh = odh_parsed = None
         if part_number == 1 and len(raw) >= 8:
@@ -644,7 +691,7 @@ class ServicePartDataParser:
             "odh": odh, "od": od, "odh_parsed": odh_parsed,
         }
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         result = bytearray()
         result.extend(data.get("id", 0).to_bytes(2, "little"))
         result.extend(data.get("pn", 1).to_bytes(2, "little"))
@@ -663,12 +710,12 @@ class ServicePartDataParser:
 # SRT=34 SERVICE_FULL_DATA
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class ServiceFullDataParser:
     srt = 34
     name = "SERVICE_FULL_DATA"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 8:
             raise ValueError(f"SERVICE_FULL_DATA too short: {len(raw)}")
         delimiter_pos = -1
@@ -684,7 +731,7 @@ class ServiceFullDataParser:
         od = raw[odh_end:]
         return {"odh": odh, "od": od, "odh_parsed": _parse_odh(odh)}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         odh = data.get("odh", b"")
         od = data.get("od", b"")
         return odh + od
@@ -700,35 +747,42 @@ _CHARSETS = {
 }
 
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class CommandDataParser:
     srt = 51
     name = "COMMAND_DATA"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < _COMMAND_DATA_MIN_SIZE:
             raise ValueError(f"COMMAND_DATA too short: {len(raw)}")
         offset = 0
-        ct_cct = raw[offset]; offset += 1
+        ct_cct = raw[offset]
+        offset += 1
         ct = (ct_cct >> 4) & 0x0F
         cct = ct_cct & 0x0F
 
-        cid = int.from_bytes(raw[offset:offset+4], "little"); offset += 4
-        sid = int.from_bytes(raw[offset:offset+4], "little"); offset += 4
+        cid = int.from_bytes(raw[offset:offset+4], "little")
+        offset += 4
+        sid = int.from_bytes(raw[offset:offset+4], "little")
+        offset += 4
 
-        flags = raw[offset]; offset += 1
+        flags = raw[offset]
+        offset += 1
         acfe = bool((flags >> 7) & 0x01)
         chsfe = bool((flags >> 6) & 0x01)
 
         chs = None
         if chsfe and offset < len(raw):
-            chs = raw[offset]; offset += 1
+            chs = raw[offset]
+            offset += 1
 
         acl = ac = None
         if acfe and offset < len(raw):
-            acl = raw[offset]; offset += 1
+            acl = raw[offset]
+            offset += 1
             if offset + acl <= len(raw):
-                ac = raw[offset:offset+acl]; offset += acl
+                ac = raw[offset:offset+acl]
+                offset += acl
 
         cd = raw[offset:]
 
@@ -739,7 +793,7 @@ class CommandDataParser:
             "acl": acl, "ac": ac, "cd": cd,
         }
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         ct = data.get("ct", 0)
         cct = data.get("cct", 0)
         result = bytes([((ct & 0x0F) << 4) | (cct & 0x0F)])
@@ -767,12 +821,12 @@ class CommandDataParser:
 # SRT=62 RAW_MSD_DATA
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class RawMsdDataParser:
     srt = 62
     name = "RAW_MSD_DATA"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < 1:
             raise ValueError(f"RAW_MSD_DATA too short: {len(raw)}")
         fm = raw[0]
@@ -791,23 +845,26 @@ class RawMsdDataParser:
 # SRT=63 TRACK_DATA
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord
+@register_subrecord  # type: ignore[arg-type]
 class TrackDataParser:
     srt = 63
     name = "TRACK_DATA"
 
-    def parse(self, raw: bytes) -> dict:
+    def parse(self, raw: bytes) -> dict[str, object]:
         if len(raw) < _TRACK_DATA_MIN_SIZE:
             raise ValueError(f"TRACK_DATA too short: {len(raw)}")
         offset = 0
-        sa = raw[offset]; offset += 1
-        atm = int.from_bytes(raw[offset:offset+4], "little"); offset += 4
+        sa = raw[offset]
+        offset += 1
+        atm = int.from_bytes(raw[offset:offset+4], "little")
+        offset += 4
 
         track_points = []
         for _ in range(sa):
             if offset >= len(raw):
                 break
-            header = raw[offset]; offset += 1
+            header = raw[offset]
+            offset += 1
             tnde = bool((header >> 7) & 0x01)
             lohs = bool((header >> 6) & 0x01)
             lahs = bool((header >> 5) & 0x01)
@@ -850,7 +907,7 @@ class TrackDataParser:
 
         return {"sa": sa, "atm": atm, "track_points": track_points}
 
-    def serialize(self, data: dict) -> bytes:
+    def serialize(self, data: dict[str, object]) -> bytes:
         track_points = data.get("track_points", [])
         result = bytearray()
         result.append(len(track_points))

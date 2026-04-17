@@ -149,7 +149,7 @@ def parse_all(packets: list[bytes]):
                 by_srt[srt_name] += 1
 
                 if isinstance(sr.data, dict):
-                    for key in sr.data.keys():
+                    for key in sr.data:
                         by_srt_data_keys[sr.subrecord_type][key] += 1
 
         # Roundtrip

@@ -28,7 +28,7 @@ import threading
 from cmd import Cmd
 from collections.abc import Awaitable, Callable, Coroutine
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 from core.python_logger import setup_python_logging
 
@@ -494,7 +494,7 @@ class EGTSTesterCLI(Cmd):
     intro = "egts-tester REPL. Введите 'help' для списка команд."
     prompt = "egts-tester> "
 
-    _command_help: dict[str, str] = {
+    _command_help: ClassVar[dict[str, str]] = {
         "start": "Запустить сервер [--port PORT] [--gost VER] [--cmw IP] [--simulate]",
         "stop": "Остановить сервер",
         "status": "Статус TCP-сервера",
@@ -508,7 +508,7 @@ class EGTSTesterCLI(Cmd):
         "exit": "Выйти из REPL",
     }
 
-    _aliases: dict[str, str] = {
+    _aliases: ClassVar[dict[str, str]] = {
         "cmw-status": "cmw_status",
         "run-scenario": "run_scenario",
     }
@@ -833,7 +833,7 @@ class EGTSTesterCLI(Cmd):
     def do_quit(self, arg: str) -> bool:
         return self.do_exit("")
 
-    def do_EOF(self, arg: str) -> bool:
+    def do_eof(self, arg: str) -> bool:
         print()
         return self.do_exit("")
 

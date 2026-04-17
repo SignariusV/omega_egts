@@ -7,6 +7,7 @@ import logging
 
 import libs.egts._gost2015  # noqa: F401 — регистрирует протокол
 from libs.egts.models import ParseResult
+from libs.egts.protocol import IEgtsProtocol
 from libs.egts.registry import get_protocol
 from libs.egts.types import ResultCode
 
@@ -52,17 +53,16 @@ TL_RESEND_ATTEMPTS = 3
 TL_RECONNECT_TO = 30
 
 
-def create_protocol(version: str = "2015"):
+def create_protocol(version: str = "2015") -> IEgtsProtocol:
     """Создать экземпляр протокола (обратная совместимость)."""
-    return get_protocol(version)
+    return get_protocol(version)  # type: ignore[no-any-return]
 
-
-def collect_extra(parsed: ParseResult) -> dict:
+def collect_extra(parsed: ParseResult) -> dict[str, object]:
     """Собрать flat dict из ParseResult для обратной совместимости.
 
     Заменяет старое поле extra — собирает данные из всех subrecord.data.
     """
-    result: dict = {}
+    result: dict[str, object] = {}
     if parsed.packet is None:
         return result
 

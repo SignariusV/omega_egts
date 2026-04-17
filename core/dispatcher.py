@@ -110,7 +110,7 @@ class PacketDispatcher:
         p = PacketPipeline()
         p.add("crc", CrcValidationMiddleware(self.session_mgr), order=1)
         p.add("parse", ParseMiddleware(self.session_mgr), order=2)
-        p.add("dedup", DuplicateDetectionMiddleware(self.session_mgr), order=2.5)
+        p.add("dedup", DuplicateDetectionMiddleware(self.session_mgr), order=3)
         p.add("auto_resp", AutoResponseMiddleware(self.session_mgr), order=3)
         p.add("emit", EventEmitMiddleware(self.bus), order=5)
         return p

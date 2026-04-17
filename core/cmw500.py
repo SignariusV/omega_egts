@@ -1,5 +1,8 @@
 """Cmw500Controller — контроллер CMW-500 через RsCmwGsmSig.
 
+# pyvisawrap имеет динамические методы возвращающие Any
+# pyright: ignore[reportAny, reportGeneralTypeIssues, reportOptionalMemberAccess]
+
 Используются реальные SCPI-команды, проверенные на реальном приборе.
 
 Архитектура:
@@ -91,7 +94,7 @@ class VisaCmw500Driver:
 
     @property
     def serial_number(self) -> str:
-        return self._drv.utilities.instrument_serial_number
+        return self._drv.utilities.instrument_serial_number  # type: ignore[no-any-return]
 
     @property
     def idn_string(self) -> str:
@@ -231,7 +234,7 @@ class VisaCmw500Driver:
 
             if message_flag == "ON":
                 return None
-        except:
+        except Exception:
             pass
 
         # Получаем текст сообщения
@@ -241,7 +244,7 @@ class VisaCmw500Driver:
 
             if not result:
                 return None
-        except:
+        except Exception:
             return None
 
         # Убираем кавычки если есть

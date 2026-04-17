@@ -1,5 +1,7 @@
 """Gost2015Protocol — полная реализация EGTS ГОСТ 2015."""
 
+from typing import ClassVar
+
 from libs.egts._core.builder import build_full_packet, serialize_subrecord
 from libs.egts._core.crc import crc8, crc16
 from libs.egts._core.subrecord_registry import get_parser
@@ -11,7 +13,7 @@ class Gost2015Protocol(IEgtsProtocol):
     """Реализация EGTS по ГОСТ 33465-2015."""
 
     version = "2015"
-    capabilities = {"auth", "commands", "ecall", "firmware"}
+    capabilities: ClassVar[set[str]] = {"auth", "commands", "ecall", "firmware"}
 
     def parse_packet(self, data: bytes) -> ParseResult:
         """Разобрать EGTS-пакет из байтов."""
@@ -117,10 +119,10 @@ class Gost2015Protocol(IEgtsProtocol):
 
         for rr in records:
             # Подзапись RECORD_RESPONSE
-            sr_data = {"crn": rr.rn, "rst": 0}
+            sr_data: dict[str, object] = {"crn": rr.rn, "rst": 0}
             subrecord = Subrecord(
                 subrecord_type=0,  # RECORD_RESPONSE
-                data=sr_data,
+                data=sr_data,  # type: ignore[arg-type]
             )
             rec = Record(
                 record_id=rr.rn,
@@ -135,8 +137,8 @@ class Gost2015Protocol(IEgtsProtocol):
 
     def build_record_response(self, crn: int, rst: int) -> bytes:
         """Собрать байты подзаписи RECORD_RESPONSE (SRT=0)."""
-        sr_data = {"crn": crn, "rst": rst}
-        sr = Subrecord(subrecord_type=0, data=sr_data)
+        sr_data: dict[str, object] = {"crn": crn, "rst": rst}
+        sr = Subrecord(subrecord_type=0, data=sr_data)  # type: ignore[arg-type]
         return serialize_subrecord(sr)
 
     def calculate_crc8(self, data: bytes) -> int:
@@ -180,7 +182,7 @@ class Gost2015Protocol(IEgtsProtocol):
     @staticmethod
     def _parse_records(packet: Packet, sfrd: bytes, warnings: list[str]) -> None:
         """Разобрать записи уровня поддержки услуг.
-        
+
         По ГОСТ 33465-2015 таблица 14:
         Запись = RL(2) + RN(2) + RFL(1) + [OID] + [EVID] + [TM] + SST(1) + RST(1) + RD(RL)
         RL = длина RD (payload), НЕ включая RL/RN/RFL/SST/RST
@@ -202,7 +204,8 @@ class Gost2015Protocol(IEgtsProtocol):
             offset += 2
 
             # RFL
-            rfl = sfrd[offset]; offset += 1
+            rfl = sfrd[offset]
+            offset += 1
             ssod = bool(rfl & 0x80)
             rsod = bool(rfl & 0x40)
             rpp = (rfl >> 3) & 0x07
@@ -222,10 +225,12 @@ class Gost2015Protocol(IEgtsProtocol):
             header_size = 4 + optional_size + 1 + 1  # RN + optional + SST + RST
 
             # SST
-            sst = sfrd[offset]; offset += 1
+            sst = sfrd[offset]
+            offset += 1
 
             # RST
-            rst = sfrd[offset]; offset += 1
+            rst = sfrd[offset]
+            offset += 1
 
             # Опциональные поля
             object_id = event_id = timestamp = None
@@ -252,7 +257,8 @@ class Gost2015Protocol(IEgtsProtocol):
             subrecords = []
             rd_offset = 0
             while rd_offset + 3 <= len(rd):  # SRT(1) + SRL(2)
-                srt = rd[rd_offset]; rd_offset += 1
+                srt = rd[rd_offset]
+                rd_offset += 1
                 srl = int.from_bytes(rd[rd_offset:rd_offset+2], 'little')
                 rd_offset += 2
 
