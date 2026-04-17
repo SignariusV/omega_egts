@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import sys
 import threading
 from cmd import Cmd
@@ -37,6 +38,8 @@ session_id = setup_python_logging(
     console_level="ERROR",  # В консоль только ошибки
     file_level="DEBUG",  # В файл всё
 )
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from core.engine import CoreEngine
