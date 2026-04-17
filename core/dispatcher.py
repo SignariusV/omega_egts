@@ -446,6 +446,19 @@ class CommandDispatcher:
                     connection_id,
                 )
 
+        # Эмит события packet.sent для логирования отправленного пакета
+        await self.bus.emit(
+            "packet.sent",
+            {
+                "connection_id": connection_id,
+                "step_name": step_name,
+                "packet_bytes": packet_bytes,
+                "channel": "tcp",
+                "pid": effective_pid,
+                "rn": effective_rn,
+            },
+        )
+
         await self.bus.emit(
             "command.sent",
             {
@@ -538,6 +551,19 @@ class CommandDispatcher:
                 logger.warning(
                     "CommandDispatcher: SMS-сессия или transaction_mgr недоступны"
                 )
+
+        # Эмит события packet.sent для логирования отправленного пакета
+        await self.bus.emit(
+            "packet.sent",
+            {
+                "connection_id": _SMS_DEFAULT_CONNECTION_ID,
+                "step_name": step_name,
+                "packet_bytes": packet_bytes,
+                "channel": "sms",
+                "pid": pid,
+                "rn": rn,
+            },
+        )
 
         await self.bus.emit(
             "command.sent",
