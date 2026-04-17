@@ -358,8 +358,6 @@ async def _try_get_engine_cmw_status() -> dict[str, Any] | None:
     Returns:
         dict со статусом или None если сервер не запущен.
     """
-    import asyncio
-
     try:
         _, writer = await asyncio.wait_for(
             asyncio.open_connection("127.0.0.1", 3001),
@@ -370,9 +368,6 @@ async def _try_get_engine_cmw_status() -> dict[str, Any] | None:
     except (OSError, TimeoutError):
         return None
 
-    # Сервер запущен — пытаемся получить engine
-    # Это работает только в рамках того же процесса,
-    # поэтому для CLI без сервера возвращаем None
     return None
 
 
@@ -522,15 +517,6 @@ class EGTSTesterCLI(Cmd):
     def __init__(self) -> None:
         super().__init__()
 
-        # Настройка логирования (на случай если запущен напрямую)
-        from core.python_logger import setup_python_logging
-
-        setup_python_logging(
-            log_dir="logs",
-            console_level="ERROR",
-            file_level="DEBUG",
-        )
-
         self._engine: Any = None
         self._config: Any = None
         self._bus: Any = None
@@ -643,10 +629,13 @@ class EGTSTesterCLI(Cmd):
         self._bus = EventBus()
         self._engine = CoreEngine(config=self._config, bus=self._bus)
 
-        # Создаём event loop и запускаем engine
+        # Создаём event loop
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
-        self._loop.run_until_complete(self._engine.start())
+
+        # Запланировать запуск engine в этом же loop (он будет выполнен при run_forever)
+        self._loop.create_task(self._engine.start())
+
         print(f"✅ Сервер запущен на порту {port}, ГОСТ {gost}")
         if cmw_ip:
             mode = "(режим симуляции)" if simulate else ""
@@ -655,7 +644,7 @@ class EGTSTesterCLI(Cmd):
             print("   CMW-500: режим симуляции")
         print("   Используйте 'stop' для остановки сервера")
 
-        # Запускаем loop в фоновом потоке
+        # Запускаем loop в фоновом потоке (начнёт выполнять create_task)
         self._server_running = True
         self._server_thread = threading.Thread(target=self._run_loop_forever, daemon=True)
         self._server_thread.start()
@@ -773,7 +762,7 @@ class EGTSTesterCLI(Cmd):
             return
 
         parts = arg.split()
-        if len(parts) < 5:
+        if len(parts) < 3:
             print("Использование: export <type> --format <fmt> --output <file>")
             return
 
