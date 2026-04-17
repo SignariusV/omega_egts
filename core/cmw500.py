@@ -240,21 +240,16 @@ class VisaCmw500Driver:
         # Получаем текст сообщения
         try:
             result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?").strip()
-            return result
-
             if not result:
                 return None
         except Exception:
             return None
 
-        # Убираем кавычки если есть
         if result.startswith('"') and result.endswith('"'):
             result = result[1:-1]
 
-        # Очищаем буфер после чтения
         self.clear_sms_buffer()
 
-        # Конвертируем текст в HEX
         return result.encode('utf-8').hex().upper()
 
     def clear_sms_buffer(self) -> None:
@@ -491,7 +486,7 @@ class Cmw500Controller:
         )
 
         if hex_data:
-            return hex_data #fixme
+            return bytes.fromhex(hex_data)
         return None
 
     async def _poll_incoming_sms(self) -> None:
