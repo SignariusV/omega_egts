@@ -188,6 +188,10 @@ class CoreEngine:
         """Внутренний метод для остановки всех компонентов."""
         # Останавливаем в обратном порядке создания
 
+        if self.log_mgr is not None:
+            await self.log_mgr.stop()
+            self.log_mgr = None
+
         if self.cmw500 is not None:
             with suppress(Exception):
                 await self.cmw500.disconnect()
