@@ -119,8 +119,8 @@ class CoreEngine:
             )
             await self.tcp_server.start()
 
-            # 7. Cmw500Controller (опционально — если задан IP)
-            if self.config.cmw500.ip is not None:
+            # 7. Cmw500Controller (опционально — если задан IP или simulate=True)
+            if self.config.cmw500.ip is not None or self.config.cmw500.simulate:
                 from core.cmw500 import Cmw500Controller, Cmw500Emulator
 
                 if self.config.cmw500.simulate:

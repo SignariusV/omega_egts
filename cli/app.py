@@ -163,15 +163,15 @@ def build_parser() -> argparse.ArgumentParser:
 def _format_status(data: dict[str, Any]) -> str:
     """Форматировать статус системы для вывода."""
     lines = []
-    state = "🟢 running" if data.get("running") else "🔴 stopped"
+    state = "OK" if data.get("running") else "STOPPED"
     lines.append(f"Состояние: {state}")
     lines.append(f"Порт: {data.get('port')}")
     lines.append(f"ГОСТ: {data.get('gost_version')}")
     lines.append(f"TCP сервер: {data.get('tcp_server')}")
     lines.append(f"CMW-500: {data.get('cmw500')}")
-    lines.append(f"SessionManager: {'✅' if data.get('session_mgr') else '❌'}")
-    lines.append(f"LogManager: {'✅' if data.get('log_mgr') else '❌'}")
-    lines.append(f"ScenarioManager: {'✅' if data.get('scenario_mgr') else '❌'}")
+    lines.append(f"SessionManager: OK" if data.get('session_mgr') else f"SessionManager: FAIL")
+    lines.append(f"LogManager: OK" if data.get('log_mgr') else f"LogManager: FAIL")
+    lines.append(f"ScenarioManager: OK" if data.get('scenario_mgr') else f"ScenarioManager: FAIL")
 
     if data.get("cmw_details"):
         lines.append("")
@@ -185,9 +185,9 @@ def _format_status(data: dict[str, Any]) -> str:
 def _format_cmw_status(data: dict[str, Any]) -> str:
     """Форматировать статус CMW-500."""
     if not data.get("connected"):
-        return f"🔴 CMW-500 не подключён: {data.get('error', 'неизвестная ошибка')}"
+        return f"CMW-500 NOT CONNECTED: {data.get('error', 'unknown error')}"
 
-    lines = ["🟢 CMW-500 подключён"]
+    lines = ["CMW-500 connected"]
 
     # Основные параметры
     if data.get("serial"):
@@ -232,7 +232,7 @@ def _format_cmw_status(data: dict[str, Any]) -> str:
 def _format_scenario_result(data: dict[str, Any]) -> str:
     """Форматировать результат сценария."""
     status = data.get("status", "unknown")
-    icon = "✅ PASSED" if status == "PASS" else f"❌ {status}"
+    icon = "PASSED" if status == "PASS" else f"FAILED: {status}"
     lines = [
         f"Сценарий: {data.get('name', 'unknown')}",
         f"Результат: {icon}",
@@ -291,7 +291,10 @@ async def _cmd_start(args: argparse.Namespace) -> int:
     config = Config(
         gost_version=args.gost,
         tcp_port=args.port,
-        cmw500=CmwConfig(ip=args.cmw, simulate=args.simulate) if args.cmw else CmwConfig(simulate=args.simulate),
+        cmw500=CmwConfig(
+            ip=args.cmw if args.cmw else "127.0.0.1",
+            simulate=args.simulate
+        ),
         logging=LogConfig(level=args.log_level),
         timeouts=TimeoutsConfig(),
     )
@@ -301,10 +304,8 @@ async def _cmd_start(args: argparse.Namespace) -> int:
 
     try:
         await engine.start()
-        print(f"✅ Сервер запущен на порту {args.port}, ГОСТ {args.gost}")
-        if args.cmw:
-            print(f"   CMW-500: {args.cmw}")
-        print("   Нажмите Ctrl+C для остановки")
+        print(f"Server started on port {args.port}, GOST {args.gost}")
+        print("Press Ctrl+C to stop", flush=True)
 
         # Ждём пока не прервут
         try:
@@ -314,7 +315,7 @@ async def _cmd_start(args: argparse.Namespace) -> int:
             pass
     finally:
         await engine.stop()
-        print("\n🔴 Сервер остановлен")
+        print("\nServer stopped", flush=True)
 
     return 0
 
@@ -621,10 +622,12 @@ class EGTSTesterCLI(Cmd):
         from core.engine import CoreEngine
         from core.event_bus import EventBus
 
+        # Для эмулятора используем localhost
+        cmw_ip_for_config = cmw_ip if cmw_ip else ("127.0.0.1" if simulate else None)
         self._config = Config(
             gost_version=gost,
             tcp_port=port,
-            cmw500=CmwConfig(ip=cmw_ip, simulate=simulate) if cmw_ip else CmwConfig(simulate=simulate),
+            cmw500=CmwConfig(ip=cmw_ip_for_config, simulate=simulate),
             logging=LogConfig(),
             timeouts=TimeoutsConfig(),
         )
@@ -638,7 +641,7 @@ class EGTSTesterCLI(Cmd):
         # Запланировать запуск engine в этом же loop (он будет выполнен при run_forever)
         self._loop.create_task(self._engine.start())
 
-        print(f"✅ Сервер запущен на порту {port}, ГОСТ {gost}")
+        print(f"Server started on port {port}, GOST {gost}")
         if cmw_ip:
             mode = "(режим симуляции)" if simulate else ""
             print(f"   CMW-500: {cmw_ip} {mode}")
@@ -667,9 +670,9 @@ class EGTSTesterCLI(Cmd):
             if self._server_thread is not None:
                 self._server_thread.join(timeout=5)
 
-            print("🔴 Сервер остановлен")
+            print("Server stopped")
         except Exception as e:
-            print(f"⚠️ Ошибка при остановке сервера: {e}")
+            print(f"Error while stopping server: {e}")
         finally:
             self._server_running = False
             self._loop = None
