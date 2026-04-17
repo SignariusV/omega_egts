@@ -23,7 +23,7 @@ from __future__ import annotations
 # Настройка Python-логирования ДО всего остального
 from core.python_logger import setup_python_logging
 
-setup_python_logging(
+session_id = setup_python_logging(
     log_dir="logs",
     console_level="ERROR",  # В консоль только ошибки
     file_level="DEBUG",  # В файл всё
