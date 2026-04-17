@@ -1,0 +1,2 @@
+[console_scripts]
+omega-egts = cli.app:main

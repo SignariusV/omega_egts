@@ -1,0 +1,212 @@
+Metadata-Version: 2.4
+Name: omega-egts
+Version: 0.0.0
+Summary: Серверный тестер УСВ — испытания на соответствие ГОСТ 33465/33464
+Author: OMEGA_EGTS Team
+License: MIT
+Project-URL: Homepage, https://github.com/your-org/OMEGA_EGTS
+Project-URL: Documentation, https://github.com/your-org/OMEGA_EGTS/docs
+Project-URL: Repository, https://github.com/your-org/OMEGA_EGTS
+Project-URL: Issues, https://github.com/your-org/OMEGA_EGTS/issues
+Keywords: egts,gost,usv,ecall,cmw500,navigation
+Classifier: Development Status :: 1 - Planning
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Testing
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: pyvisa>=1.13.0
+Requires-Dist: pyvisa-py>=0.7.0
+Requires-Dist: asn1crypto>=1.5.1
+Requires-Dist: crc>=7.1.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: pytest-mock>=3.12.0; extra == "dev"
+Requires-Dist: ruff>=0.3.0; extra == "dev"
+Requires-Dist: mypy>=1.8.0; extra == "dev"
+Requires-Dist: types-setuptools; extra == "dev"
+Provides-Extra: gui
+Requires-Dist: PyQt6>=6.6.0; extra == "gui"
+
+# OMEGA_EGTS — Серверный тестер УСВ
+
+[![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-design-yellow.svg)](.)
+
+**Серверный тестер устройств/систем вызова экстренных оперативных служб (УСВ)** — программный комплекс для испытаний УСВ на соответствие требованиям **ГОСТ 33465** (редакции 2015, 2023) и **ГОСТ 33464**.
+
+---
+
+## Назначение
+
+- Приём и анализ EGTS-пакетов от тестируемого УСВ через **CMW-500** (Rohde & Schwarz)
+- Два канала связи: **TCP/IP** (через WiFi CMW-500) и **SMS** (через LAN/SCPI)
+- Валидация протокола: авторизация, телеметрия, траектория, профиль ускорения, eCall, обновление ПО
+- Протоколирование всех этапов испытаний — каждый пакет логируется (hex + parsed)
+- Загрузка/выгрузка данных: работа с HEX-файлами и динамическая генерация пакетов
+
+## Статус
+
+> ⚠️ **Проект на стадии проектирования.** Исходный код ещё не написан.
+>
+> Документация в `docs/` содержит полное техническое задание и текст ГОСТ.
+
+## Быстрый старт
+
+```bash
+# 1. Клонировать репозиторий
+git clone https://github.com/your-org/OMEGA_EGTS.git
+cd OMEGA_EGTS
+
+# 2. Создать виртуальное окружение
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Linux/macOS
+
+# 3. Установить зависимости
+pip install -e .
+
+# 4. Запустить (когда будет готово)
+omega-egts
+```
+
+## Поддерживаемые сценарии
+
+| # | Сценарий | Ключевые сообщения |
+|---|----------|-------------------|
+| 1 | Авторизация | TERM_IDENTITY → AUTH_PARAMS → AUTH_INFO → RESULT_CODE |
+| 2 | Телеметрия | NAV_DATA, координаты, скорость |
+| 3 | Траектория | TRACK_DATA, последовательность точек |
+| 4 | Профиль ускорения | ACCEL_DATA, ≤ 0.01G, ASI15 |
+| 5 | eCall | RAW_MSD_DATA (ASN.1), МНД |
+| 6 | Обновление ПО | SERVICE_PART_DATA, SERVICE_FULL_DATA, ODH |
+| 7 | Команды и параметры | COMMAND_DATA, запрос/установка параметров |
+| 8 | Режим тестирования | TEST_MODE_ON/OFF, проверочные пакеты |
+| 9 | SMS-канал | Приём/отправка EGTS через SMS, конкатенация |
+| 10 | Пассивный режим | TID=0, SMS с учётными данными, повторная авторизация |
+
+## Архитектура
+
+```
+Core Engine (единое ядро)
+    ├── EventBus (3 события: packet.received, connection.changed, scenario.step)
+    ├── TcpServerManager (asyncio TCP-сервер)
+    ├── Cmw500Controller (SCPI/VISA, асинхронная очередь команд)
+    ├── SessionManager + UsvConnection + UsvStateMachine (FSM)
+    ├── TransactionManager (PID↔RPID, RN↔CRN)
+    ├── ScenarioManager (загрузка/выполнение сценариев из JSON)
+    ├── PacketPipeline (middleware-конвейер: CRC → Parse → Duplicate → Transaction → Event)
+    ├── LogManager (подписчик на события)
+    ├── CredentialsRepository (JSON-хранилище)
+    └── Export (CSV/JSON/DER выгрузка)
+```
+
+📖 Подробная архитектура: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+## Ключевые параметры протокола
+
+| Параметр | Значение | Описание |
+|----------|----------|----------|
+| `TL_RESPONSE_TO` | 5 с | Ожидание подтверждения |
+| `TL_RESEND_ATTEMPTS` | 3 | Повторные попытки |
+| `TL_RECONNECT_TO` | 30 с | Повторное соединение |
+| `EGTS_SL_NOT_AUTH_TO` | 6 с | Таймаут авторизации |
+| `CMW_SCPI_TIMEOUT` | 5 с | Таймаут SCPI-команды |
+| `CMW_SCPI_RETRIES` | 3 | Повторные попытки SCPI |
+
+## Дорожная карта
+
+| Этап | Результат | Статус |
+|------|-----------|--------|
+| **1. CLI MVP** | Core Engine + EventBus + FSM + CLI + ГОСТ 2015 + эмулятор CMW-500 | 🟡 В работе |
+| **2. Сценарии** | Все 10 сценариев, HEX-файлы, export, CredentialsRepository | ⬜ Запланировано |
+| **3. ГОСТ 2023** | Поддержка актуальной редакции | ⬜ Запланировано |
+| **4. GUI** | Графический интерфейс оператора | ⬜ Запланировано |
+| **5. Реальное CMW-500** | Интеграция с реальным оборудованием | ⬜ Запланировано |
+
+## Структура проекта
+
+```
+OMEGA_EGTS/
+├── core/                          # ЕДИНОЕ ЯДРО
+│   ├── engine.py                  # CoreEngine
+│   ├── config.py                  # Config
+│   ├── event_bus.py               # EventBus
+│   ├── tcp_server.py              # TcpServerManager
+│   ├── cmw500.py                  # Cmw500Controller
+│   ├── session.py                 # SessionManager + FSM + TransactionManager
+│   ├── scenario.py                # ScenarioManager + StepFactory
+│   ├── pipeline.py                # PacketPipeline + Middleware
+│   ├── logger.py                  # LogManager
+│   ├── credentials.py             # CredentialsRepository
+│   └── export.py                  # Выгрузка данных
+├── libs/egts_protocol/            # Библиотеки EGTS (2015, 2023)
+├── cli/app.py                     # CLI приложение
+├── scenarios/                     # Готовые сценарии (JSON + HEX)
+├── config/                        # settings.json, credentials.json
+├── docs/                          # Документация
+│   ├── ТЗ_тестер_УСВ.md           # Техническое задание
+│   ├── gost.md                    # ГОСТ 33465-2015
+│   ├── ARCHITECTURE.md            # Архитектура
+│   └── *.xlsx                     # Тестовые данные
+├── tests/                         # pytest
+├── CHANGELOG.md                   # История изменений
+├── KNOWN_ISSUES.md                # Известные проблемы
+└── pyproject.toml                 # Зависимости и скрипты
+```
+
+## Разработка
+
+### Требования
+
+- Python >= 3.12
+- venv или uv
+
+### Установка
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e ".[dev]"
+```
+
+### Тесты
+
+```bash
+pytest
+pytest --cov=core --cov-report=term-missing
+```
+
+### Линтер
+
+```bash
+ruff check .
+ruff format .
+mypy core/
+```
+
+### Конвенции
+
+- Каждый модуль — отдельный файл, без смешивания логики
+- Компоненты не вызывают друг друга напрямую — только через EventBus
+- Парсинг ≠ валидация ≠ бизнес-логика ≠ логирование ≠ интерфейс
+- FSM тестируется изолированно, покрыты все переходы
+- 100% пакетов логируется (включая CRC-ошибки)
+
+📖 Подробнее: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+## Документация
+
+| Документ | Описание |
+|----------|----------|
+| [`docs/ТЗ_тестер_УСВ.md`](docs/ТЗ_тестер_УСВ.md) | Полное техническое задание (1840 строк) |
+| [`docs/gost.md`](docs/gost.md) | Текст ГОСТ 33465-2015 |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Детальная архитектура |
+| [`CHANGELOG.md`](CHANGELOG.md) | История изменений |
+| [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) | Известные проблемы |
+
+## Лицензия
+
+[MIT](LICENSE)

@@ -92,23 +92,28 @@ class LogManager:
     async def stop(self) -> None:
         """Остановить LogManager: сбросить буфер и отписаться от событий."""
         # Сбросить оставшиеся логи
-        await self.flush()
+        try:
+            await self.flush()
+        except RuntimeError:
+            pass  # Loop может быть уже закрыт
 
         # Остановить фоновую задачу
         self._running = False
         if self._flush_task is not None and not self._flush_task.done():
-            self._flush_task.cancel()
             try:
+                self._flush_task.cancel()
                 await self._flush_task
-            except asyncio.CancelledError:
-                pass
+            except (asyncio.CancelledError, RuntimeError):
+                pass  # Игнорируем если loop уже закрыт
             self._flush_task = None
 
         # Отписаться от событий
-        self._bus.off("packet.processed", self._on_packet_processed)
-        self._bus.off("packet.sent", self._on_packet_sent)
-        self._bus.off("connection.changed", self._on_connection_changed)
-        self._bus.off("scenario.step", self._on_scenario_step)
+        try:
+            self._bus.off("packet.processed", self._on_packet_processed)
+            self._bus.off("connection.changed", self._on_connection_changed)
+            self._bus.off("scenario.step", self._on_scenario_step)
+        except Exception:
+            pass  # Игнорируем ошибки отписки при закрытии
         logger.info("LogManager: остановлен, буфер сброшен")
 
     async def flush(self) -> None:

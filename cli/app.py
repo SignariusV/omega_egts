@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import threading
 import json
 import sys
 from cmd import Cmd
@@ -471,7 +472,6 @@ class EGTSTesterCLI(Cmd):
     intro = "egts-tester REPL. Введите 'help' для списка команд."
     prompt = "egts-tester> "
 
-    # Краткие описания команд для help
     _command_help: dict[str, str] = {
         "start": "Запустить сервер [--port PORT] [--gost VER] [--cmw IP]",
         "stop": "Остановить сервер",
@@ -486,19 +486,63 @@ class EGTSTesterCLI(Cmd):
         "exit": "Выйти из REPL",
     }
 
-    # Алисы: команда с дефисом → команда с подчёркиванием
     _aliases: dict[str, str] = {
         "cmw-status": "cmw_status",
         "run-scenario": "run_scenario",
     }
 
+    def __init__(self) -> None:
+        super().__init__()
+        self._engine: Any = None
+        self._config: Any = None
+        self._bus: Any = None
+        self._loop: asyncio.AbstractEventLoop | None = None
+        self._server_thread: threading.Thread | None = None
+        self._server_running = False
+
+    # ------------------------------------------------------------------
+    # Вспомогательные методы для работы с event loop
+    # ------------------------------------------------------------------
+
+    def _run_short(self, coro: Any) -> Any:
+        """Запустить короткую async-корутину во временном loop."""
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
+
+    def _run_in_server_loop(self, coro: Any) -> Any:
+        """Запустить корутину в loop сервера (работает в фоновом потоке)."""
+        if self._loop is None or self._loop.is_closed():
+            raise RuntimeError("Event loop сервера не активен")
+
+        future = asyncio.run_coroutine_threadsafe(coro, self._loop)
+        try:
+            return future.result(timeout=60)
+        except Exception:
+            # Пробрасываем оригинальное исключение
+            raise
+
+    def _run_loop_forever(self) -> None:
+        """Запустить loop.run_forever() в фоновом потоке."""
+        asyncio.set_event_loop(self._loop)
+        try:
+            self._loop.run_forever()
+        except Exception as e:
+            print(f"Ошибка в фоновом event loop: {e}")
+        finally:
+            if self._loop and not self._loop.is_closed():
+                self._loop.close()
+
+    # ------------------------------------------------------------------
+    # Команды REPL
+    # ------------------------------------------------------------------
+
     def do_help(self, arg: str) -> None:
-        """Показать справку — переопределён вывод в столбец."""
         if arg.strip():
-            # Стандартная справка по конкретной команде
             super().do_help(arg)
             return
-
         print("\nДоступные команды:\n")
         max_cmd = max(len(cmd) for cmd in self._command_help)
         for cmd, desc in self._command_help.items():
@@ -506,7 +550,6 @@ class EGTSTesterCLI(Cmd):
         print()
 
     def onecmd(self, line: str) -> bool:
-        """Перехват команд с алиасами (дефис → подчёркивание)."""
         parts = line.strip().split(None, 1)
         if parts:
             cmd = parts[0].lower()
@@ -515,42 +558,13 @@ class EGTSTesterCLI(Cmd):
                 return super().onecmd(f"{self._aliases[cmd]} {rest}".strip())
         return super().onecmd(line)
 
-    def __init__(self) -> None:
-        super().__init__()
-        self._engine: Any = None
-        self._config: Any = None
-        self._bus: Any = None
-
-    def _ensure_engine(self) -> None:
-        """Лениво создать CoreEngine."""
-        if self._engine is None:
-            from core.config import Config
-            from core.engine import CoreEngine
-            from core.event_bus import EventBus
-
-            self._config = Config()
-            self._bus = EventBus()
-            self._engine = CoreEngine(config=self._config, bus=self._bus)
-
-    def _run(self, coro: Any) -> Any:
-        """Запустить async-корутину в REPL.
-
-        Каждый вызов создаёт новый event loop — это необходимо,
-        т.к. cmdloop() блокирует поток и не может быть async-контекстом.
-        """
-        loop = asyncio.new_event_loop()
-        try:
-            return loop.run_until_complete(coro)
-        finally:
-            loop.close()
-
     def do_start(self, arg: str) -> None:
         """Запустить сервер: start [--port PORT] [--gost VERSION] [--cmw IP]"""
-        if self._engine is not None and self._engine.is_running:
+        if self._server_running:
             print("Сервер уже запущен")
             return
 
-        # Парсим опции из строки arg
+        # Парсинг опций
         parts = arg.split()
         port = 3001
         gost = "2015"
@@ -573,7 +587,6 @@ class EGTSTesterCLI(Cmd):
             else:
                 i += 1
 
-        # Пересоздаём Engine с новыми параметрами
         from core.config import CmwConfig, Config, LogConfig, TimeoutsConfig
         from core.engine import CoreEngine
         from core.event_bus import EventBus
@@ -588,31 +601,66 @@ class EGTSTesterCLI(Cmd):
         self._bus = EventBus()
         self._engine = CoreEngine(config=self._config, bus=self._bus)
 
-        self._run(self._engine.start())
+        # Создаём event loop и запускаем engine
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
+        self._loop.run_until_complete(self._engine.start())
         print(f"✅ Сервер запущен на порту {port}, ГОСТ {gost}")
+        if cmw_ip:
+            print(f"   CMW-500: {cmw_ip}")
+        print("   Используйте 'stop' для остановки сервера")
+
+        # Запускаем loop в фоновом потоке
+        self._server_running = True
+        self._server_thread = threading.Thread(target=self._run_loop_forever, daemon=True)
+        self._server_thread.start()
 
     def do_stop(self, arg: str) -> None:
         """Остановить сервер: stop"""
-        if self._engine is None or not self._engine.is_running:
+        if not self._server_running or self._engine is None or self._loop is None:
             print("Сервер не запущен")
             return
-        self._run(self._engine.stop())
-        print("🔴 Сервер остановлен")
+
+        try:
+            # Останавливаем engine в фоновом loop
+            future = asyncio.run_coroutine_threadsafe(self._engine.stop(), self._loop)
+            future.result(timeout=30)
+
+            # Останавливаем loop
+            self._loop.call_soon_threadsafe(self._loop.stop)
+            if self._server_thread is not None:
+                self._server_thread.join(timeout=5)
+
+            print("🔴 Сервер остановлен")
+        except Exception as e:
+            print(f"⚠️ Ошибка при остановке сервера: {e}")
+        finally:
+            self._server_running = False
+            self._loop = None
+            self._server_thread = None
+            self._engine = None
 
     def do_status(self, arg: str) -> None:
-        """Показать статус системы: status"""
-        self._ensure_engine()
-        status = self._run(self._engine.get_status())
-        print(_format_status(status))
+        if not self._server_running or self._engine is None:
+            print("Сервер не запущен")
+            return
+        try:
+            status = self._run_in_server_loop(self._engine.get_status())
+            print(_format_status(status))
+        except Exception as e:
+            print(f"Ошибка получения статуса: {e}")
 
     def do_cmw_status(self, arg: str) -> None:
-        """Показать статус CMW-500: cmw-status"""
-        self._ensure_engine()
-        status = self._run(self._engine.cmw_status())
-        print(_format_cmw_status(status))
+        if not self._server_running or self._engine is None:
+            print("Сервер не запущен")
+            return
+        try:
+            status = self._run_in_server_loop(self._engine.cmw_status())
+            print(_format_cmw_status(status))
+        except Exception as e:
+            print(f"Ошибка получения статуса CMW: {e}")
 
     def do_run_scenario(self, arg: str) -> None:
-        """Запустить сценарий: run-scenario <path> [--connection-id <id>]"""
         if not arg.strip():
             print("Использование: run-scenario <path> [--connection-id <id>]")
             return
@@ -628,16 +676,26 @@ class EGTSTesterCLI(Cmd):
             else:
                 i += 1
 
-        self._ensure_engine()
-        if not self._engine.is_running:
-            print("Сначала запустите сервер: start")
+        if not self._server_running or self._engine is None:
+            async def _run():
+                return await _cmd_run_scenario(
+                    argparse.Namespace(
+                        scenario_path=scenario_path,
+                        connection_id=connection_id
+                    )
+                )
+            self._run_short(_run())
             return
 
-        result = self._run(self._engine.run_scenario(scenario_path, connection_id))
-        print(_format_scenario_result(result))
+        try:
+            result = self._run_in_server_loop(
+                self._engine.run_scenario(scenario_path, connection_id)
+            )
+            print(_format_scenario_result(result))
+        except Exception as e:
+            print(f"Ошибка выполнения сценария: {e}")
 
     def do_replay(self, arg: str) -> None:
-        """Replay лога: replay <log_path> [--scenario <path>]"""
         if not arg.strip():
             print("Использование: replay <log_path> [--scenario <path>]")
             return
@@ -653,16 +711,23 @@ class EGTSTesterCLI(Cmd):
             else:
                 i += 1
 
-        self._ensure_engine()
-        if not self._engine.is_running:
-            print("Сначала запустите сервер: start")
+        if not self._server_running or self._engine is None:
+            async def _run():
+                return await _cmd_replay(
+                    argparse.Namespace(log_path=log_path, scenario=scenario)
+                )
+            self._run_short(_run())
             return
 
-        result = self._run(self._engine.replay(log_path, scenario))
-        print(_format_replay_result(result))
+        try:
+            result = self._run_in_server_loop(
+                self._engine.replay(log_path, scenario)
+            )
+            print(_format_replay_result(result))
+        except Exception as e:
+            print(f"Ошибка replay: {e}")
 
     def do_export(self, arg: str) -> None:
-        """Выгрузка данных: export <type> --format <fmt> --output <file>"""
         if not arg.strip():
             print("Использование: export <type> --format <fmt> --output <file>")
             return
@@ -690,16 +755,27 @@ class EGTSTesterCLI(Cmd):
             print("Использование: export <type> --format <fmt> --output <file>")
             return
 
-        self._ensure_engine()
-        if not self._engine.is_running:
-            print("Сначала запустите сервер: start")
+        if not self._server_running or self._engine is None:
+            async def _run():
+                return await _cmd_export(
+                    argparse.Namespace(
+                        data_type=data_type,
+                        format=fmt,
+                        output=output
+                    )
+                )
+            self._run_short(_run())
             return
 
-        result = self._run(self._engine.export(data_type, fmt, output))
-        print(_format_export_result(result))
+        try:
+            result = self._run_in_server_loop(
+                self._engine.export(data_type, fmt, output)
+            )
+            print(_format_export_result(result))
+        except Exception as e:
+            print(f"Ошибка экспорта: {e}")
 
     def do_batch(self, arg: str) -> None:
-        """Пакетный запуск: batch --scenario <name> [--scenario <name> ...] [--output FILE]"""
         if not arg.strip():
             print("Использование: batch --scenario <name> [--scenario <name> ...] [--output FILE]")
             return
@@ -722,49 +798,26 @@ class EGTSTesterCLI(Cmd):
             print("Использование: batch --scenario <name> [--scenario <name> ...] [--output FILE]")
             return
 
-        self._ensure_engine()
-        if not self._engine.is_running:
-            print("Сначала запустите сервер: start")
-            return
+        async def _run_batch():
+            return await _cmd_batch(
+                argparse.Namespace(scenarios=scenarios, output=output_file)
+            )
 
-        from core.config import Config
-        from core.engine import CoreEngine
-        from core.event_bus import EventBus
-
-        results: list[dict[str, Any]] = []
-        for scenario_name in scenarios:
-            scenario_path = _resolve_scenario_path(scenario_name)
-            print(f"\n▶ Запуск сценария: {scenario_name}")
-            result = self._run(self._engine.run_scenario(scenario_path))
-            results.append({"name": scenario_name, **result})
-            print(_format_scenario_result(result))
-
-        # Сохранить отчёт
-        if output_file:
-            Path(output_file).write_text(json.dumps(results, ensure_ascii=False, indent=2))
-            print(f"\n📄 Отчёт сохранён: {output_file}")
-
-        passed = sum(1 for r in results if r.get("status") == "PASS")
-        print(f"\nИтого: {passed}/{len(results)} сценариев прошли")
+        self._run_short(_run_batch())
 
     def do_exit(self, arg: str) -> bool:
-        """Выйти из REPL: exit"""
-        if self._engine and self._engine.is_running:
-            self._run(self._engine.stop())
-            print("🔴 Сервер остановлен")
+        if self._server_running:
+            self.do_stop("")
         return True
 
     def do_quit(self, arg: str) -> bool:
-        """Выйти из REPL: quit"""
         return self.do_exit("")
 
-    def do_EOF(self, arg: str) -> bool:  # noqa: N802
-        """Обработка Ctrl+D."""
+    def do_EOF(self, arg: str) -> bool:
         print()
         return self.do_exit("")
 
     def emptyline(self) -> bool:
-        """Пустая строка — ничего не делать."""
         return False
 
 

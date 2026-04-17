@@ -2,7 +2,7 @@
   "name": "Верификация (SMS)",
   "scenario_version": "1",
   "gost_version": "ГОСТ 33465-2015",
-  "timeout": 30,
+  "timeout": 60,
   "description": "Первоначальная настройка УСВ через SMS: APN, адрес сервера, запрос UNIT_ID",
   "channels": ["sms"],
   "steps": [
@@ -12,7 +12,7 @@
       "channel": "sms",
       "packet_type": "EGTS_GPRS_APN",
       "packet_file": "packets/platform/gprs_apn.hex",
-      "timeout": 30,
+      "timeout": 60,
       "description": "Отправка настроек GPRS/APN (internet)"
     },
     {

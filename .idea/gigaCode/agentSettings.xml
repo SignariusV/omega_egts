@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GigaCodeAgentSettings">
+    <option name="autoApprovedCommands">
+      <list>
+        <Execute>
+          <option name="pattern" value="git rev-parse HEAD" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="git add core/__pycache__/cmw500.cpython-312.pyc core/__pycache__/engine.cpython-312.pyc" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="cd C:/Users/verta/PycharmProjects/OMEGA_EGTS &amp;&amp; git status" />
+        </Execute>
+      </list>
+    </option>
+  </component>
+</project>

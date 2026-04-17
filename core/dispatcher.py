@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from libs.egts.protocol import IEgtsProtocol
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.CRITICAL)   #fixme
 
 # Идентификатор SMS-сессии, создаваемой автоматически
 _SMS_DEFAULT_CONNECTION_ID = "packet_dispatcher_sms"
@@ -129,6 +130,7 @@ class PacketDispatcher:
                 - channel: str — "tcp" или "sms"
                 - connection_id: str | None — идентификатор подключения
         """
+з
         raw: bytes = data.get("raw", b"")
         channel: str = data.get("channel", "tcp")
         connection_id: str | None = data.get("connection_id")

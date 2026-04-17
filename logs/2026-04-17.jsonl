@@ -1,2 +1,0 @@
-{"log_type": "connection", "timestamp": 2521.856073402, "connection_id": "test-conn-1", "state": "CONNECTED", "prev_state": "DISCONNECTED"}
-{"log_type": "packet", "timestamp": 2521.856202432, "connection_id": "test-conn-1", "channel": "tcp", "hex": "010001000000A1B2C3D4", "parsed": null, "crc_valid": false, "is_duplicate": false, "terminated": true, "errors": []}

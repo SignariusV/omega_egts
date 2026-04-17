@@ -218,29 +218,41 @@ class VisaCmw500Driver:
         return True
 
     def read_sms_raw(self) -> str | None:
-        """Чтение входящей SMS через SENSe:GSM:SIGN:SMS:INComing:INFO:DATA?
+        """Чтение входящей SMS через SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?
 
         Returns:
             HEX-данные SMS или None если нет SMS
         """
-        # Сначала проверяем наличие SMS
-        count = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:COUNt?").strip()
-        if not count or count == "0":
+        # Проверяем флаг непрочитанного сообщения
+
+        try:
+            message_flag = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INFO:LRMessage:RFLag?").strip()
+            # Если флаг True, значит сообщение уже прочитано и удалено
+
+            if message_flag == "ON":
+                return None
+        except:
+            pass
+            
+        # Получаем текст сообщения
+        try:
+            result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?").strip()
+            return result
+
+            if not result:
+                return None
+        except:
             return None
-        
-        # Читаем SMS в HEX-формате
-        result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:DATA?").strip()
-        if not result or result == "0":
-            return None
-        
-        # Убираем префикс #H если есть
-        if result.startswith("#H"):
-            result = result[2:]
-        
+            
+        # Убираем кавычки если есть
+        if result.startswith('"') and result.endswith('"'):
+            result = result[1:-1]
+            
         # Очищаем буфер после чтения
         self.clear_sms_buffer()
         
-        return result
+        # Конвертируем текст в HEX
+        return result.encode('utf-8').hex().upper()
 
     def clear_sms_buffer(self) -> None:
         """Очистка буфера входящих SMS.
@@ -476,7 +488,7 @@ class Cmw500Controller:
         )
 
         if hex_data:
-            return bytes.fromhex(hex_data)
+            return hex_data #fixme
         return None
 
     async def _poll_incoming_sms(self) -> None:

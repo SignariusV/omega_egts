@@ -6,7 +6,7 @@
     "ip": "192.168.1.100",
     "timeout": 5,
     "retries": 3,
-    "sms_send_timeout": 10,
+    "sms_send_timeout":30,
     "status_poll_interval": 2
   },
   "timeouts": {
