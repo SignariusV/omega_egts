@@ -2,8 +2,8 @@
 
 import pytest
 
-from libs.egts.types import PacketType, ServiceType, SubrecordType, ResultCode
-from libs.egts.models import Packet, Record, Subrecord, ParseResult, ResponseRecord
+from libs.egts.models import Packet, ParseResult, Record, ResponseRecord, Subrecord
+from libs.egts.types import PacketType, ResultCode, ServiceType, SubrecordType
 
 
 class TestTypes:

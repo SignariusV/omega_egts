@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from core.event_bus import EventBus
-from core.scenario import SendStep, ScenarioContext
+from core.scenario import ScenarioContext, SendStep
 
 
 class TestSendStepBuildPacket:

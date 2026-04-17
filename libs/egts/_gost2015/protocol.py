@@ -1,10 +1,10 @@
 """Gost2015Protocol — полная реализация EGTS ГОСТ 2015."""
 
-from libs.egts.models import Packet, Record, Subrecord, ParseResult, ResponseRecord
-from libs.egts.protocol import IEgtsProtocol
+from libs.egts._core.builder import build_full_packet, serialize_subrecord
 from libs.egts._core.crc import crc8, crc16
 from libs.egts._core.subrecord_registry import get_parser
-from libs.egts._core.builder import serialize_subrecord, serialize_record, build_full_packet
+from libs.egts.models import Packet, ParseResult, Record, ResponseRecord, Subrecord
+from libs.egts.protocol import IEgtsProtocol
 
 
 class Gost2015Protocol(IEgtsProtocol):

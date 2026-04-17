@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from libs.egts._core.subrecord_registry import register_subrecord
 
-
 # ──────────────────────────────────────────────────────────────
 # Helper-функции
 # ──────────────────────────────────────────────────────────────

@@ -5,8 +5,9 @@
     python test_cmw_commands.py 192.168.1.100      # другой IP
     python test_cmw_commands.py --simulate         # режим симуляции
 """
-import sys
 import argparse
+import sys
+
 from RsCmwGsmSig import RsCmwGsmSig
 
 
@@ -16,7 +17,7 @@ def main():
     parser.add_argument("--simulate", action="store_true", help="Режим симуляции")
     args = parser.parse_args()
 
-    print(f"=== CMW-500 Тестирование ===")
+    print("=== CMW-500 Тестирование ===")
     print(f"IP: {args.ip}")
     print(f"Режим: {'Симуляция' if args.simulate else 'Реальный прибор'}")
     print()
@@ -37,7 +38,7 @@ def main():
     d.utilities.instrument_status_checking = True
     d.utilities.opc_query_after_write = True
 
-    print(f"✅ Подключено")
+    print("✅ Подключено")
     print(f"  IDN: {d.utilities.idn_string}")
     print(f"  Serial: {d.utilities.instrument_serial_number}")
     print()

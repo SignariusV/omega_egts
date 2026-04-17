@@ -2,12 +2,13 @@
 
 import json
 import os
+
 import pytest
 
 # Импорт регистрирует протокол "2015"
 import libs.egts._gost2015  # noqa: F401
-from libs.egts.registry import get_protocol
 from libs.egts.protocol import IEgtsProtocol
+from libs.egts.registry import get_protocol
 
 FIXTURES_DIR = "tests/fixtures/egts_packets"
 
@@ -57,7 +58,7 @@ class TestNewLibraryRoundtrip:
             else:
                 parsed_count += 1
 
-        assert not failures, f"Ошибки парсинга:\n" + "\n".join(failures)
+        assert not failures, "Ошибки парсинга:\n" + "\n".join(failures)
         assert parsed_count >= 49, f"Распарсено только {parsed_count}/51"
 
     def test_all_packets_roundtrip(self, proto: IEgtsProtocol):

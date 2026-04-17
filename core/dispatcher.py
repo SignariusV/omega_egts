@@ -16,6 +16,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from core.egts_adapter import create_protocol
 from core.event_bus import EventBus
 from core.pipeline import (
     AutoResponseMiddleware,
@@ -26,7 +27,6 @@ from core.pipeline import (
     PacketPipeline,
     ParseMiddleware,
 )
-from core.egts_adapter import create_protocol
 
 if TYPE_CHECKING:
     from core.cmw500 import Cmw500Controller

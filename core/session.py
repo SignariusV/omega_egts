@@ -18,8 +18,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from core.event_bus import EventBus
 from core.egts_adapter import TL_RESEND_ATTEMPTS, TL_RESPONSE_TO
+from core.event_bus import EventBus
 from libs.egts.protocol import IEgtsProtocol
 
 # =============================================================================

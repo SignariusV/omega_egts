@@ -1,7 +1,7 @@
 """Tests for ExpectStep — ожидание пакета с проверкой и capture переменных."""
 
 import asyncio
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -158,7 +158,7 @@ class TestExpectStepExecute:
         async def emit_packet_later() -> None:
             await asyncio.sleep(0.05)
             # Создаём мок для ParseResult
-            from libs.egts.models import ParseResult, Packet, Record, Subrecord
+            from libs.egts.models import Packet, ParseResult, Record, Subrecord
 
             sub = Subrecord(subrecord_type=9, data={"rcd": 0})
             rec = Record(record_id=1, service_type=1, subrecords=[sub])
@@ -221,7 +221,7 @@ class TestExpectStepExecute:
 
         async def emit_packet_later() -> None:
             await asyncio.sleep(0.05)
-            from libs.egts.models import ParseResult, Packet, Record, Subrecord
+            from libs.egts.models import Packet, ParseResult, Record, Subrecord
 
             sub = Subrecord(subrecord_type=1, data={"tid": 99999})
             rec = Record(record_id=1, service_type=1, subrecords=[sub])

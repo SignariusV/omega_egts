@@ -233,7 +233,7 @@ class VisaCmw500Driver:
                 return None
         except:
             pass
-            
+
         # Получаем текст сообщения
         try:
             result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?").strip()
@@ -243,14 +243,14 @@ class VisaCmw500Driver:
                 return None
         except:
             return None
-            
+
         # Убираем кавычки если есть
         if result.startswith('"') and result.endswith('"'):
             result = result[1:-1]
-            
+
         # Очищаем буфер после чтения
         self.clear_sms_buffer()
-        
+
         # Конвертируем текст в HEX
         return result.encode('utf-8').hex().upper()
 

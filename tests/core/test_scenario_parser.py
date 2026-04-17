@@ -8,7 +8,6 @@ from core.scenario_parser import (
     ScenarioParserFactory,
     ScenarioParserRegistry,
     ScenarioParserV1,
-    StepDefinition,
 )
 
 VALID_SCENARIO_V1 = {
