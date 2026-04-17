@@ -1,6 +1,10 @@
 """Реестр парсеров подзаписей."""
 
+import logging
+
 from libs.egts._core.subrecord import SubrecordParser
+
+logger = logging.getLogger(__name__)
 
 _registry: dict[int, SubrecordParser] = {}
 

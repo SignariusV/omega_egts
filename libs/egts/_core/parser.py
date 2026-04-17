@@ -22,7 +22,11 @@ Offset  Size  Field
 HCS (CRC-8) находится в последнем байте заголовка: offset = HL-1
 """
 
+import logging
+
 from libs.egts.models import Packet
+
+logger = logging.getLogger(__name__)
 
 
 def parse_header(data: bytes) -> Packet:
