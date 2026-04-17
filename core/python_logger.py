@@ -3,9 +3,8 @@
 import logging
 import logging.handlers
 import sys
-from pathlib import Path
 from datetime import datetime
-
+from pathlib import Path
 
 _LOGGING_INITIALIZED = False
 _current_session_id: str | None = None
@@ -109,6 +108,3 @@ def _str_to_level(level: str) -> int:
         "CRITICAL": logging.CRITICAL,
     }
     return levels.get(level.upper(), logging.INFO)
-
-
-import logging.handlers

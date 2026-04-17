@@ -20,7 +20,16 @@
 
 from __future__ import annotations
 
-# Настройка Python-логирования ДО всего остального
+import argparse
+import asyncio
+import json
+import sys
+import threading
+from cmd import Cmd
+from collections.abc import Awaitable, Callable, Coroutine
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, cast
+
 from core.python_logger import setup_python_logging
 
 session_id = setup_python_logging(
@@ -28,16 +37,6 @@ session_id = setup_python_logging(
     console_level="ERROR",  # В консоль только ошибки
     file_level="DEBUG",  # В файл всё
 )
-
-import argparse
-import asyncio
-import threading
-import json
-import sys
-from cmd import Cmd
-from collections.abc import Awaitable, Callable, Coroutine
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from core.engine import CoreEngine
