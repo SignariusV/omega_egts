@@ -126,9 +126,9 @@ class TestLogManagerInit:
         with patch("core.logger.asyncio.create_task", return_value=MagicMock()):
             LogManager(bus=mock_bus, log_dir=tmp_path)
 
-        # 3 вызова on — по одному на каждое событие
+        # 4 вызова on — по одному на каждое событие
         on_calls = mock_bus.on.call_args_list
-        assert len(on_calls) == 3
+        assert len(on_calls) == 4
 
         event_names = [call[0][0] for call in on_calls]
         assert "packet.processed" in event_names
