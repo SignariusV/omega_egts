@@ -78,14 +78,10 @@ class CoreEngine:
 
         try:
             # 1. SessionManager
-            self.session_mgr = SessionManager(
-                bus=self.bus, gost_version=self.config.gost_version
-            )
+            self.session_mgr = SessionManager(bus=self.bus, gost_version=self.config.gost_version)
 
             # 2. LogManager
-            self.log_mgr = LogManager(
-                bus=self.bus, log_dir=Path(self.config.logging.dir)
-            )
+            self.log_mgr = LogManager(bus=self.bus, log_dir=Path(self.config.logging.dir))
 
             # 3. ScenarioManager
             from core.scenario import ScenarioManager as _ScenarioManager
@@ -105,15 +101,11 @@ class CoreEngine:
             self.scenario_mgr = _ScenarioManager(parser_factory=parser_factory)
 
             # 4. PacketDispatcher
-            self.packet_dispatcher = PacketDispatcher(
-                bus=self.bus, session_mgr=self.session_mgr
-            )
+            self.packet_dispatcher = PacketDispatcher(bus=self.bus, session_mgr=self.session_mgr)
 
             # 5. CommandDispatcher (cmw пока None — CMW создаётся на шаге 7)
             # SMS-команды станут доступны после подключения CMW
-            self.command_dispatcher = CommandDispatcher(
-                bus=self.bus, session_mgr=self.session_mgr
-            )
+            self.command_dispatcher = CommandDispatcher(bus=self.bus, session_mgr=self.session_mgr)
 
             # 6. TcpServerManager — передаём session_mgr для создания сессий
             self.tcp_server = TcpServerManager(
@@ -126,9 +118,20 @@ class CoreEngine:
 
             # 7. Cmw500Controller (опционально — если задан IP)
             if self.config.cmw500.ip is not None:
-                self.cmw500 = Cmw500Controller(
-                    bus=self.bus, ip=self.config.cmw500.ip
-                )
+                from core.cmw500 import Cmw500Controller, Cmw500Emulator
+
+                if self.config.cmw500.simulate:
+                    self.cmw500 = Cmw500Emulator(
+                        bus=self.bus,
+                        ip=self.config.cmw500.ip,
+                        poll_interval=self.config.cmw500.status_poll_interval,
+                    )
+                else:
+                    self.cmw500 = Cmw500Controller(
+                        bus=self.bus,
+                        ip=self.config.cmw500.ip,
+                        simulate=False,
+                    )
                 await self.cmw500.connect()
 
                 # Останавливаем poll_loop на время конфигурации
@@ -229,8 +232,7 @@ class CoreEngine:
         state = "running" if self.is_running else "stopped"
         cmw_status = "connected" if self.cmw500 is not None else "disconnected"
         return (
-            f"CoreEngine(state={state}, port={self.config.tcp_port}, "
-            f"cmw={cmw_status}, gost={self.config.gost_version})"
+            f"CoreEngine(state={state}, port={self.config.tcp_port}, cmw={cmw_status}, gost={self.config.gost_version})"
         )
 
     # ===== API для CLI (задача 9.0) =====
@@ -294,9 +296,7 @@ class CoreEngine:
         except Exception as exc:
             return {"connected": False, "error": str(exc)}
 
-    async def run_scenario(
-        self, scenario_path: str, connection_id: str | None = None
-    ) -> dict[str, Any]:
+    async def run_scenario(self, scenario_path: str, connection_id: str | None = None) -> dict[str, Any]:
         """Запустить сценарий для команды ``run-scenario``.
 
         Параметры:
@@ -340,9 +340,7 @@ class CoreEngine:
         except Exception as exc:
             return {"status": "error", "error": str(exc)}
 
-    async def replay(
-        self, log_path: str, scenario_path: str | None = None
-    ) -> dict[str, Any]:
+    async def replay(self, log_path: str, scenario_path: str | None = None) -> dict[str, Any]:
         """Replay JSONL-лога через pipeline для команды ``replay``.
 
         Параметры:
@@ -365,9 +363,7 @@ class CoreEngine:
         result = await replay_source.replay()
         return result
 
-    async def export(
-        self, data_type: str, fmt: str, output_path: str
-    ) -> dict[str, Any]:
+    async def export(self, data_type: str, fmt: str, output_path: str) -> dict[str, Any]:
         """Выгрузка данных для команды ``export``.
 
         Параметры:

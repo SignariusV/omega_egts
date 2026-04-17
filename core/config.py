@@ -13,21 +13,30 @@ class CmwConfig:
     """Настройки CMW-500."""
 
     ip: str | None = "192.168.2.2"
+    simulate: bool = False
     timeout: float = 5.0
     retries: int = 3
     sms_send_timeout: float = 10.0
     status_poll_interval: float = 2.0
 
-    # GSM Signaling параметры (из docs/comands.txt)
     mcc: int = 250
     mnc: int = 60
     rf_level_tch: float = -40.0
     ps_service: str = "TMA"
     ps_tlevel: str = "EGPRS"
     ps_cscheme_ul: str = "MC9"
-    ps_dl_carrier: list[str] = field(default_factory=lambda: [
-        "OFF", "OFF", "OFF", "ON", "ON", "OFF", "OFF", "OFF",
-    ])
+    ps_dl_carrier: list[str] = field(
+        default_factory=lambda: [
+            "OFF",
+            "OFF",
+            "OFF",
+            "ON",
+            "ON",
+            "OFF",
+            "OFF",
+            "OFF",
+        ]
+    )
     ps_dl_cscheme: list[str] = field(default_factory=lambda: ["MC9"] * 8)
     sms_dcoding: str = "BIT8"
     sms_pidentifier: int = 1
@@ -52,8 +61,8 @@ class LogConfig:
     rotation: str = "daily"
     max_size_mb: int = 100
     retention_days: int = 30
-    python_console_level: str = "ERROR"  # Уровень логирования в консоль
-    python_file_level: str = "DEBUG"     # Уровень логирования в файл
+    python_console_level: str = "ERROR"
+    python_file_level: str = "DEBUG"
 
 
 def _validate_cmw(cmw: CmwConfig) -> None:
@@ -86,9 +95,7 @@ _VALID_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR"})
 def _validate_log(log: LogConfig) -> None:
     """Валидация настроек логирования."""
     if log.level not in _VALID_LOG_LEVELS:
-        raise ValueError(
-            f"logging.level должен быть одним из {_VALID_LOG_LEVELS}, получено {log.level!r}"
-        )
+        raise ValueError(f"logging.level должен быть одним из {_VALID_LOG_LEVELS}, получено {log.level!r}")
     if log.max_size_mb <= 0:
         raise ValueError(f"logging.max_size_mb должен быть > 0, получено {log.max_size_mb}")
     if log.retention_days < 0:
@@ -97,10 +104,7 @@ def _validate_log(log: LogConfig) -> None:
 
 @dataclass(frozen=True)
 class Config:
-    """Корневая конфигурация системы.
-
-    Структура вложенная (nested dataclass'ы) — 1:1 с settings.json.
-    """
+    """Корневая конфигурация системы."""
 
     gost_version: str = "2015"
     tcp_host: str = "0.0.0.0"
@@ -120,20 +124,7 @@ class Config:
 
     @classmethod
     def from_file(cls, path: str) -> Config:
-        """Загрузить конфигурацию из JSON-файла.
-
-        Структура JSON соответствует полям Config (включая вложенные секции).
-        Неизвестные ключи игнорируются.
-
-        Args:
-            path: Путь к JSON-файлу.
-
-        Returns:
-            Экземпляр Config.
-
-        Raises:
-            FileNotFoundError: Если файл не найден.
-        """
+        """Загрузить конфигурацию из JSON-файла."""
         file = Path(path)
         if not file.exists():
             raise FileNotFoundError(f"Файл конфигурации не найден: {path}")
@@ -154,6 +145,7 @@ class Config:
             tcp_port=data.get("tcp_port", cls.tcp_port),
             cmw500=CmwConfig(
                 ip=cmw_data.get("ip", CmwConfig.ip),
+                simulate=cmw_data.get("simulate", CmwConfig.simulate),
                 timeout=float(cmw_data.get("timeout", CmwConfig.timeout)),
                 retries=cmw_data.get("retries", CmwConfig.retries),
                 sms_send_timeout=float(cmw_data.get("sms_send_timeout", CmwConfig.sms_send_timeout)),
@@ -164,9 +156,19 @@ class Config:
                 ps_service=cmw_data.get("ps_service", CmwConfig.ps_service),
                 ps_tlevel=cmw_data.get("ps_tlevel", CmwConfig.ps_tlevel),
                 ps_cscheme_ul=cmw_data.get("ps_cscheme_ul", CmwConfig.ps_cscheme_ul),
-                ps_dl_carrier=cmw_data.get("ps_dl_carrier", [
-                    "OFF", "OFF", "OFF", "ON", "ON", "OFF", "OFF", "OFF",
-                ]),
+                ps_dl_carrier=cmw_data.get(
+                    "ps_dl_carrier",
+                    [
+                        "OFF",
+                        "OFF",
+                        "OFF",
+                        "ON",
+                        "ON",
+                        "OFF",
+                        "OFF",
+                        "OFF",
+                    ],
+                ),
                 ps_dl_cscheme=cmw_data.get("ps_dl_cscheme", ["MC9"] * 8),
                 sms_dcoding=cmw_data.get("sms_dcoding", CmwConfig.sms_dcoding),
                 sms_pidentifier=cmw_data.get("sms_pidentifier", CmwConfig.sms_pidentifier),
@@ -188,21 +190,10 @@ class Config:
         )
 
     def merge_with_cli(self, cli_args: dict[str, Any]) -> Config:
-        """Создать новый Config с переопределениями из CLI.
-
-        Поддерживает dot-notation для вложенных полей:
-        ``"cmw500.timeout": 10`` → ``config.cmw500.timeout = 10``.
-
-        Args:
-            cli_args: Dict с переопределениями (например, из argparse).
-
-        Returns:
-            Новый экземпляр Config с применёнными изменениями.
-        """
+        """Создать новый Config с переопределениями из CLI."""
         if not cli_args:
             return replace(self)
 
-        # Разбираем dot-notation: группируем по секциям
         top_level: dict[str, Any] = {}
         nested: dict[str, dict[str, Any]] = {"cmw500": {}, "timeouts": {}, "logging": {}}
 
@@ -211,13 +202,9 @@ class Config:
                 section, field = key.split(".", 1)
                 if section in nested:
                     nested[section][field] = value
-                else:
-                    # Неизвестная секция — игнорируем
-                    pass
             else:
                 top_level[key] = value
 
-        # Применяем изменения к вложенным секциям
         kwargs: dict[str, Any] = {}
         if top_level:
             kwargs.update(top_level)
@@ -234,8 +221,4 @@ class Config:
     def __str__(self) -> str:
         """Компактное строковое представление для логов."""
         cmw_ip = self.cmw500.ip or "не настроен"
-        return (
-            f"Config(gost={self.gost_version}, "
-            f"tcp={self.tcp_host}:{self.tcp_port}, "
-            f"cmw={cmw_ip})"
-        )
+        return f"Config(gost={self.gost_version}, tcp={self.tcp_host}:{self.tcp_port}, cmw={cmw_ip})"

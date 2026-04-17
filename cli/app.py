@@ -22,10 +22,11 @@ from __future__ import annotations
 
 # Настройка Python-логирования ДО всего остального
 from core.python_logger import setup_python_logging
+
 setup_python_logging(
     log_dir="logs",
     console_level="ERROR",  # В консоль только ошибки
-    file_level="DEBUG",     # В файл всё
+    file_level="DEBUG",  # В файл всё
 )
 
 import argparse
@@ -80,13 +81,23 @@ def build_parser() -> argparse.ArgumentParser:
     p_start = sub.add_parser("start", help="Запуск сервера")
     p_start.add_argument("--port", type=int, default=3001, help="TCP порт (по умолч. 3001)")
     p_start.add_argument(
-        "--gost", choices=["2015", "2023"], default="2015",
+        "--gost",
+        choices=["2015", "2023"],
+        default="2015",
         help="Версия ГОСТ (по умолч. 2015)",
     )
     p_start.add_argument("--cmw", type=str, default=None, help="IP CMW-500")
     p_start.add_argument(
-        "--log-level", choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        default="INFO", help="Уровень логирования",
+        "--simulate",
+        action="store_true",
+        default=False,
+        help="Запустить CMW-500 в режиме симуляции (эмулятор)",
+    )
+    p_start.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="INFO",
+        help="Уровень логирования",
     )
 
     # stop
@@ -102,7 +113,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_scenario = sub.add_parser("run-scenario", help="Запуск сценария")
     p_scenario.add_argument("scenario_path", help="Путь к директории сценария")
     p_scenario.add_argument(
-        "--connection-id", default=None, help="Идентификатор подключения",
+        "--connection-id",
+        default=None,
+        help="Идентификатор подключения",
     )
 
     # replay
@@ -113,7 +126,10 @@ def build_parser() -> argparse.ArgumentParser:
     # batch
     p_batch = sub.add_parser("batch", help="Пакетный запуск сценариев")
     p_batch.add_argument(
-        "--scenario", action="append", dest="scenarios", required=True,
+        "--scenario",
+        action="append",
+        dest="scenarios",
+        required=True,
         help="Имя или путь к сценарию (можно указывать несколько раз)",
     )
     p_batch.add_argument("--output", default=None, help="Файл отчёта (JSON)")
@@ -121,11 +137,15 @@ def build_parser() -> argparse.ArgumentParser:
     # export
     p_export = sub.add_parser("export", help="Выгрузка данных")
     p_export.add_argument(
-        "data_type", choices=["packets", "connections", "scenarios"],
+        "data_type",
+        choices=["packets", "connections", "scenarios"],
         help="Тип данных для выгрузки",
     )
     p_export.add_argument(
-        "--format", choices=["csv", "json"], required=True, help="Формат выгрузки",
+        "--format",
+        choices=["csv", "json"],
+        required=True,
+        help="Формат выгрузки",
     )
     p_export.add_argument("--output", required=True, help="Файл вывода")
 
@@ -269,7 +289,7 @@ async def _cmd_start(args: argparse.Namespace) -> int:
     config = Config(
         gost_version=args.gost,
         tcp_port=args.port,
-        cmw500=CmwConfig(ip=args.cmw) if args.cmw else CmwConfig(),
+        cmw500=CmwConfig(ip=args.cmw, simulate=args.simulate) if args.cmw else CmwConfig(simulate=args.simulate),
         logging=LogConfig(level=args.log_level),
         timeouts=TimeoutsConfig(),
     )
@@ -481,7 +501,7 @@ class EGTSTesterCLI(Cmd):
     prompt = "egts-tester> "
 
     _command_help: dict[str, str] = {
-        "start": "Запустить сервер [--port PORT] [--gost VER] [--cmw IP]",
+        "start": "Запустить сервер [--port PORT] [--gost VER] [--cmw IP] [--simulate]",
         "stop": "Остановить сервер",
         "status": "Статус TCP-сервера",
         "cmw-status": "Статус CMW-500",
@@ -501,15 +521,16 @@ class EGTSTesterCLI(Cmd):
 
     def __init__(self) -> None:
         super().__init__()
-        
+
         # Настройка логирования (на случай если запущен напрямую)
         from core.python_logger import setup_python_logging
+
         setup_python_logging(
             log_dir="logs",
             console_level="ERROR",
             file_level="DEBUG",
         )
-        
+
         self._engine: Any = None
         self._config: Any = None
         self._bus: Any = None
@@ -576,7 +597,7 @@ class EGTSTesterCLI(Cmd):
         return super().onecmd(line)
 
     def do_start(self, arg: str) -> None:
-        """Запустить сервер: start [--port PORT] [--gost VERSION] [--cmw IP]"""
+        """Запустить сервер: start [--port PORT] [--gost VERSION] [--cmw IP] [--simulate]"""
         if self._server_running:
             print("Сервер уже запущен")
             return
@@ -586,6 +607,7 @@ class EGTSTesterCLI(Cmd):
         port = 3001
         gost = "2015"
         cmw_ip = None
+        simulate = False
         i = 0
         while i < len(parts):
             if parts[i] == "--port" and i + 1 < len(parts):
@@ -601,6 +623,9 @@ class EGTSTesterCLI(Cmd):
             elif parts[i] == "--cmw" and i + 1 < len(parts):
                 cmw_ip = parts[i + 1]
                 i += 2
+            elif parts[i] == "--simulate":
+                simulate = True
+                i += 1
             else:
                 i += 1
 
@@ -611,7 +636,7 @@ class EGTSTesterCLI(Cmd):
         self._config = Config(
             gost_version=gost,
             tcp_port=port,
-            cmw500=CmwConfig(ip=cmw_ip) if cmw_ip else CmwConfig(),
+            cmw500=CmwConfig(ip=cmw_ip, simulate=simulate) if cmw_ip else CmwConfig(simulate=simulate),
             logging=LogConfig(),
             timeouts=TimeoutsConfig(),
         )
@@ -624,7 +649,10 @@ class EGTSTesterCLI(Cmd):
         self._loop.run_until_complete(self._engine.start())
         print(f"✅ Сервер запущен на порту {port}, ГОСТ {gost}")
         if cmw_ip:
-            print(f"   CMW-500: {cmw_ip}")
+            mode = "(режим симуляции)" if simulate else ""
+            print(f"   CMW-500: {cmw_ip} {mode}")
+        elif simulate:
+            print("   CMW-500: режим симуляции")
         print("   Используйте 'stop' для остановки сервера")
 
         # Запускаем loop в фоновом потоке
@@ -694,20 +722,17 @@ class EGTSTesterCLI(Cmd):
                 i += 1
 
         if not self._server_running or self._engine is None:
+
             async def _run():
                 return await _cmd_run_scenario(
-                    argparse.Namespace(
-                        scenario_path=scenario_path,
-                        connection_id=connection_id
-                    )
+                    argparse.Namespace(scenario_path=scenario_path, connection_id=connection_id)
                 )
+
             self._run_short(_run())
             return
 
         try:
-            result = self._run_in_server_loop(
-                self._engine.run_scenario(scenario_path, connection_id)
-            )
+            result = self._run_in_server_loop(self._engine.run_scenario(scenario_path, connection_id))
             print(_format_scenario_result(result))
         except Exception as e:
             print(f"Ошибка выполнения сценария: {e}")
@@ -729,17 +754,15 @@ class EGTSTesterCLI(Cmd):
                 i += 1
 
         if not self._server_running or self._engine is None:
+
             async def _run():
-                return await _cmd_replay(
-                    argparse.Namespace(log_path=log_path, scenario=scenario)
-                )
+                return await _cmd_replay(argparse.Namespace(log_path=log_path, scenario=scenario))
+
             self._run_short(_run())
             return
 
         try:
-            result = self._run_in_server_loop(
-                self._engine.replay(log_path, scenario)
-            )
+            result = self._run_in_server_loop(self._engine.replay(log_path, scenario))
             print(_format_replay_result(result))
         except Exception as e:
             print(f"Ошибка replay: {e}")
@@ -773,21 +796,15 @@ class EGTSTesterCLI(Cmd):
             return
 
         if not self._server_running or self._engine is None:
+
             async def _run():
-                return await _cmd_export(
-                    argparse.Namespace(
-                        data_type=data_type,
-                        format=fmt,
-                        output=output
-                    )
-                )
+                return await _cmd_export(argparse.Namespace(data_type=data_type, format=fmt, output=output))
+
             self._run_short(_run())
             return
 
         try:
-            result = self._run_in_server_loop(
-                self._engine.export(data_type, fmt, output)
-            )
+            result = self._run_in_server_loop(self._engine.export(data_type, fmt, output))
             print(_format_export_result(result))
         except Exception as e:
             print(f"Ошибка экспорта: {e}")
@@ -816,9 +833,7 @@ class EGTSTesterCLI(Cmd):
             return
 
         async def _run_batch():
-            return await _cmd_batch(
-                argparse.Namespace(scenarios=scenarios, output=output_file)
-            )
+            return await _cmd_batch(argparse.Namespace(scenarios=scenarios, output=output_file))
 
         self._run_short(_run_batch())
 
