@@ -39,7 +39,7 @@ def _patch_components():
                      configure_sms=AsyncMock(),
                      configure_dau=AsyncMock())
     sess = MagicMock()
-    log = MagicMock()
+    log = MagicMock(stop=AsyncMock())
     scen = MagicMock()
     pkt = MagicMock()
     cmd = MagicMock()

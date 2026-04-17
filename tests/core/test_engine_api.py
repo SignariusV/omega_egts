@@ -88,6 +88,7 @@ def _patch_all_components():
     # LogManager
     log_mock = MagicMock()
     log_mock.get_stats = MagicMock(return_value={"packets": 42, "connections": 3})
+    log_mock.stop = AsyncMock()
     log_cls = MagicMock(return_value=log_mock)
 
     # ScenarioManager

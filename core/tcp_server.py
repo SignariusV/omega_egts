@@ -252,9 +252,11 @@ class TcpServerManager:
             writer.close()
 
         # Удаление из SessionManager с уведомлением FSM (CR-011)
+        prev_state = None
         if self.session_mgr is not None:
             conn = self.session_mgr.connections.get(connection_id)
             if conn and conn.fsm is not None:
+                prev_state = conn.fsm.state.value
                 conn.fsm.on_disconnect()
             self.session_mgr.connections.pop(connection_id, None)
 
@@ -265,7 +267,7 @@ class TcpServerManager:
                 "connection_id": connection_id,
                 "usv_id": connection_id,
                 "state": "DISCONNECTED",
-                "prev_state": conn.fsm.state.value if conn and conn.fsm else None,
+                "prev_state": prev_state,
                 "action": "disconnected",
                 "reason": "TCP connection closed",
                 "timestamp": time.monotonic(),
