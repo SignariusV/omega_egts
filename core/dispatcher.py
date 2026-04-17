@@ -105,7 +105,12 @@ class PacketDispatcher:
     def _build_pipeline(self) -> PacketPipeline:
         """Создать стандартный pipeline со всеми middleware.
 
-        Порядок: CRC → Parse → Dedup → AutoResponse → EventEmit
+        Порядок важен — каждая middleware работает с результатами предыдущей:
+        1. CrcValidationMiddleware — проверяет CRC-8 заголовка и CRC-16 данных
+        2. ParseMiddleware — распознаёт EGTS-пакет
+        3. DuplicateDetectionMiddleware — отсеивает дубликаты по PID
+        4. AutoResponseMiddleware — формирует RESPONSE при успешном приёме
+        5. EventEmitMiddleware — эмитит packet.processed (всегда, даже при ошибках)
         """
         p = PacketPipeline()
         p.add("crc", CrcValidationMiddleware(self.session_mgr), order=1)

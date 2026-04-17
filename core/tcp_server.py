@@ -81,13 +81,14 @@ class TcpServerManager:
     async def start(self) -> None:
         """Запустить TCP-сервер.
 
-        Вызывает asyncio.start_server() и начинает принимать подключения.
-        Повторный вызов игнорируется (idempotent).
+        Запускает asyncio.start_server() и начинает принимать подключения.
+        Повторный вызов игнорируется (idempotent) — сервер уже запущен.
         """
         if self.is_running:
             logger.debug("TcpServerManager уже запущен, пропускаю start()")
             return
 
+        # Запускаем asyncio TCP-сервер с обработчиком подключений
         self._server = await asyncio.start_server(
             self._handle_connection,
             self.host,
@@ -97,6 +98,7 @@ class TcpServerManager:
         actual_port = self.actual_port or self.port
         logger.info("TcpServerManager запущен на %s:%s", self.host, actual_port)
 
+        # Эмитируем событие для подписки других компонентов
         await self.bus.emit(
             "server.started",
             {"port": actual_port},

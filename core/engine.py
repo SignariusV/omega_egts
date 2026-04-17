@@ -80,13 +80,13 @@ class CoreEngine:
         from core.tcp_server import TcpServerManager
 
         try:
-            # 1. SessionManager
+            # Создаём менеджер сессий (требуется для работы других компонентов)
             self.session_mgr = SessionManager(bus=self.bus, gost_version=self.config.gost_version)
 
-            # 2. LogManager
+            # Создаём менеджер логирования (подписывается на события EventBus)
             self.log_mgr = LogManager(bus=self.bus, log_dir=Path(self.config.logging.dir))
 
-            # 3. ScenarioManager
+            # Создаём менеджер сценариев (парсер + выполнение)
             from core.scenario import ScenarioManager as _ScenarioManager
             from core.scenario_parser import (
                 ScenarioParserFactory as _ParserFactory,
@@ -103,14 +103,14 @@ class CoreEngine:
             parser_factory = _ParserFactory(registry=registry)
             self.scenario_mgr = _ScenarioManager(parser_factory=parser_factory)
 
-            # 4. PacketDispatcher
+            # Создаём диспетчер пакетов (подписывается на raw.packet.received)
             self.packet_dispatcher = PacketDispatcher(bus=self.bus, session_mgr=self.session_mgr)
 
-            # 5. CommandDispatcher (cmw пока None — CMW создаётся на шаге 7)
-            # SMS-команды станут доступны после подключения CMW
+            # Создаём диспетчер команд (отправка через TCP или SMS)
+            # cmw пока None — CMW-500 подключается на шаге 7
             self.command_dispatcher = CommandDispatcher(bus=self.bus, session_mgr=self.session_mgr)
 
-            # 6. TcpServerManager — передаём session_mgr для создания сессий
+            # Создаём TCP-сервер (принимает соединения от УСВ)
             self.tcp_server = TcpServerManager(
                 bus=self.bus,
                 host=self.config.tcp_host,

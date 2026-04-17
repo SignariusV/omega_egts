@@ -853,11 +853,12 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command is None:
-        # Без команды — запускаем REPL
+        # Без команды — запускаем REPL (интерактивный режим)
         _cmd_monitor(None)
         sys.exit(0)
 
     # Маппинг команд на обработчики
+    # async-команды требуют asyncio.run() для выполнения
     async_handlers: dict[str, Callable[[argparse.Namespace], Awaitable[int]]] = {
         "start": _cmd_start,
         "stop": _cmd_stop,
@@ -868,21 +869,23 @@ def main() -> None:
         "batch": _cmd_batch,
         "export": _cmd_export,
     }
+    # sync-команды выполняются синхронно (без event loop)
     sync_handlers: dict[str, Callable[[argparse.Namespace], int]] = {
         "monitor": _cmd_monitor,
     }
 
-    # sync-команды
+    # sync-команды — запускаются без asyncio (REPL)
     if args.command in sync_handlers:
         sys.exit(sync_handlers[args.command](args))
 
-    # async-команды
+    # async-команды — запускаем через asyncio.run()
     handler = async_handlers.get(args.command)
     if handler is None:
         parser.print_help()
         sys.exit(1)
 
     try:
+        # asyncio.run() создаёт новый event loop и выполняет корутину
         exit_code: int = asyncio.run(cast("Coroutine[Any, Any, int]", handler(args)))
     except Exception as exc:
         print(f"Ошибка: {exc}", file=sys.stderr)

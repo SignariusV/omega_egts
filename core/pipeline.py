@@ -162,7 +162,9 @@ class PacketPipeline:
         if ctx.terminated:
             return ctx
 
-        # Разделяем EventEmitMiddleware и остальные
+        # Разделяем EventEmitMiddleware и остальные middleware
+        # EventEmitMiddleware должен вызываться даже при terminated=True,
+        # поэтому обрабатываем его отдельно
         event_mw = None
         regular_mw = []
         for entry in self._middlewares:
@@ -171,7 +173,7 @@ class PacketPipeline:
             else:
                 regular_mw.append(entry)
 
-        # Выполняем обычные middleware
+        # Выполняем обычные middleware по порядку
         for entry in regular_mw:
             if ctx.terminated:
                 break
@@ -182,12 +184,13 @@ class PacketPipeline:
                 ctx.terminated = True
                 break
 
-        # EventEmitMiddleware вызывается всегда (даже при terminated)
+        # EventEmitMiddleware вызывается всегда — даже при terminated=True
+        # Это гарантирует 100% логирование всех пакетов
         if event_mw is not None:
             try:
                 await event_mw.middleware(ctx)
             except Exception as e:
-                # Ошибка в EventEmitMiddleware логируется, но не прерывает
+                # Ошибка в EventEmitMiddleware логируется, но не прерывает цепочку
                 ctx.errors.append(f"{event_mw.name}: {e!s}")
 
         return ctx
@@ -202,15 +205,20 @@ class CrcValidationMiddleware:
     """Валидация CRC-8 заголовка и CRC-16 данных EGTS-пакета.
 
     Получает protocol из UsvConnection (не хардкодит create_protocol).
-    При ошибке CRC формирует RESPONSE с кодом RCR.
+    При ошибке CRC формирует RESPONSE с кодом результата.
     """
 
     def __init__(self, session_mgr: SessionManager) -> None:
         self._session_mgr = session_mgr
 
     async def __call__(self, ctx: PacketContext) -> None:
-        """Валидировать CRC и заполнить crc_valid, crc8_valid, crc16_valid,
-        response_data (при ошибке), terminated."""
+        """Валидировать CRC и заполнить поля:
+        - crc_valid — результат проверки (оба CRC)
+        - crc8_valid — CRC-8 заголовка
+        - crc16_valid — CRC-16 данных
+        - response_data — RESPONSE при ошибке CRC
+        - terminated — прервать цепочку при ошибке
+        """
         raw = ctx.raw
         if not raw:
             logger.warning("CRC check: empty raw packet")
@@ -218,7 +226,7 @@ class CrcValidationMiddleware:
             ctx.terminated = True
             return
 
-        # Получить connection через публичный метод SessionManager
+        # Получаем session для доступа к протоколу
         conn = self._session_mgr.get_session(ctx.connection_id)
         if conn is None:
             logger.warning("CRC check: connection %s not found", ctx.connection_id)
@@ -233,7 +241,7 @@ class CrcValidationMiddleware:
             ctx.terminated = True
             return
 
-        # Извлечь HL (header length) — байт 3 в заголовке
+        # Извлекаем HL (header length) — байт 3 в заголовке EGTS
         if len(raw) < 4:
             logger.warning("CRC check: packet too short (%d bytes)", len(raw))
             ctx.crc_valid = False
@@ -251,11 +259,11 @@ class CrcValidationMiddleware:
             ctx.terminated = True
             return
 
-        # Header (включая HCS) и body
+        # Разделяем заголовок (с HCS) и тело (с CRC-16)
         header_with_hcs = raw[:header_len]
         body_with_crc16 = raw[header_len:]
 
-        # Проверка наличия CRC-16 в теле
+        # Проверка наличия CRC-16 в теле (минимум 2 байта)
         if len(body_with_crc16) < 2:
             logger.warning(
                 "CRC check: body too short for CRC-16 (%d bytes)", len(body_with_crc16)
@@ -264,15 +272,15 @@ class CrcValidationMiddleware:
             ctx.terminated = True
             return
 
-        # Header без HCS (последний байт header = CRC-8)
+        # Заголовок без HCS (последний байт — CRC-8)
         header_data = header_with_hcs[:-1]
         hcs_byte = header_with_hcs[-1]
 
-        # Body без CRC-16 (последние 2 байта = CRC-16)
+        # Тело без CRC-16 (последние 2 байта — CRC-16)
         body_data = body_with_crc16[:-2]
         crc16_value = int.from_bytes(body_with_crc16[-2:], "little")
 
-        # Валидация CRC-8
+        # Проверяем CRC-8 заго��овка
         crc8_ok = protocol.validate_crc8(header_data, hcs_byte)
         ctx.crc8_valid = crc8_ok
 
@@ -281,14 +289,14 @@ class CrcValidationMiddleware:
                 "CRC-8 mismatch for connection %s", ctx.connection_id
             )
             ctx.crc_valid = False
-            # При ошибке CRC-8 PID неизвестен → используем 0
+            # При ошибке CRC-8 PID неизвестен — отправляем RESPONSE с PID=0
             ctx.response_data = protocol.build_response(
                 pid=0, result_code=EGTS_PC_HEADERCRC_ERROR
             )
             ctx.terminated = True
             return
 
-        # Валидация CRC-16
+        # Проверяем CRC-16 данных
         crc16_ok = protocol.validate_crc16(body_data, crc16_value)
         ctx.crc16_valid = crc16_ok
 
@@ -297,14 +305,14 @@ class CrcValidationMiddleware:
                 "CRC-16 mismatch for connection %s", ctx.connection_id
             )
             ctx.crc_valid = False
-            # При ошибке CRC-16 PID неизвестен → используем 0
+            # При ошибке CRC-16 PID неизвестен — отправляем RESPONSE с PID=0
             ctx.response_data = protocol.build_response(
                 pid=0, result_code=EGTS_PC_DATACRC_ERROR
             )
             ctx.terminated = True
             return
 
-        # Всё ок
+        # Оба CRC валидны — пакет принят
         ctx.crc_valid = True
         logger.debug("CRC check passed for connection %s", ctx.connection_id)
 

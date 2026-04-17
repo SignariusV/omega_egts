@@ -533,10 +533,12 @@ class StepFactory:
 class ScenarioManager:
     """Загрузка и выполнение сценариев из scenario.json.
 
-    Делегирует парсинг ScenarioParserFactory, создаёт шаги через StepFactory.
+    Загружает сценарий через ScenarioParserFactory (поддержка версий формата),
+    создаёт шаги через StepFactory (send/expect/wait/check),
+    выполняет шаги последовательно с таймаутами.
 
     Args:
-        parser_factory: Фабрика парсеров сценариев.
+        parser_factory: Фабрика парсеров сценариев (создаёт парсер по version).
     """
 
     def __init__(self, parser_factory: ScenarioParserFactory) -> None:

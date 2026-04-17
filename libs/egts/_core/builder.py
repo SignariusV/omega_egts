@@ -101,17 +101,20 @@ def serialize_record(rec: Record) -> bytes:
 def build_full_packet(packet: Packet) -> bytes:
     """Собрать полный EGTS-пакет из модели.
 
-    1. Сериализовать записи → SFRD
-    2. Собрать заголовок с правильным FDL
-    3. Добавить CRC-16 от SFRD
-    4. Пересчитать HCS
+    Формат пакета: заголовок + данные (SFRD) + CRC-16
+    1. Сериализовать записи уровня поддержки услуг → SFRD
+    2. Рассчитать FDL (длина данных)
+    3. Собрать заголовок с правильным FDL
+    4. Добавить CRC-16 от SFRD
+    5. Пересчитать HCS (CRC-8 заголовка)
     """
-    # 1. Сериализуем записи
+    # Сериализуем записи уровня поддержки услуг в SFRD
     records_data = b''
     for rec in packet.records:
         records_data += serialize_record(rec)
 
-    # 2. FDL: для RESPONSE = RPID(2) + PR(1) + записи
+    # FDL: для RESPONSE = RPID(2) + PR(1) + записи
+    # Для остальных типов = длина записей
     if packet.packet_type == 0:  # RESPONSE
         fdl = 3 + len(records_data)
         sfrd = (packet.response_packet_id or 0).to_bytes(2, 'little')
@@ -121,10 +124,10 @@ def build_full_packet(packet: Packet) -> bytes:
         fdl = len(records_data)
         sfrd = records_data
 
-    # 3. Собираем заголовок с правильным FDL
+    # Собираем заголовок с правильным FDL
     header = _build_header_with_fdl(packet, fdl)
 
-    # 4. Данные = заголовок + SFRD + CRC-16
+    # Данные = заголовок + SFRD + CRC-16
     crc = crc16(sfrd)
     crc_bytes = crc.to_bytes(2, 'little')
 

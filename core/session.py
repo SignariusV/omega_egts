@@ -650,7 +650,8 @@ class SessionManager:
         self.connections: dict[str, UsvConnection] = {}
         self.gost_version = gost_version
 
-        # Подписка на packet.processed (ordered=True для FSM)
+        # Подписка на packet.processed для обновления FSM при получении пакета
+        # ordered=True гарантирует, что FSM обновляется до обработчиков событий
         self.bus.on("packet.processed", self._on_packet_processed, ordered=True)
 
     def create_session(

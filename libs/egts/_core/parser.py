@@ -30,38 +30,43 @@ logger = logging.getLogger(__name__)
 
 
 def parse_header(data: bytes) -> Packet:
-    """Разобрать заголовок из байтов (без CRC проверки).
+    """Разобрать заголовок EGTS-пакета из байтов.
+
+    Формат заголовка (ГОСТ 33465, таблица 5):
+    - Обязательная часть: PRV, SKID, FLAGS, HL, HE, FDL, PID, PT
+    - Опциональная часть (RTE=1): PRA, RCA, TTL
+    - RESPONSE (PT=0): RPID, PR — после заголовка
 
     Args:
-        data: Байты начиная с заголовка (минимум HL байт).
+        data: Байты начиная с заголовка (минимум 11 байт).
 
     Returns:
         Packet с заполненными полями заголовка.
 
     Raises:
-        ValueError: если данных недостаточно.
+        ValueError: если данных недостаточно для заголовка.
     """
     if len(data) < 9:
         raise ValueError(f"Недостаточно данных для заголовка: {len(data)} < 9")
 
-    # Обязательные поля
-    prv = data[0]
-    skid = data[1]
-    flags = data[2]
-    hl = data[3]
-    he = data[4]
-    int.from_bytes(data[5:7], 'little')  # FDL (frame data length) - reserved
-    pid = int.from_bytes(data[7:9], 'little')
-    pt = data[9] if len(data) > 9 else 0
+    # Обязательные поля (байты 0-9)
+    prv = data[0]           # PRV — версия протокола
+    skid = data[1]         # SKID — идентификатор ключа шифрования
+    flags = data[2]        # FLAGS — флаги (PRF, RTE, ENA, CMP, PR)
+    hl = data[3]          # HL — длина заголовка
+    he = data[4]          # HE — кодировка заголовка
+    int.from_bytes(data[5:7], 'little')  # FDL — длина данных (для нас не важно)
+    pid = int.from_bytes(data[7:9], 'little')  # PID — идентификатор пакета
+    pt = data[9] if len(data) > 9 else 0  # PT — тип пакета
 
     # Распаковка флагов (биты: PRF|RTE|ENA(2)|CMP|PR(2))
-    prf = bool(flags & 0x80)       # бит 7
-    rte = bool(flags & 0x40)       # бит 6
-    ena = (flags >> 4) & 0x03      # биты 5-4
-    cmp_flag = bool(flags & 0x08)  # бит 3
-    priority = flags & 0x03        # биты 2-1
+    prf = bool(flags & 0x80)       # бит 7 — префикс
+    rte = bool(flags & 0x40)       # бит 6 — маршрутизация включена
+    ena = (flags >> 4) & 0x03      # биты 5-4 — тип шифрования
+    cmp_flag = bool(flags & 0x08)  # бит 3 — сжатие
+    priority = flags & 0x03        # биты 2-1 — приоритет
 
-    # Опциональные поля маршрутизации
+    # Опциональные поля маршрутизации (только при RTE=1)
     peer_address = None
     recipient_address = None
     ttl = None
@@ -71,16 +76,16 @@ def parse_header(data: bytes) -> Packet:
             raise ValueError(
                 f"RTE=1 но данных недостаточно для PRA/RCA/TTL: {len(data)} < 15"
             )
-        peer_address = int.from_bytes(data[10:12], 'little')
-        recipient_address = int.from_bytes(data[12:14], 'little')
-        ttl = data[14]
+        peer_address = int.from_bytes(data[10:12], 'little')  # PRA — адрес отправителя
+        recipient_address = int.from_bytes(data[12:14], 'little')  # RCA — адрес получателя
+        ttl = data[14]  # TTL — время жизни
 
-    # RESPONSE-поля (PT=0) — они после заголовка, не внутри него
+    # RESPONSE-поля (PT=0) — идут после заголовка, не внутри него
     response_packet_id = None
     processing_result = None
     if pt == 0 and len(data) >= hl + 3:
-        response_packet_id = int.from_bytes(data[hl:hl+2], 'little')
-        processing_result = data[hl+2]
+        response_packet_id = int.from_bytes(data[hl:hl+2], 'little')  # RPID
+        processing_result = data[hl+2]  # PR — код результата
 
     return Packet(
         protocol_version=prv,
