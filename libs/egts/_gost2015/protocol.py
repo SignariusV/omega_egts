@@ -118,11 +118,10 @@ class Gost2015Protocol(IEgtsProtocol):
         )
 
         for rr in records:
-            # Подзапись RECORD_RESPONSE
             sr_data: dict[str, object] = {"crn": rr.rn, "rst": 0}
             subrecord = Subrecord(
-                subrecord_type=0,  # RECORD_RESPONSE
-                data=sr_data,  # type: ignore[arg-type]
+                subrecord_type=0,
+                data=sr_data,
             )
             rec = Record(
                 record_id=rr.rn,
@@ -138,7 +137,7 @@ class Gost2015Protocol(IEgtsProtocol):
     def build_record_response(self, crn: int, rst: int) -> bytes:
         """Собрать байты подзаписи RECORD_RESPONSE (SRT=0)."""
         sr_data: dict[str, object] = {"crn": crn, "rst": rst}
-        sr = Subrecord(subrecord_type=0, data=sr_data)  # type: ignore[arg-type]
+        sr = Subrecord(subrecord_type=0, data=sr_data)
         return serialize_subrecord(sr)
 
     def calculate_crc8(self, data: bytes) -> int:

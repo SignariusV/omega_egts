@@ -23,4 +23,4 @@ def register_subrecord(cls: type[SubrecordParser]) -> type[SubrecordParser]:
     """Декоратор: автоматически регистрирует парсер при определении класса."""
     instance = cls()
     register_parser(instance)
-    return cls  # type: ignore[return-value]
+    return cls
