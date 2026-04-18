@@ -434,10 +434,7 @@ class CommandDispatcher:
                 if effective_rn is None:
                     effective_rn = parsed.get("record_id")
 
-        writer.write(packet_bytes)
-        await writer.drain()
-
-        # Регистрация транзакции если есть PID/RN
+        # Регистрация транзакции ДО отправки (KI-052)
         if effective_pid is not None or effective_rn is not None:
             if conn.transaction_mgr is not None:
                 conn.transaction_mgr.register(
@@ -451,6 +448,9 @@ class CommandDispatcher:
                     "CommandDispatcher: transaction_mgr отсутствует для %s",
                     connection_id,
                 )
+
+        writer.write(packet_bytes)
+        await writer.drain()
 
         # Эмит события packet.sent для логирования отправленного пакета
         await self.bus.emit(
