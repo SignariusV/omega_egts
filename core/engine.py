@@ -296,7 +296,8 @@ class CoreEngine:
             }
 
         try:
-            return await self.cmw500.get_full_status()
+            result = await self.cmw500.get_full_status()
+            return {"connected": True, **result} if isinstance(result, dict) else {"connected": True, "data": result}
         except Exception as exc:
             return {"connected": False, "error": str(exc)}
 
