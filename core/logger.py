@@ -145,12 +145,13 @@ class LogManager:
         """Фоновая задача: автосброс буфера по интервалу или порогу.
 
         Проверяет буфер каждые ``flush_interval`` секунд.
-        Сбрасывает если количество записей >= ``flush_batch_size``.
+        Сбрасывает весь буфер (не только batch) при превышении порога.
         """
         while self._running:
             try:
                 await asyncio.sleep(self._flush_interval)
-                if len(self._buffer) >= self._flush_batch_size:
+                # Сбрасывать ВСЁ что есть, не только batch (KI-054)
+                while self._buffer:
                     await self.flush()
             except asyncio.CancelledError:
                 break
