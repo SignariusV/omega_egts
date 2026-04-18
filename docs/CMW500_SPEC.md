@@ -585,3 +585,43 @@ configure.connection.pswitched.sconfig:  enable, cscheme, combined, ...
 6. **`*CLS` перед включением** — очистка очереди ошибок
 7. **`visa_timeout = 60000`** — увеличено до 60 секунд
 8. **`write_str_with_opc()`** для конфигурационных команд — ждёт завершения
+
+---
+
+## 13. Проверенные SCPI-команды (из docs/comands.txt)
+
+Следующие команды были протестированы на реальном CMW-500 и работают:
+
+### 13.1 Конфигурация DAU
+
+```
+CONFigure:DATA:MEAS:RAN 'GSM Sig1'
+CONFigure:DATA:CONTrol:DNS:PRIMary:STYPe Foreign
+CONFigure:DATA:CONTrol:IPVFour:ADDRess:TYPE DHCPv4
+```
+
+### 13.2 Конфигурация GSM
+
+```
+CONFigure:GSM:SIGN:CELL:MCC 250
+CONFigure:GSM:SIGN:CELL:MNC 60          # Для SIM карты ВОЛНА, для МТС - 01
+CONFigure:GSM:SIGN:RFSettings:LEVel:TCH -40
+CONFigure:GSM:SIGN:CONNection:PSWitched:SERVice TMA
+CONFigure:GSM:SIGN:CONNection:PSWitched:TLEVel EGPRS
+CONFigure:GSM:SIGN:CONNection:PSWitched:CSCHeme:UL MC9
+CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:ENABle:DL:CARRier OFF,OFF,OFF,ON,ON,OFF,OFF,OFF
+CONF:GSM:SIGN:CONN:PSW:SCON:CSCHeme:DL:CARRier MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9
+```
+
+### 13.3 SMS отправка
+
+```
+# Установка EGTS-пакета в HEX
+CONF:GSM:SIGN1:SMS:OUTG:BIN #H0100000B001A00000001F01300000040040433100050000000000000000000000000120100B3B6
+# Кодирование
+CONFigure:GSM:SIGN:SMS:OUTGoing:DCODing BIT8
+# PID
+CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H1
+# Инициировать SMS-сессию
+CALL:GSM:SIGN:CSWitched:ACTion SMS
+```
