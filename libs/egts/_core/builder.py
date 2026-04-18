@@ -3,10 +3,10 @@
 import logging
 
 from libs.egts._core.crc import crc8, crc16
-
-logger = logging.getLogger(__name__)
 from libs.egts._core.subrecord_registry import get_parser
 from libs.egts.models import Packet, Record, Subrecord
+
+logger = logging.getLogger(__name__)
 
 
 def serialize_subrecord(sub: Subrecord) -> bytes:

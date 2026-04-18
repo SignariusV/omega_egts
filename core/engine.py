@@ -126,13 +126,13 @@ class CoreEngine:
                 if self.config.cmw500.simulate:
                     self.cmw500 = Cmw500Emulator(
                         bus=self.bus,
-                        ip=self.config.cmw500.ip,
+                        ip=self.config.cmw500.ip or "127.0.0.1",
                         poll_interval=self.config.cmw500.status_poll_interval,
                     )
                 else:
                     self.cmw500 = Cmw500Controller(
                         bus=self.bus,
-                        ip=self.config.cmw500.ip,
+                        ip=self.config.cmw500.ip or "127.0.0.1",
                         simulate=False,
                     )
                 await self.cmw500.connect()

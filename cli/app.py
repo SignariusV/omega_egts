@@ -169,9 +169,9 @@ def _format_status(data: dict[str, Any]) -> str:
     lines.append(f"ГОСТ: {data.get('gost_version')}")
     lines.append(f"TCP сервер: {data.get('tcp_server')}")
     lines.append(f"CMW-500: {data.get('cmw500')}")
-    lines.append(f"SessionManager: OK" if data.get('session_mgr') else f"SessionManager: FAIL")
-    lines.append(f"LogManager: OK" if data.get('log_mgr') else f"LogManager: FAIL")
-    lines.append(f"ScenarioManager: OK" if data.get('scenario_mgr') else f"ScenarioManager: FAIL")
+    lines.append("SessionManager: OK" if data.get('session_mgr') else "SessionManager: FAIL")
+    lines.append("LogManager: OK" if data.get('log_mgr') else "LogManager: FAIL")
+    lines.append("ScenarioManager: OK" if data.get('scenario_mgr') else "ScenarioManager: FAIL")
 
     if data.get("cmw_details"):
         lines.append("")
@@ -857,7 +857,7 @@ def main() -> None:
 
     if args.command is None:
         # Без команды — запускаем REPL (интерактивный режим)
-        _cmd_monitor(None)
+        _cmd_monitor(argparse.Namespace())
         sys.exit(0)
 
     # Маппинг команд на обработчики
