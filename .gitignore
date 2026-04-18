@@ -1,36 +1,27 @@
-```
-# Python
+```gitignore
+# Python compiled files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-*.so
+
+# Package management
+*.egg-info/
+
+# Logs
+logs/
+
+# Environment files
+.env
+.env.local
+*.env.*
+
+# Coverage reports
 .coverage
 coverage/
 htmlcov/
 
-# Logs
-logs/
-*.log
-
-# Environment
-.env
-.env.local
-.env.*
-
-# Tests
+# Testing
 .pytest_cache/
-*.py.class
-*.py.c
-*.py.o
-*.py.so
-*.py~*
-
-# Temporary files
-*.tmp
-*.swp
-*~
-.DS_Store
-Thumbs.db
+.mypy_cache/
 ```
