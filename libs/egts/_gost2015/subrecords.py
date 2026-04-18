@@ -300,11 +300,12 @@ class VehicleDataParser:
         return {"vin": vin, "vht": vht, "vpst": vpst}
 
     def serialize(self, data: dict[str, Any]) -> bytes:
-        vin = data.get("vin", "")
+        vin = str(data.get("vin", ""))
         vin_bytes = vin.encode("cp1251")[:_VEHICLE_VIN_SIZE].ljust(_VEHICLE_VIN_SIZE, b"\x00")
-        vht_bytes = data.get("vht", 0).to_bytes(_VEHICLE_VHT_SIZE, "little")
-        vpst_bytes = data.get("vpst", 0).to_bytes(_VEHICLE_VPST_SIZE, "little")
-        return vin_bytes + vht_bytes + vpst_bytes
+        vht_bytes = int(data.get("vht", 0)).to_bytes(_VEHICLE_VHT_SIZE, "little")
+        vpst_bytes = int(data.get("vpst", 0)).to_bytes(_VEHICLE_VPST_SIZE, "little")
+        result: bytes = vin_bytes + vht_bytes + vpst_bytes
+        return result
 
 
 # ──────────────────────────────────────────────────────────────
@@ -734,9 +735,10 @@ class ServiceFullDataParser:
         return {"odh": odh, "od": od, "odh_parsed": _parse_odh(odh)}
 
     def serialize(self, data: dict[str, Any]) -> bytes:
-        odh = data.get("odh", b"")
-        od = data.get("od", b"")
-        return odh + od
+        odh: bytes = data.get("odh", b"") if isinstance(data.get("odh", b""), bytes) else b""
+        od: bytes = data.get("od", b"") if isinstance(data.get("od", b""), bytes) else b""
+        result: bytes = odh + od
+        return result
 
 
 # ──────────────────────────────────────────────────────────────
@@ -796,26 +798,34 @@ class CommandDataParser:
         }
 
     def serialize(self, data: dict[str, Any]) -> bytes:
-        ct = data.get("ct", 0)
-        cct = data.get("cct", 0)
-        result = bytes([((ct & 0x0F) << 4) | (cct & 0x0F)])
-        result += data.get("cid", 0).to_bytes(4, "little")
-        result += data.get("sid", 0).to_bytes(4, "little")
+        ct = int(data.get("ct", 0))
+        cct = int(data.get("cct", 0))
+        result: bytes = bytes([((ct & 0x0F) << 4) | (cct & 0x0F)])
+        result += int(data.get("cid", 0)).to_bytes(4, "little")
+        result += int(data.get("sid", 0)).to_bytes(4, "little")
 
-        acfe = data.get("acfe", False)
-        chsfe = data.get("chsfe", False)
+        acfe = bool(data.get("acfe", False))
+        chsfe = bool(data.get("chsfe", False))
         flags = (0x80 if acfe else 0x00) | (0x40 if chsfe else 0x00)
 
         if chsfe:
-            result += bytes([flags, data.get("chs", 0)])
+            result += bytes([flags, int(data.get("chs", 0))])
         else:
             result += bytes([flags])
 
         if acfe:
             ac = data.get("ac", b"")
-            result += bytes([len(ac)]) + ac
+            if isinstance(ac, bytes):
+                result += bytes([len(ac)]) + ac
+            else:
+                ac_bytes = b""
+                result += bytes([len(ac_bytes)]) + ac_bytes
 
-        result += data.get("cd", b"")
+        cd = data.get("cd", b"")
+        if isinstance(cd, bytes):
+            result += cd
+        else:
+            result += b""
         return result
 
 
@@ -823,7 +833,7 @@ class CommandDataParser:
 # SRT=62 RAW_MSD_DATA
 # ──────────────────────────────────────────────────────────────
 
-@register_subrecord  # type: ignore[arg-type]
+@register_subrecord
 class RawMsdDataParser:
     srt = 62
     name = "RAW_MSD_DATA"
