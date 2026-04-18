@@ -808,7 +808,5 @@ class SessionManager:
                         "timestamp": time.monotonic(),
                     },
                 )
-            except Exception:
-                # Ошибка в subscriber не должна блокировать FSM
-                # (contextlib.suppress не работает с async — SIM105 false positive)
-                pass
+            except Exception as e:
+                logger.debug("Ошибка в subscriber при FSM переходе: %s", e)

@@ -230,19 +230,17 @@ class VisaCmw500Driver:
 
         try:
             message_flag = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INFO:LRMessage:RFLag?").strip()
-            # Если флаг True, значит сообщение уже прочитано и удалено
-
             if message_flag == "ON":
                 return None
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Ошибка проверки флага SMS: %s", e)
 
-        # Получаем текст сообщения
         try:
             result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?").strip()
             if not result:
                 return None
-        except Exception:
+        except Exception as e:
+            logger.debug("Ошибка получения текста SMS: %s", e)
             return None
 
         if result.startswith('"') and result.endswith('"'):

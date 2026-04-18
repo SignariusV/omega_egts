@@ -112,8 +112,8 @@ class LogManager:
             self._bus.off("packet.processed", self._on_packet_processed)
             self._bus.off("connection.changed", self._on_connection_changed)
             self._bus.off("scenario.step", self._on_scenario_step)
-        except Exception:
-            pass  # Игнорируем ошибки отписки при закрытии
+        except Exception as e:
+            logger.debug("Ошибка отписки при закрытии: %s", e)
         logger.info("LogManager: остановлен, буфер сброшен")
 
     async def flush(self) -> None:

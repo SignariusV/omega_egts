@@ -54,9 +54,8 @@ def _is_writer_closing(writer: object) -> bool:
             if hasattr(result, "__await__"):
                 return False
             return bool(result)
-        except Exception:
-            # Если is_closing бросил исключение — считаем writer активным
-            pass
+        except Exception as e:
+            logger.debug("Ошибка проверки is_closing: %s", e)
     return False
 
 

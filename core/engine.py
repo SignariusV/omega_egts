@@ -268,7 +268,8 @@ class CoreEngine:
             try:
                 cmw_details = await self.cmw500.get_status()
                 result["cmw_details"] = cmw_details
-            except Exception:
+            except Exception as e:
+                logger.debug("Не удалось получить статус CMW-500: %s", e)
                 result["cmw_details"] = None
 
         return result
@@ -419,5 +420,6 @@ class CoreEngine:
         try:
             stats = self.log_mgr.get_stats()
             return {**stats, "running": True}
-        except Exception:
+        except Exception as e:
+            logger.debug("Ошибка получения статистики логгера: %s", e)
             return {"packets": 0, "connections": 0, "running": True}
