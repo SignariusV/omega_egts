@@ -1,7 +1,11 @@
 pyvisa>=1.13.0
 pyvisa-py>=0.7.0
+RsCmwGsmSig>=3.7.30
 asn1crypto>=1.5.1
 crc>=7.1.0
+
+[asn1]
+asn1tools>=0.163.0
 
 [dev]
 pytest>=8.0.0
