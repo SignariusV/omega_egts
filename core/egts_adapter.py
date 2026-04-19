@@ -55,7 +55,7 @@ TL_RECONNECT_TO = 30
 
 def create_protocol(version: str = "2015") -> IEgtsProtocol:
     """Создать экземпляр протокола (обратная совместимость)."""
-    return get_protocol(version)  # type: ignore[no-any-return]
+    return get_protocol(version)
 
 def collect_extra(parsed: ParseResult) -> dict[str, object]:
     """Собрать flat dict из ParseResult для обратной совместимости.

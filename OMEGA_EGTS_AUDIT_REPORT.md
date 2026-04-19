@@ -764,7 +764,7 @@ class SomeService:
     
     def do_work(self) -> None:
         self._logger.info("Working with timeout=%s", self._config.timeout)
-
+да
 # Фабрика для создания с зависимостями
 def create_service() -> SomeService:
     logger = logging.getLogger("app")

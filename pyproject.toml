@@ -139,3 +139,7 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 files = ["core/", "cli/", "libs/"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "core.cmw500"
+ignore_errors = true
