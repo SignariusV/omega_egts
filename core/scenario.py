@@ -627,7 +627,7 @@ class ScenarioManager:
         self._metadata = parser.load(data)
         step_defs = parser.get_steps()
 
-        logger.debug(
+        logger.info(
             "Scenario loaded: '%s' (v%s), %d steps, timeout=%.1fs",
             self._metadata.name,
             self._metadata.version,
@@ -678,16 +678,17 @@ class ScenarioManager:
         eff_timeout = timeout or (self._metadata.timeout if self._metadata else 60.0)
         start_total = time.monotonic()
 
-        for step in self._steps:
+        total_steps = len(self._steps)
+        for step_idx, step in enumerate(self._steps):
             elapsed = time.monotonic() - start_total
             remaining = eff_timeout - elapsed
             if remaining <= 0:
                 self._context.add_history(step.name, "TIMEOUT", 0.0)
-                logger.debug("Scenario: step '%s' SKIPPED (timeout)", step.name)
+                logger.info("Scenario: step '%s' SKIPPED (timeout)", step.name)
                 return "TIMEOUT"
 
             start_time = time.monotonic()
-            logger.debug("Scenario: starting step '%s' (timeout=%.1fs)", step.name, remaining)
+            logger.info("=== Step %d/%d: '%s' ===", step_idx + 1, total_steps, step.name)
 
             try:
                 result = await step.execute(self._context, bus, timeout=remaining)
@@ -697,7 +698,7 @@ class ScenarioManager:
 
             duration = time.time() - start_time
             self._context.add_history(step.name, result, duration)
-            logger.debug("Scenario: step '%s' finished with %s (%.2fs)", step.name, result, duration)
+            logger.info("Scenario: step '%s' finished with %s (%.2fs)", step.name, result, duration)
 
             if result != "PASS":
                 logger.warning(
@@ -705,5 +706,5 @@ class ScenarioManager:
                 )
                 return result
 
-        logger.debug("Scenario '%s' completed PASS", self._metadata.name)
+        logger.info("Scenario '%s' completed PASS", self._metadata.name)
         return "PASS"
