@@ -539,14 +539,14 @@ class EGTSTesterCLI(Cmd):
         finally:
             loop.close()
 
-    def _run_in_server_loop(self, coro: Any) -> Any:
+    def _run_in_server_loop(self, coro: Any, timeout: float | None = None) -> Any:
         """Запустить корутину в loop сервера (работает в фоновом потоке)."""
         if self._loop is None or self._loop.is_closed():
             raise RuntimeError("Event loop сервера не активен")
 
         future = asyncio.run_coroutine_threadsafe(coro, self._loop)
         try:
-            return future.result(timeout=60)
+            return future.result(timeout=timeout)
         except Exception:
             # Пробрасываем оригинальное исключение
             raise
@@ -726,7 +726,10 @@ class EGTSTesterCLI(Cmd):
             return
 
         try:
-            result = self._run_in_server_loop(self._engine.run_scenario(scenario_path, connection_id))
+            result = self._run_in_server_loop(
+                self._engine.run_scenario(scenario_path, connection_id),
+                timeout=300  # 5 минут на сценарий
+            )
             print(_format_scenario_result(result))
         except Exception as e:
             print(f"Ошибка выполнения сценария: {e}")
