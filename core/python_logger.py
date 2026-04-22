@@ -42,6 +42,7 @@ def setup_python_logging(
     _LOGGING_INITIALIZED = True
 
     session_id = datetime.now().strftime("%Y%m%d-%H%M%S")
+    _current_session_id = session_id  # Сохраняем для get_session_id()
     log_file = log_dir / f"python-{session_id}.log"
 
     formatter = logging.Formatter(
