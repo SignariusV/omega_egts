@@ -60,12 +60,14 @@ class LogManager:
         bus: EventBus,
         log_dir: Path,
         *,
+        session_id: str | None = None,
         flush_interval: float = _DEFAULT_FLUSH_INTERVAL,
         flush_batch_size: int = _DEFAULT_FLUSH_BATCH_SIZE,
     ) -> None:
         self._bus = bus
         self._log_dir = Path(log_dir)
         self._log_dir.mkdir(parents=True, exist_ok=True)
+        self._session_id = session_id
         self._buffer: list[dict[str, Any]] = []
         self._flush_interval = flush_interval
         self._flush_batch_size = flush_batch_size
@@ -129,9 +131,12 @@ class LogManager:
         # Сортировка по timestamp (решение CR-002)
         self._buffer.sort(key=lambda entry: entry.get("timestamp", 0))
 
-        # Файл по дате
-        today_str = date.today().isoformat()  # YYYY-MM-DD
-        log_file = self._log_dir / f"{today_str}.jsonl"
+        # Файл по session_id или дате
+        if self._session_id:
+            log_file = self._log_dir / f"{self._session_id}.jsonl"
+        else:
+            today_str = date.today().isoformat()  # YYYY-MM-DD
+            log_file = self._log_dir / f"{today_str}.jsonl"
 
         with open(log_file, "a", encoding="utf-8") as f:
             for entry in self._buffer:

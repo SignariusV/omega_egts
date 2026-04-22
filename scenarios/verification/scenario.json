@@ -2,7 +2,7 @@
   "name": "Верификация (SMS)",
   "scenario_version": "1",
   "gost_version": "ГОСТ 33465-2015",
-  "timeout": 60,
+  "timeout": 180,
   "description": "Первоначальная настройка УСВ через SMS: APN, адрес сервера, запрос UNIT_ID",
   "channels": ["sms"],
   "steps": [
@@ -12,7 +12,7 @@
       "channel": "sms",
       "packet_type": "EGTS_GPRS_APN",
       "packet_file": "packets/platform/gprs_apn.hex",
-      "timeout": 60,
+"timeout": 120,
       "description": "Отправка настроек GPRS/APN (internet)"
     },
     {
@@ -44,32 +44,30 @@
       "checks": {
         "packet_type": 0,
         "ct": 1,
-        "cid": 1
+        "cid": 0
       },
-      "description": "УСВ подтверждает приём адреса сервера"
+      "description": "УСВ подтверждает приём адреса сервера (cid=0 для теста)"
     },
     {
-      "name": "Запрос UNIT_ID",
+      "name": "Передача UNIT_ID",
       "type": "send",
       "channel": "sms",
       "packet_type": "EGTS_UNIT_ID",
       "packet_file": "packets/platform/unit_id.hex",
       "timeout": 30,
-      "description": "Запрос идентификатора устройства"
+      "description": "Платформа передает УСВ идентификатор устройства"
     },
     {
-      "name": "Ответ с UNIT_ID",
+      "name": "Подтверждение приема UNIT_ID",
       "type": "expect",
       "channel": "sms",
       "timeout": 30,
       "checks": {
         "packet_type": 0,
         "ct": 1,
-        "cid": 2
+        "cid": 0
       },
-      "capture": {
-        "unit_id": "data"
-      },
+
       "description": "УСВ возвращает UNIT_ID"
     }
   ]

@@ -83,8 +83,12 @@ class CoreEngine:
             # Создаём менеджер сессий (требуется для работы других компонентов)
             self.session_mgr = SessionManager(bus=self.bus, gost_version=self.config.gost_version)
 
+            # Получаем session_id из python_logger
+            from core.python_logger import get_session_id
+            session_id = get_session_id()
+
             # Создаём менеджер логирования (подписывается на события EventBus)
-            self.log_mgr = LogManager(bus=self.bus, log_dir=Path(self.config.logging.dir))
+            self.log_mgr = LogManager(bus=self.bus, log_dir=Path(self.config.logging.dir), session_id=session_id)
 
             # Создаём менеджер сценариев (парсер + выполнение)
             from core.scenario import ScenarioManager as _ScenarioManager

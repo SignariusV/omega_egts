@@ -85,6 +85,16 @@ def setup_python_logging(
     return session_id
 
 
+def get_session_id() -> str:
+    """Вернуть ID текущей сессии."""
+    return _current_session_id or ""
+
+
+def get_log_dir() -> Path:
+    """Вернуть директорию логов."""
+    return _log_dir
+
+
 def _cleanup_old_logs(log_dir: Path, keep_count: int = 10) -> None:
     """Удалить старые лог-файлы.
 
