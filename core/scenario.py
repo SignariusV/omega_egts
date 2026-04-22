@@ -308,14 +308,25 @@ class ExpectStep:
                     pkt = packet_data.packet
                     extra["packet_type"] = pkt.packet_type
                     extra["packet_id"] = pkt.packet_id
-                    extra["service"] = pkt.service
-                    # Добавляем service_type из первой записи
+                    # service из первой записи (service_type)
                     if pkt.records:
                         extra["service"] = pkt.records[0].service_type
                     for rec in pkt.records:
                         for sr in rec.subrecords:
                             if isinstance(sr.data, dict):
                                 extra.update(sr.data)
+                    # Fallback: ct, cid могут быть напрямую в пакете (из парсера)
+                    if pkt.records:
+                        first = pkt.records[0]
+                        if hasattr(first, "ct"):
+                            extra["ct"] = first.ct
+                        if hasattr(first, "cid"):
+                            extra["cid"] = first.cid
+                    # Дополнительно: ct, cid на уровне пакета
+                    if hasattr(pkt, "ct"):
+                        extra["ct"] = pkt.ct
+                    if hasattr(pkt, "cid"):
+                        extra["cid"] = pkt.cid
                     logger.debug("ExpectStep '%s': extracted extra keys=%s", self.name, list(extra.keys()))
                 else:
                     logger.debug("ExpectStep '%s': NO packet attribute or packet is None!", self.name)
