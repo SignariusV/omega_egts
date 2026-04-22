@@ -85,8 +85,9 @@ class LogManager:
         self._flush_task = asyncio.create_task(self._auto_flush_loop())
 
         logger.info(
-            "LogManager инициализирован, log_dir=%s, flush_interval=%.1f, batch_size=%d",
+            "LogManager инициализирован, log_dir=%s, session_id=%s, flush_interval=%.1f, batch_size=%d",
             self._log_dir,
+            self._session_id or "(date-based)",
             self._flush_interval,
             self._flush_batch_size,
         )
@@ -144,7 +145,7 @@ class LogManager:
 
         count = len(self._buffer)
         self._buffer.clear()
-        logger.debug("LogManager: записано %d записей в %s", count, log_file)
+        logger.info("LogManager: записано %d записей в %s", count, log_file)
 
     async def _auto_flush_loop(self) -> None:
         """Фоновая задача: автосброс буфера по интервалу или порогу.
