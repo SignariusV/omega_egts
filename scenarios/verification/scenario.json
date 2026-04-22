@@ -33,7 +33,7 @@
       "channel": "sms",
       "packet_type": "EGTS_SERVER_ADDRESS",
       "packet_file": "packets/platform/server_address.hex",
-      "timeout": 5,
+      "timeout": 30,
       "description": "Отправка адреса и порта сервера (200.20.2.171:9090)"
     },
     {
