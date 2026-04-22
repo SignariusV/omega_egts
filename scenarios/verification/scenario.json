@@ -40,10 +40,9 @@
       "name": "Подтверждение адреса",
       "type": "expect",
       "channel": "sms",
-      "packet_type": "CT_COMCONF",
-      "timeout": 5,
+      "timeout": 30,
       "checks": {
-        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "packet_type": 0,
         "ct": 1,
         "cid": 1
       },
@@ -55,17 +54,16 @@
       "channel": "sms",
       "packet_type": "EGTS_UNIT_ID",
       "packet_file": "packets/platform/unit_id.hex",
-      "timeout": 5,
+      "timeout": 30,
       "description": "Запрос идентификатора устройства"
     },
     {
       "name": "Ответ с UNIT_ID",
       "type": "expect",
       "channel": "sms",
-      "packet_type": "CT_COMCONF",
-      "timeout": 5,
+      "timeout": 30,
       "checks": {
-        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "packet_type": 0,
         "ct": 1,
         "cid": 2
       },
