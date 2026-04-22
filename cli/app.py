@@ -35,7 +35,7 @@ from core.python_logger import setup_python_logging
 
 session_id = setup_python_logging(
     log_dir="logs",
-    console_level="ERROR",  # В консоль только ошибки
+    console_level="INFO",  # В консоль информация о сценарии
     file_level="DEBUG",  # В файл всё
 )
 
