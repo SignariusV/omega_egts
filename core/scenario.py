@@ -283,30 +283,45 @@ class ExpectStep:
         result_container: dict[str, str] = {"status": "PENDING"}
 
         def _on_packet(data: dict[str, Any]) -> None:
+            logger.debug("ExpectStep '%s': _on_packet called, data keys=%s", self.name, list(data.keys()))
             ctx_obj = data.get("ctx")
             if ctx_obj is None:
+                logger.debug("ExpectStep '%s': skip - no ctx", self.name)
                 return
             packet_data = ctx_obj.parsed
             if packet_data is None:
+                logger.debug("ExpectStep '%s': skip - no parsed data", self.name)
                 return
             # Проверка channel
             step_channel = self.channel
-            if step_channel is not None and data.get("channel") != step_channel:
+            event_channel = data.get("channel")
+            logger.debug("ExpectStep '%s': channel check - step=%r, event=%r", self.name, step_channel, event_channel)
+            if step_channel is not None and event_channel != step_channel:
+                logger.debug("ExpectStep '%s': skip - channel mismatch", self.name)
                 return
             # Извлечение данных из подзаписей (замена extra)
             extra = {}
-            if hasattr(packet_data, "packet") and packet_data.packet:
-                pkt = packet_data.packet
-                extra["packet_type"] = pkt.packet_type
-                extra["packet_id"] = pkt.packet_id
-                extra["service"] = pkt.service
-                # Добавляем service_type из первой записи
-                if pkt.records:
-                    extra["service"] = pkt.records[0].service_type
-                for rec in pkt.records:
-                    for sr in rec.subrecords:
-                        if isinstance(sr.data, dict):
-                            extra.update(sr.data)
+            logger.debug("ExpectStep '%s': extracting data from packet_data=%s", self.name, type(packet_data).__name__)
+            try:
+                if hasattr(packet_data, "packet") and packet_data.packet:
+                    logger.debug("ExpectStep '%s': has packet, accessing fields", self.name)
+                    pkt = packet_data.packet
+                    extra["packet_type"] = pkt.packet_type
+                    extra["packet_id"] = pkt.packet_id
+                    extra["service"] = pkt.service
+                    # Добавляем service_type из первой записи
+                    if pkt.records:
+                        extra["service"] = pkt.records[0].service_type
+                    for rec in pkt.records:
+                        for sr in rec.subrecords:
+                            if isinstance(sr.data, dict):
+                                extra.update(sr.data)
+                    logger.debug("ExpectStep '%s': extracted extra keys=%s", self.name, list(extra.keys()))
+                else:
+                    logger.debug("ExpectStep '%s': NO packet attribute or packet is None!", self.name)
+            except Exception as e:
+                logger.debug("ExpectStep '%s': ERROR extracting: %s", self.name, e)
+            logger.debug("ExpectStep '%s': extra=%s, checks=%s", self.name, extra, self.checks)
             if self._matches(extra):
                 self._capture(ctx, extra)
                 result_container["status"] = "PASS"
@@ -318,9 +333,12 @@ class ExpectStep:
                 result_container["status"] = "ERROR"
                 event.set()
 
+        handlers_before = len(bus._handlers.get("packet.processed", [])) + len(bus._ordered_handlers.get("packet.processed", []))
         bus.on("packet.processed", _on_packet)
         bus.on("connection.changed", _on_disconnect)
+        handlers_after = len(bus._handlers.get("packet.processed", [])) + len(bus._ordered_handlers.get("packet.processed", []))
 
+        logger.debug("ExpectStep '%s': handlers on packet.processed: before=%d, after=%d", self.name, handlers_before, handlers_after)
         logger.debug("ExpectStep '%s': waiting (channel=%s, timeout=%.1fs)", self.name, self.channel or "any", eff_timeout)
 
         try:

@@ -71,6 +71,13 @@ class EventBus:
             event_name: Имя события для публикации.
             data: Данные события, передаваемые всем обработчикам.
         """
+        ordered_count = len(self._ordered_handlers.get(event_name, []))
+        parallel_count = len(self._handlers.get(event_name, []))
+        logger.debug("EventBus.emit: event=%s, data_keys=%s, handlers=(ordered=%d, parallel=%d)",
+                    event_name, list(data.keys()), ordered_count, parallel_count)
+        if not ordered_count and not parallel_count:
+            logger.debug("EventBus.emit: no handlers for event=%s", event_name)
+
         # 1. Ordered — строго последовательно
         for handler in self._ordered_handlers.get(event_name, []):
             await self._invoke_handler(handler, data)
