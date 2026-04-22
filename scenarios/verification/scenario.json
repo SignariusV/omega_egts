@@ -19,10 +19,9 @@
       "name": "Подтверждение APN",
       "type": "expect",
       "channel": "sms",
-      "packet_type": "CT_COMCONF",
       "timeout": 30,
       "checks": {
-        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "packet_type": 0,
         "ct": 1,
         "cid": 0
       },

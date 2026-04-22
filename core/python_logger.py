@@ -68,6 +68,9 @@ def setup_python_logging(
 
     logging.root.setLevel(logging.DEBUG)
 
+    # Убираем verbose логи от pyvisa
+    logging.getLogger("pyvisa").setLevel(logging.WARNING)
+
     logger = logging.getLogger(__name__)
     logger.info("=" * 60)
     logger.info("Python logging initialized")

@@ -296,10 +296,14 @@ class ExpectStep:
             # Извлечение данных из подзаписей (замена extra)
             extra = {}
             if hasattr(packet_data, "packet") and packet_data.packet:
+                pkt = packet_data.packet
+                extra["packet_type"] = pkt.packet_type
+                extra["packet_id"] = pkt.packet_id
+                extra["service"] = pkt.service
                 # Добавляем service_type из первой записи
-                if packet_data.packet.records:
-                    extra["service"] = packet_data.packet.records[0].service_type
-                for rec in packet_data.packet.records:
+                if pkt.records:
+                    extra["service"] = pkt.records[0].service_type
+                for rec in pkt.records:
                     for sr in rec.subrecords:
                         if isinstance(sr.data, dict):
                             extra.update(sr.data)
@@ -317,14 +321,18 @@ class ExpectStep:
         bus.on("packet.processed", _on_packet)
         bus.on("connection.changed", _on_disconnect)
 
+        logger.debug("ExpectStep '%s': waiting (channel=%s, timeout=%.1fs)", self.name, self.channel or "any", eff_timeout)
+
         try:
             await asyncio.wait_for(event.wait(), timeout=eff_timeout)
         except TimeoutError:
             result_container["status"] = "TIMEOUT"
+
         finally:
             bus.off("packet.processed", _on_packet)
             bus.off("connection.changed", _on_disconnect)
 
+        logger.debug("ExpectStep '%s': finished with %s", self.name, result_container["status"])
         return result_container["status"]
 
 
@@ -461,6 +469,8 @@ class SendStep:
         bus.on("command.sent", _on_sent)
         bus.on("command.error", _on_error)
 
+        logger.debug("SendStep '%s': sending on channel=%s (timeout=%.1fs)", self.name, self.channel, eff_timeout)
+
         try:
             await bus.emit("command.send", emit_data)
             await asyncio.wait_for(event.wait(), timeout=eff_timeout)
@@ -473,6 +483,7 @@ class SendStep:
             bus.off("command.sent", _on_sent)
             bus.off("command.error", _on_error)
 
+        logger.debug("SendStep '%s': finished with %s", self.name, result_container["status"])
         return result_container["status"]
 
 
@@ -587,6 +598,14 @@ class ScenarioManager:
         self._metadata = parser.load(data)
         step_defs = parser.get_steps()
 
+        logger.debug(
+            "Scenario loaded: '%s' (v%s), %d steps, timeout=%.1fs",
+            self._metadata.name,
+            self._metadata.version,
+            len(step_defs),
+            self._metadata.timeout or 60.0,
+        )
+
         # Создание шагов через StepFactory
         self._steps = [StepFactory.create(sd) for sd in step_defs]
 
@@ -635,9 +654,12 @@ class ScenarioManager:
             remaining = eff_timeout - elapsed
             if remaining <= 0:
                 self._context.add_history(step.name, "TIMEOUT", 0.0)
+                logger.debug("Scenario: step '%s' SKIPPED (timeout)", step.name)
                 return "TIMEOUT"
 
             start_time = time.monotonic()
+            logger.debug("Scenario: starting step '%s' (timeout=%.1fs)", step.name, remaining)
+
             try:
                 result = await step.execute(self._context, bus, timeout=remaining)
             except Exception as exc:
@@ -646,6 +668,7 @@ class ScenarioManager:
 
             duration = time.time() - start_time
             self._context.add_history(step.name, result, duration)
+            logger.debug("Scenario: step '%s' finished with %s (%.2fs)", step.name, result, duration)
 
             if result != "PASS":
                 logger.warning(
@@ -653,4 +676,5 @@ class ScenarioManager:
                 )
                 return result
 
+        logger.debug("Scenario '%s' completed PASS", self._metadata.name)
         return "PASS"

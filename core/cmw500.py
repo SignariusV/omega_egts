@@ -230,6 +230,7 @@ class VisaCmw500Driver:
 
         try:
             message_flag = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INFO:LRMessage:RFLag?").strip()
+            
             if message_flag == "ON":
                 return None
         except Exception as e:
@@ -237,6 +238,7 @@ class VisaCmw500Driver:
 
         try:
             result = self._drv.utilities.query_str("SENSe:GSM:SIGN:SMS:INComing:INFO:MTEXt?").strip()
+            logger.debug("SMS raw response (raw): %r", result)
             if not result:
                 return None
         except Exception as e:
@@ -246,9 +248,10 @@ class VisaCmw500Driver:
         if result.startswith('"') and result.endswith('"'):
             result = result[1:-1]
 
+        logger.info("SMS received (len=%d): %s", len(result), result)
         self.clear_sms_buffer()
 
-        return result.encode('utf-8').hex().upper()
+        return result.upper()
 
     def clear_sms_buffer(self) -> None:
         """Очистка буфера входящих SMS.
