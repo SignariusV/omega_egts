@@ -1,0 +1,1272 @@
+2026-04-22 13:43:24.919 - core.python_logger - INFO - ============================================================
+2026-04-22 13:43:24.919 - core.python_logger - INFO - Python logging initialized
+2026-04-22 13:43:24.919 - core.python_logger - INFO - Session ID: 20260422-134324
+2026-04-22 13:43:24.919 - core.python_logger - INFO - Log file: logs/python-20260422-134324.log
+2026-04-22 13:43:24.919 - core.python_logger - INFO - Console level: INFO, File level: DEBUG
+2026-04-22 13:43:24.919 - core.python_logger - INFO - Rotation: 10485760 bytes, 5 backups
+2026-04-22 13:43:24.920 - core.python_logger - INFO - ============================================================
+2026-04-22 13:43:26.678 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.address`.
+2026-04-22 13:43:26.699 - faker.factory - DEBUG - Provider `faker.providers.address` has been localized to `en_US`.
+2026-04-22 13:43:26.703 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.automotive`.
+2026-04-22 13:43:26.721 - faker.factory - DEBUG - Provider `faker.providers.automotive` has been localized to `en_US`.
+2026-04-22 13:43:26.723 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.bank`.
+2026-04-22 13:43:26.739 - faker.factory - DEBUG - Specified locale `en_US` is not available for provider `faker.providers.bank`. Locale reset to `en_GB` for this provider.
+2026-04-22 13:43:26.740 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.barcode`.
+2026-04-22 13:43:26.741 - faker.factory - DEBUG - Provider `faker.providers.barcode` has been localized to `en_US`.
+2026-04-22 13:43:26.778 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.color`.
+2026-04-22 13:43:26.782 - faker.factory - DEBUG - Provider `faker.providers.color` has been localized to `en_US`.
+2026-04-22 13:43:26.783 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.company`.
+2026-04-22 13:43:26.801 - faker.factory - DEBUG - Provider `faker.providers.company` has been localized to `en_US`.
+2026-04-22 13:43:26.816 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.credit_card`.
+2026-04-22 13:43:26.818 - faker.factory - DEBUG - Provider `faker.providers.credit_card` has been localized to `en_US`.
+2026-04-22 13:43:26.820 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.currency`.
+2026-04-22 13:43:26.838 - faker.factory - DEBUG - Provider `faker.providers.currency` has been localized to `en_US`.
+2026-04-22 13:43:26.840 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.date_time`.
+2026-04-22 13:43:26.857 - faker.factory - DEBUG - Provider `faker.providers.date_time` has been localized to `en_US`.
+2026-04-22 13:43:26.858 - faker.factory - DEBUG - Provider `faker.providers.doi` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+2026-04-22 13:43:26.859 - faker.factory - DEBUG - Provider `faker.providers.emoji` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+2026-04-22 13:43:26.859 - faker.factory - DEBUG - Provider `faker.providers.file` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+2026-04-22 13:43:26.859 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.geo`.
+2026-04-22 13:43:26.861 - faker.factory - DEBUG - Provider `faker.providers.geo` has been localized to `en_US`.
+2026-04-22 13:43:26.862 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.internet`.
+2026-04-22 13:43:26.880 - faker.factory - DEBUG - Provider `faker.providers.internet` has been localized to `en_US`.
+2026-04-22 13:43:26.882 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.isbn`.
+2026-04-22 13:43:26.883 - faker.factory - DEBUG - Provider `faker.providers.isbn` has been localized to `en_US`.
+2026-04-22 13:43:26.895 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.job`.
+2026-04-22 13:43:26.900 - faker.factory - DEBUG - Provider `faker.providers.job` has been localized to `en_US`.
+2026-04-22 13:43:26.902 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.lorem`.
+2026-04-22 13:43:26.919 - faker.factory - DEBUG - Provider `faker.providers.lorem` has been localized to `en_US`.
+2026-04-22 13:43:26.919 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.misc`.
+2026-04-22 13:43:26.920 - faker.factory - DEBUG - Provider `faker.providers.misc` has been localized to `en_US`.
+2026-04-22 13:43:26.922 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.passport`.
+2026-04-22 13:43:26.922 - faker.factory - DEBUG - Provider `faker.providers.passport` has been localized to `en_US`.
+2026-04-22 13:43:26.936 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.person`.
+2026-04-22 13:43:26.959 - faker.factory - DEBUG - Provider `faker.providers.person` has been localized to `en_US`.
+2026-04-22 13:43:26.980 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.phone_number`.
+2026-04-22 13:43:27.000 - faker.factory - DEBUG - Provider `faker.providers.phone_number` has been localized to `en_US`.
+2026-04-22 13:43:27.001 - faker.factory - DEBUG - Provider `faker.providers.profile` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+2026-04-22 13:43:27.001 - faker.factory - DEBUG - Provider `faker.providers.python` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+2026-04-22 13:43:27.002 - faker.factory - DEBUG - Provider `faker.providers.sbn` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+2026-04-22 13:43:27.002 - faker.factory - DEBUG - Looking for locale `en_US` in provider `faker.providers.ssn`.
+2026-04-22 13:43:27.036 - faker.factory - DEBUG - Provider `faker.providers.ssn` has been localized to `en_US`.
+2026-04-22 13:43:27.038 - faker.factory - DEBUG - Provider `faker.providers.user_agent` does not feature localization. Specified locale `en_US` is not utilized for this provider.
+2026-04-22 13:43:27.260 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:27.261 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:27.278 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'serial', 'simulate'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:27.279 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:27.279 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:27.279 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:27.299 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:27.302 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:27.302 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:27.317 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:27.318 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:27.318 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:27.318 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:27.318 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:27.321 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:27.322 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:27.322 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:27.917 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:27.918 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:27.921 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:27.922 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:27.922 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:29.517 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:29.518 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:29.521 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:29.521 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:29.522 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:29.872 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:29.872 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:29.875 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:29.876 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:29.877 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:31.221 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:31.221 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:31.224 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:31.225 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:31.225 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:59.573 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:59.573 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:59.577 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:59.578 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:59.578 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:59.578 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:59.578 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:59.581 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:59.581 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:59.582 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:59.582 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:43:59.633 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:59.633 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:59.636 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:59.637 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:59.638 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:43:59.638 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:59.638 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:43:59.640 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:59.643 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:43:59.644 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:43:59.644 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:00.338 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:00.338 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:00.355 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:00.356 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:00.357 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.009 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.009 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.012 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.013 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.013 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.013 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.013 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.016 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.017 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.017 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.017 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.017 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.020 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.034 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.035 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.035 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.035 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.038 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.039 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.039 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.190 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.190 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.193 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.194 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.194 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.195 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.195 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.199 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.200 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:01.201 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.201 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.204 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.205 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.205 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.206 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.206 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.217 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.221 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.222 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.222 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.247 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.247 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.251 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.254 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.255 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.298 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.298 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.302 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.303 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.303 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.331 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.331 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.336 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.337 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.337 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.378 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.379 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.382 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.383 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.384 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.463 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.463 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.467 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.468 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.468 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.562 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.562 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.566 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.567 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.567 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.662 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.663 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.666 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.668 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.668 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.767 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.767 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.770 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.772 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.772 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.827 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.827 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.831 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.832 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.832 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.832 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.832 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.836 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.837 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.837 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:01.944 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.945 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:01.948 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:01.949 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:01.949 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:02.010 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:02.011 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:02.014 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:02.015 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:02.015 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:02.015 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:02.216 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:02.217 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:02.220 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:02.221 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:02.221 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:02.322 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:02.814 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:02.815 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:02.996 - core.credentials - WARNING - Файл учётных данных не найден: /tmp/pytest-of-root/pytest-2/test_load_missing_file0/nonexistent.json
+2026-04-22 13:44:02.999 - core.credentials - ERROR - Ошибка чтения файла учётных данных: Expecting value: line 1 column 1 (char 0)
+2026-04-22 13:44:03.098 - core.credentials - WARNING - Windows: restrict ACL for /tmp/pytest-of-root/pytest-2/test_secure_file_on_windows_lo0/credentials.json manually (Properties → Security → Advanced)
+2026-04-22 13:44:03.116 - core.credentials - WARNING - Failed to secure credentials file: Access denied
+2026-04-22 13:44:03.141 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:03.154 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_auth_packet_through_full_0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:03.156 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:47221
+2026-04-22 13:44:03.156 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.156 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:03.157 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.157 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:03.244 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.244 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:03.245 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.245 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:03.348 - core.tcp_server - INFO - Новое подключение d4fb8925-0795-4d78-8499-a800c77d84b3 от ('127.0.0.1', 53950)
+2026-04-22 13:44:03.348 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:03.348 - core.logger - DEBUG - LogManager: connection d4fb8925-0795-4d78-8499-a800c77d84b3 None -> CONNECTED
+2026-04-22 13:44:03.350 - core.tcp_server - DEBUG - Получено 59 байт от d4fb8925-0795-4d78-8499-a800c77d84b3: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-22 13:44:03.350 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:03.350 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=d4fb8925-0795-4d78-8499-a800c77d84b3, size=59
+2026-04-22 13:44:03.351 - core.pipeline - DEBUG - CRC check passed for connection d4fb8925-0795-4d78-8499-a800c77d84b3
+2026-04-22 13:44:03.352 - core.pipeline - DEBUG - Parse successful for connection d4fb8925-0795-4d78-8499-a800c77d84b3 (packet_type=1)
+2026-04-22 13:44:03.352 - core.pipeline - DEBUG - First seen PID=42 from d4fb8925-0795-4d78-8499-a800c77d84b3
+2026-04-22 13:44:03.352 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-22 13:44:03.352 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=2, parallel=2)
+2026-04-22 13:44:03.353 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:03.353 - core.logger - DEBUG - LogManager: connection d4fb8925-0795-4d78-8499-a800c77d84b3 authenticating -> authenticating
+2026-04-22 13:44:03.353 - core.logger - DEBUG - LogManager: packet conn=d4fb8925-0795-4d78-8499-a800c77d84b3 channel=tcp crc=True dup=False
+2026-04-22 13:44:03.353 - core.dispatcher - INFO - RESPONSE отправлен d4fb8925-0795-4d78-8499-a800c77d84b3 через TCP (29 байт)
+2026-04-22 13:44:03.354 - core.pipeline - DEBUG - Emitted packet.processed for connection d4fb8925-0795-4d78-8499-a800c77d84b3 (terminated=False, crc_valid=True)
+2026-04-22 13:44:03.652 - core.tcp_server - DEBUG - Клиент d4fb8925-0795-4d78-8499-a800c77d84b3 закрыл соединение
+2026-04-22 13:44:03.652 - core.tcp_server - INFO - Отключение d4fb8925-0795-4d78-8499-a800c77d84b3
+2026-04-22 13:44:03.652 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:03.653 - core.logger - DEBUG - LogManager: connection d4fb8925-0795-4d78-8499-a800c77d84b3 authenticating -> DISCONNECTED
+2026-04-22 13:44:03.653 - core.logger - INFO - LogManager: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_auth_packet_through_full_0/logs/20260422-134324.jsonl
+2026-04-22 13:44:03.653 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:03.654 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.654 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:03.654 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:03.654 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:03.654 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:03.655 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:03.655 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.655 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:03.655 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.655 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:03.659 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:03.660 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_auth_response_sent_back0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:03.660 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:41323
+2026-04-22 13:44:03.660 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.661 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:03.661 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.661 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:03.751 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.752 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:03.752 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.752 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:03.854 - core.tcp_server - INFO - Новое подключение 2132d76e-a792-4ceb-93f8-d12085f0af82 от ('127.0.0.1', 43984)
+2026-04-22 13:44:03.855 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:03.855 - core.logger - DEBUG - LogManager: connection 2132d76e-a792-4ceb-93f8-d12085f0af82 None -> CONNECTED
+2026-04-22 13:44:03.857 - core.tcp_server - DEBUG - Получено 59 байт от 2132d76e-a792-4ceb-93f8-d12085f0af82: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-22 13:44:03.857 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:03.857 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=2132d76e-a792-4ceb-93f8-d12085f0af82, size=59
+2026-04-22 13:44:03.857 - core.pipeline - DEBUG - CRC check passed for connection 2132d76e-a792-4ceb-93f8-d12085f0af82
+2026-04-22 13:44:03.858 - core.pipeline - DEBUG - Parse successful for connection 2132d76e-a792-4ceb-93f8-d12085f0af82 (packet_type=1)
+2026-04-22 13:44:03.859 - core.pipeline - DEBUG - First seen PID=42 from 2132d76e-a792-4ceb-93f8-d12085f0af82
+2026-04-22 13:44:03.859 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-22 13:44:03.859 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=1, parallel=2)
+2026-04-22 13:44:03.860 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:03.860 - core.logger - DEBUG - LogManager: connection 2132d76e-a792-4ceb-93f8-d12085f0af82 authenticating -> authenticating
+2026-04-22 13:44:03.860 - core.logger - DEBUG - LogManager: packet conn=2132d76e-a792-4ceb-93f8-d12085f0af82 channel=tcp crc=True dup=False
+2026-04-22 13:44:03.860 - core.dispatcher - INFO - RESPONSE отправлен 2132d76e-a792-4ceb-93f8-d12085f0af82 через TCP (29 байт)
+2026-04-22 13:44:03.860 - core.pipeline - DEBUG - Emitted packet.processed for connection 2132d76e-a792-4ceb-93f8-d12085f0af82 (terminated=False, crc_valid=True)
+2026-04-22 13:44:03.862 - core.tcp_server - DEBUG - Клиент 2132d76e-a792-4ceb-93f8-d12085f0af82 закрыл соединение
+2026-04-22 13:44:03.862 - core.tcp_server - INFO - Отключение 2132d76e-a792-4ceb-93f8-d12085f0af82
+2026-04-22 13:44:03.862 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:03.862 - core.logger - DEBUG - LogManager: connection 2132d76e-a792-4ceb-93f8-d12085f0af82 authenticating -> DISCONNECTED
+2026-04-22 13:44:03.863 - core.logger - INFO - LogManager: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_auth_response_sent_back0/logs/20260422-134324.jsonl
+2026-04-22 13:44:03.863 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:03.863 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.863 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:03.864 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:03.864 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:03.864 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:03.864 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:03.864 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.864 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:03.864 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.864 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:03.878 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:03.880 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_auth_then_command0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:03.880 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:34127
+2026-04-22 13:44:03.880 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.880 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:03.881 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:03.881 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:04.003 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.003 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:04.004 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.004 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:04.106 - core.tcp_server - INFO - Новое подключение fb2ad618-e388-42f3-a826-0aa1ffe95971 от ('127.0.0.1', 34890)
+2026-04-22 13:44:04.106 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:04.107 - core.logger - DEBUG - LogManager: connection fb2ad618-e388-42f3-a826-0aa1ffe95971 None -> CONNECTED
+2026-04-22 13:44:04.108 - core.tcp_server - DEBUG - Получено 59 байт от fb2ad618-e388-42f3-a826-0aa1ffe95971: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-22 13:44:04.109 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:04.109 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=fb2ad618-e388-42f3-a826-0aa1ffe95971, size=59
+2026-04-22 13:44:04.109 - core.pipeline - DEBUG - CRC check passed for connection fb2ad618-e388-42f3-a826-0aa1ffe95971
+2026-04-22 13:44:04.110 - core.pipeline - DEBUG - Parse successful for connection fb2ad618-e388-42f3-a826-0aa1ffe95971 (packet_type=1)
+2026-04-22 13:44:04.110 - core.pipeline - DEBUG - First seen PID=42 from fb2ad618-e388-42f3-a826-0aa1ffe95971
+2026-04-22 13:44:04.111 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-22 13:44:04.111 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=2, parallel=2)
+2026-04-22 13:44:04.111 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:04.112 - core.logger - DEBUG - LogManager: connection fb2ad618-e388-42f3-a826-0aa1ffe95971 authenticating -> authenticating
+2026-04-22 13:44:04.112 - core.logger - DEBUG - LogManager: packet conn=fb2ad618-e388-42f3-a826-0aa1ffe95971 channel=tcp crc=True dup=False
+2026-04-22 13:44:04.112 - core.dispatcher - INFO - RESPONSE отправлен fb2ad618-e388-42f3-a826-0aa1ffe95971 через TCP (29 байт)
+2026-04-22 13:44:04.113 - core.pipeline - DEBUG - Emitted packet.processed for connection fb2ad618-e388-42f3-a826-0aa1ffe95971 (terminated=False, crc_valid=True)
+2026-04-22 13:44:04.410 - core.tcp_server - DEBUG - Получено 38 байт от fb2ad618-e388-42f3-a826-0aa1ffe95971: 0100000B0019001100015612002000400404330F00500000000000000000000000011501DCBE
+2026-04-22 13:44:04.410 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:04.410 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=fb2ad618-e388-42f3-a826-0aa1ffe95971, size=38
+2026-04-22 13:44:04.411 - core.pipeline - DEBUG - CRC check passed for connection fb2ad618-e388-42f3-a826-0aa1ffe95971
+2026-04-22 13:44:04.411 - core.pipeline - DEBUG - Parse successful for connection fb2ad618-e388-42f3-a826-0aa1ffe95971 (packet_type=1)
+2026-04-22 13:44:04.411 - core.pipeline - DEBUG - First seen PID=17 from fb2ad618-e388-42f3-a826-0aa1ffe95971
+2026-04-22 13:44:04.412 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=17 (29 байт)
+2026-04-22 13:44:04.412 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=2, parallel=2)
+2026-04-22 13:44:04.412 - core.logger - DEBUG - LogManager: packet conn=fb2ad618-e388-42f3-a826-0aa1ffe95971 channel=tcp crc=True dup=False
+2026-04-22 13:44:04.413 - core.dispatcher - INFO - RESPONSE отправлен fb2ad618-e388-42f3-a826-0aa1ffe95971 через TCP (29 байт)
+2026-04-22 13:44:04.413 - core.pipeline - DEBUG - Emitted packet.processed for connection fb2ad618-e388-42f3-a826-0aa1ffe95971 (terminated=False, crc_valid=True)
+2026-04-22 13:44:04.712 - core.tcp_server - DEBUG - Клиент fb2ad618-e388-42f3-a826-0aa1ffe95971 закрыл соединение
+2026-04-22 13:44:04.713 - core.tcp_server - INFO - Отключение fb2ad618-e388-42f3-a826-0aa1ffe95971
+2026-04-22 13:44:04.713 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:04.714 - core.logger - DEBUG - LogManager: connection fb2ad618-e388-42f3-a826-0aa1ffe95971 authenticating -> DISCONNECTED
+2026-04-22 13:44:04.714 - core.logger - INFO - LogManager: записано 5 записей в /tmp/pytest-of-root/pytest-2/test_auth_then_command0/logs/20260422-134324.jsonl
+2026-04-22 13:44:04.716 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:04.716 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.716 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:04.717 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:04.717 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:04.717 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:04.717 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:04.717 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.718 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:04.718 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.718 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:04.723 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:04.724 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_duplicate_packet_detectio0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:04.725 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:40087
+2026-04-22 13:44:04.725 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.726 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:04.726 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.726 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:04.827 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.827 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:04.827 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:04.827 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:04.929 - core.tcp_server - INFO - Новое подключение 69d3dd83-07b4-48c8-8779-f705bd8b4433 от ('127.0.0.1', 52412)
+2026-04-22 13:44:04.930 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:04.930 - core.logger - DEBUG - LogManager: connection 69d3dd83-07b4-48c8-8779-f705bd8b4433 None -> CONNECTED
+2026-04-22 13:44:04.931 - core.tcp_server - DEBUG - Получено 59 байт от 69d3dd83-07b4-48c8-8779-f705bd8b4433: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-22 13:44:04.931 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:04.932 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=69d3dd83-07b4-48c8-8779-f705bd8b4433, size=59
+2026-04-22 13:44:04.932 - core.pipeline - DEBUG - CRC check passed for connection 69d3dd83-07b4-48c8-8779-f705bd8b4433
+2026-04-22 13:44:04.932 - core.pipeline - DEBUG - Parse successful for connection 69d3dd83-07b4-48c8-8779-f705bd8b4433 (packet_type=1)
+2026-04-22 13:44:04.932 - core.pipeline - DEBUG - First seen PID=42 from 69d3dd83-07b4-48c8-8779-f705bd8b4433
+2026-04-22 13:44:04.933 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-22 13:44:04.933 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=2, parallel=2)
+2026-04-22 13:44:04.933 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:04.933 - core.logger - DEBUG - LogManager: connection 69d3dd83-07b4-48c8-8779-f705bd8b4433 authenticating -> authenticating
+2026-04-22 13:44:04.934 - core.logger - DEBUG - LogManager: packet conn=69d3dd83-07b4-48c8-8779-f705bd8b4433 channel=tcp crc=True dup=False
+2026-04-22 13:44:04.934 - core.dispatcher - INFO - RESPONSE отправлен 69d3dd83-07b4-48c8-8779-f705bd8b4433 через TCP (29 байт)
+2026-04-22 13:44:04.934 - core.pipeline - DEBUG - Emitted packet.processed for connection 69d3dd83-07b4-48c8-8779-f705bd8b4433 (terminated=False, crc_valid=True)
+2026-04-22 13:44:05.233 - core.tcp_server - DEBUG - Получено 59 байт от 69d3dd83-07b4-48c8-8779-f705bd8b4433: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-22 13:44:05.233 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:05.233 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=69d3dd83-07b4-48c8-8779-f705bd8b4433, size=59
+2026-04-22 13:44:05.234 - core.pipeline - DEBUG - CRC check passed for connection 69d3dd83-07b4-48c8-8779-f705bd8b4433
+2026-04-22 13:44:05.234 - core.pipeline - DEBUG - Parse successful for connection 69d3dd83-07b4-48c8-8779-f705bd8b4433 (packet_type=1)
+2026-04-22 13:44:05.234 - core.pipeline - INFO - Duplicate packet PID=42 from 69d3dd83-07b4-48c8-8779-f705bd8b4433
+2026-04-22 13:44:05.234 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=2, parallel=2)
+2026-04-22 13:44:05.235 - core.logger - DEBUG - LogManager: packet conn=69d3dd83-07b4-48c8-8779-f705bd8b4433 channel=tcp crc=True dup=True
+2026-04-22 13:44:05.235 - core.dispatcher - INFO - RESPONSE отправлен 69d3dd83-07b4-48c8-8779-f705bd8b4433 через TCP (29 байт)
+2026-04-22 13:44:05.235 - core.pipeline - DEBUG - Emitted packet.processed for connection 69d3dd83-07b4-48c8-8779-f705bd8b4433 (terminated=True, crc_valid=True)
+2026-04-22 13:44:05.535 - core.tcp_server - DEBUG - Клиент 69d3dd83-07b4-48c8-8779-f705bd8b4433 закрыл соединение
+2026-04-22 13:44:05.536 - core.tcp_server - INFO - Отключение 69d3dd83-07b4-48c8-8779-f705bd8b4433
+2026-04-22 13:44:05.536 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:05.536 - core.logger - DEBUG - LogManager: connection 69d3dd83-07b4-48c8-8779-f705bd8b4433 authenticating -> DISCONNECTED
+2026-04-22 13:44:05.537 - core.logger - INFO - LogManager: записано 5 записей в /tmp/pytest-of-root/pytest-2/test_duplicate_packet_detectio0/logs/20260422-134324.jsonl
+2026-04-22 13:44:05.537 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:05.538 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:05.538 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:05.538 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:05.538 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:05.538 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:05.538 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:05.539 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:05.539 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:05.539 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:05.539 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:05.542 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:05.543 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_auth_via_sms0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:05.555 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:54401
+2026-04-22 13:44:05.556 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:05.556 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:05.556 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:05.556 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:05.643 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:05.643 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:05.643 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:05.643 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:06.426 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:06.426 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:06.427 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:06.427 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:06.427 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:06.427 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:06.427 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:06.427 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:06.427 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:06.428 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:06.428 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:06.431 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:06.433 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_packets_logged_to_file0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:06.433 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:45617
+2026-04-22 13:44:06.433 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:06.434 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:06.434 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:06.434 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:06.507 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:06.508 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:06.508 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:06.508 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:06.611 - core.tcp_server - INFO - Новое подключение 1b120146-cb39-43a3-85b3-81725140b11a от ('127.0.0.1', 38804)
+2026-04-22 13:44:06.611 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:06.611 - core.logger - DEBUG - LogManager: connection 1b120146-cb39-43a3-85b3-81725140b11a None -> CONNECTED
+2026-04-22 13:44:06.613 - core.tcp_server - DEBUG - Получено 59 байт от 1b120146-cb39-43a3-85b3-81725140b11a: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-22 13:44:06.613 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:06.613 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=1b120146-cb39-43a3-85b3-81725140b11a, size=59
+2026-04-22 13:44:06.613 - core.pipeline - DEBUG - CRC check passed for connection 1b120146-cb39-43a3-85b3-81725140b11a
+2026-04-22 13:44:06.614 - core.pipeline - DEBUG - Parse successful for connection 1b120146-cb39-43a3-85b3-81725140b11a (packet_type=1)
+2026-04-22 13:44:06.614 - core.pipeline - DEBUG - First seen PID=42 from 1b120146-cb39-43a3-85b3-81725140b11a
+2026-04-22 13:44:06.614 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-22 13:44:06.614 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=1, parallel=2)
+2026-04-22 13:44:06.615 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:06.615 - core.logger - DEBUG - LogManager: connection 1b120146-cb39-43a3-85b3-81725140b11a authenticating -> authenticating
+2026-04-22 13:44:06.615 - core.logger - DEBUG - LogManager: packet conn=1b120146-cb39-43a3-85b3-81725140b11a channel=tcp crc=True dup=False
+2026-04-22 13:44:06.616 - core.dispatcher - INFO - RESPONSE отправлен 1b120146-cb39-43a3-85b3-81725140b11a через TCP (29 байт)
+2026-04-22 13:44:06.616 - core.pipeline - DEBUG - Emitted packet.processed for connection 1b120146-cb39-43a3-85b3-81725140b11a (terminated=False, crc_valid=True)
+2026-04-22 13:44:07.416 - core.tcp_server - DEBUG - Клиент 1b120146-cb39-43a3-85b3-81725140b11a закрыл соединение
+2026-04-22 13:44:07.416 - core.tcp_server - INFO - Отключение 1b120146-cb39-43a3-85b3-81725140b11a
+2026-04-22 13:44:07.417 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:07.417 - core.logger - DEBUG - LogManager: connection 1b120146-cb39-43a3-85b3-81725140b11a authenticating -> DISCONNECTED
+2026-04-22 13:44:07.418 - core.logger - INFO - LogManager: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_packets_logged_to_file0/logs/20260422-134324.jsonl
+2026-04-22 13:44:07.418 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:07.418 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.418 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:07.418 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:07.419 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:07.419 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:07.419 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:07.419 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.419 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:07.419 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.419 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:07.423 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:07.424 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_run_simple_scenario0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:07.424 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:55145
+2026-04-22 13:44:07.425 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.425 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:07.425 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.425 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:07.544 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.545 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:07.545 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.545 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:07.547 - core.scenario - DEBUG - Scenario load warnings: ["Deprecated 'version' key detected; use 'scenario_version' instead", "steps[0]: Missing 'timeout' (default 30.0s will be used)"]
+2026-04-22 13:44:07.548 - core.scenario - INFO - Scenario loaded: 'e2e-test-auth' (v1), 1 steps, timeout=30.0s
+2026-04-22 13:44:07.548 - core.scenario - INFO - === Step 1/1: '' ===
+2026-04-22 13:44:07.548 - core.scenario - ERROR - SendStep: packet_file or build required
+2026-04-22 13:44:07.548 - core.scenario - INFO - Scenario: step '' finished with ERROR (1776865174.11s)
+2026-04-22 13:44:07.548 - core.scenario - WARNING - ScenarioManager: step '' returned ERROR
+2026-04-22 13:44:07.549 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:07.550 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.550 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:07.550 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:07.550 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:07.550 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:07.550 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:07.550 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.550 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:07.551 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.551 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:07.554 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:07.557 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_replay_and_export0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:07.558 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60759
+2026-04-22 13:44:07.558 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.558 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:07.558 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.559 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:07.662 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.663 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:07.663 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:07.663 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:07.767 - core.tcp_server - INFO - Новое подключение 7782acfd-6d08-4f2d-9666-a6a77bd30867 от ('127.0.0.1', 36498)
+2026-04-22 13:44:07.767 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:07.768 - core.logger - DEBUG - LogManager: connection 7782acfd-6d08-4f2d-9666-a6a77bd30867 None -> CONNECTED
+2026-04-22 13:44:07.770 - core.tcp_server - DEBUG - Получено 59 байт от 7782acfd-6d08-4f2d-9666-a6a77bd30867: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-22 13:44:07.770 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:07.770 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=7782acfd-6d08-4f2d-9666-a6a77bd30867, size=59
+2026-04-22 13:44:07.771 - core.pipeline - DEBUG - CRC check passed for connection 7782acfd-6d08-4f2d-9666-a6a77bd30867
+2026-04-22 13:44:07.771 - core.pipeline - DEBUG - Parse successful for connection 7782acfd-6d08-4f2d-9666-a6a77bd30867 (packet_type=1)
+2026-04-22 13:44:07.772 - core.pipeline - DEBUG - First seen PID=42 from 7782acfd-6d08-4f2d-9666-a6a77bd30867
+2026-04-22 13:44:07.772 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-22 13:44:07.772 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=1, parallel=2)
+2026-04-22 13:44:07.773 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:07.773 - core.logger - DEBUG - LogManager: connection 7782acfd-6d08-4f2d-9666-a6a77bd30867 authenticating -> authenticating
+2026-04-22 13:44:07.773 - core.logger - DEBUG - LogManager: packet conn=7782acfd-6d08-4f2d-9666-a6a77bd30867 channel=tcp crc=True dup=False
+2026-04-22 13:44:07.774 - core.dispatcher - INFO - RESPONSE отправлен 7782acfd-6d08-4f2d-9666-a6a77bd30867 через TCP (29 байт)
+2026-04-22 13:44:07.774 - core.pipeline - DEBUG - Emitted packet.processed for connection 7782acfd-6d08-4f2d-9666-a6a77bd30867 (terminated=False, crc_valid=True)
+2026-04-22 13:44:08.575 - core.tcp_server - DEBUG - Клиент 7782acfd-6d08-4f2d-9666-a6a77bd30867 закрыл соединение
+2026-04-22 13:44:08.575 - core.tcp_server - INFO - Отключение 7782acfd-6d08-4f2d-9666-a6a77bd30867
+2026-04-22 13:44:08.575 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:08.576 - core.logger - DEBUG - LogManager: connection 7782acfd-6d08-4f2d-9666-a6a77bd30867 authenticating -> DISCONNECTED
+2026-04-22 13:44:08.577 - core.logger - INFO - LogManager: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_replay_and_export0/logs/20260422-134324.jsonl
+2026-04-22 13:44:08.577 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:08.578 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.578 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:08.578 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:08.578 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:08.578 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:08.578 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:08.578 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.579 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:08.579 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.579 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:08.582 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:08.583 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_get_status_returns_full_i0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:08.584 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:51117
+2026-04-22 13:44:08.584 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.584 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:08.585 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.585 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:08.688 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.688 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:08.689 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.689 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:08.724 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:08.724 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.725 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:08.725 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:08.725 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:08.725 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:08.725 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:08.725 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.725 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:08.725 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.726 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:08.729 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:08.730 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_cmw_status_returns_connec0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:08.731 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:48101
+2026-04-22 13:44:08.731 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.731 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:08.731 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.731 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:08.787 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.787 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:08.787 - core.event_bus - DEBUG - EventBus.emit: event=cmw.connected, data_keys=['ip', 'simulate', 'serial'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.787 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.connected
+2026-04-22 13:44:08.790 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:08.790 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.790 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:08.790 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:08.790 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:08.790 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:08.791 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:08.791 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.791 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:08.791 - core.event_bus - DEBUG - EventBus.emit: event=cmw.disconnected, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.791 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=cmw.disconnected
+2026-04-22 13:44:08.794 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:08.803 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:08.806 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:08.899 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:08.900 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:08.915 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:08.937 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:08.941 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:08.961 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:08.975 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:08.997 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:09.000 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.000 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.001 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:09.004 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.034 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.035 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.038 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.058 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.059 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.061 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.061 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.064 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.124 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.140 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.156 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.177 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.178 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.183 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.201 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.237 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.237 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.239 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.239 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.244 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.277 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.278 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.281 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.281 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.297 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.339 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.339 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.341 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.342 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.356 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.361 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.396 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.396 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.400 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.400 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.414 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.421 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.457 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.457 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.459 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.460 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.475 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.498 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.498 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.500 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.500 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.504 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.519 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.542 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.542 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.556 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.556 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.560 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.583 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.583 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.595 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.595 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.599 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.622 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.642 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.642 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.655 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.656 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.661 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.695 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.695 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.697 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.698 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.715 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.719 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.742 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.742 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.744 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.744 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.759 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.782 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.782 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.795 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.795 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.799 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.803 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.923 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.923 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:09.934 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:09.935 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:09.939 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:09.996 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.017 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.017 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:10.017 - core.engine - DEBUG - Не удалось получить статус CMW-500: SCPI timeout
+2026-04-22 13:44:10.019 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.019 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:10.023 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.058 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.058 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:10.060 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.060 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:10.064 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.114 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.115 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:10.117 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.117 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:10.122 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.157 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.157 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:10.157 - core.engine - DEBUG - Ошибка получения статистики логгера: log dir not found
+2026-04-22 13:44:10.160 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.160 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:10.176 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.199 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.200 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:10.202 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.202 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:10.215 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.216 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=['key'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:10.218 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.219 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=['key'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:10.221 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.222 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=['val'], handlers=(ordered=0, parallel=2)
+2026-04-22 13:44:10.236 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.237 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=['data'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.237 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=test.event
+2026-04-22 13:44:10.239 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.240 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=2, parallel=0)
+2026-04-22 13:44:10.305 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.306 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=3, parallel=0)
+2026-04-22 13:44:10.308 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.315 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=0, parallel=3)
+2026-04-22 13:44:10.418 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.419 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=0, parallel=2)
+2026-04-22 13:44:10.473 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.473 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=1, parallel=1)
+2026-04-22 13:44:10.527 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.527 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:10.528 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.528 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=test.event
+2026-04-22 13:44:10.530 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.531 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:10.531 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.531 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=test.event
+2026-04-22 13:44:10.533 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.534 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=1, parallel=0)
+2026-04-22 13:44:10.534 - core.event_bus - DEBUG - EventBus.emit: event=test.event, data_keys=[], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:10.534 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=test.event
+2026-04-22 13:44:10.536 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.544 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.556 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=True)
+2026-04-22 13:44:10.559 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.561 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=True)
+2026-04-22 13:44:10.574 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.576 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=True)
+2026-04-22 13:44:10.579 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.581 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=True)
+2026-04-22 13:44:10.584 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.595 - core.pipeline - DEBUG - Emitted packet.processed for connection error-conn (terminated=True, crc_valid=False)
+2026-04-22 13:44:10.598 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.600 - core.pipeline - DEBUG - Emitted packet.processed for connection error-conn (terminated=True, crc_valid=False)
+2026-04-22 13:44:10.602 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.603 - core.pipeline - DEBUG - Emitted packet.processed for connection dup-conn (terminated=False, crc_valid=True)
+2026-04-22 13:44:10.616 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.618 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=False)
+2026-04-22 13:44:10.635 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.639 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=False)
+2026-04-22 13:44:10.655 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.657 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=True, crc_valid=False)
+2026-04-22 13:44:10.721 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.722 - core.scenario - DEBUG - ExpectStep 'test': handlers on packet.processed: before=0, after=1
+2026-04-22 13:44:10.722 - core.scenario - DEBUG - ExpectStep 'test': waiting (channel=any, timeout=2.0s)
+2026-04-22 13:44:10.773 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:10.773 - core.scenario - DEBUG - ExpectStep 'test': _on_packet called, data keys=['ctx', 'connection_id', 'channel']
+2026-04-22 13:44:10.774 - core.scenario - DEBUG - ExpectStep 'test': channel check - step=None, event='tcp'
+2026-04-22 13:44:10.774 - core.scenario - DEBUG - ExpectStep 'test': extracting data from packet_data=ParseResult
+2026-04-22 13:44:10.774 - core.scenario - DEBUG - ExpectStep 'test': has packet, accessing fields
+2026-04-22 13:44:10.774 - core.scenario - DEBUG - ExpectStep 'test': extracted extra keys=['packet_type', 'packet_id', 'service', 'rcd']
+2026-04-22 13:44:10.774 - core.scenario - DEBUG - ExpectStep 'test': extra={'packet_type': 1, 'packet_id': 1, 'service': 1, 'rcd': 0}, checks={'service': 1}
+2026-04-22 13:44:10.774 - core.scenario - DEBUG - ExpectStep 'test': finished with PASS
+2026-04-22 13:44:10.778 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.779 - core.scenario - DEBUG - ExpectStep 'test': handlers on packet.processed: before=0, after=1
+2026-04-22 13:44:10.779 - core.scenario - DEBUG - ExpectStep 'test': waiting (channel=any, timeout=0.1s)
+2026-04-22 13:44:10.879 - core.scenario - DEBUG - ExpectStep 'test': finished with TIMEOUT
+2026-04-22 13:44:10.882 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.883 - core.scenario - DEBUG - ExpectStep 'test': handlers on packet.processed: before=0, after=1
+2026-04-22 13:44:10.883 - core.scenario - DEBUG - ExpectStep 'test': waiting (channel=any, timeout=2.0s)
+2026-04-22 13:44:10.934 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'state'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:10.934 - core.scenario - DEBUG - ExpectStep 'test': finished with ERROR
+2026-04-22 13:44:10.937 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:10.938 - core.scenario - DEBUG - ExpectStep 'test': handlers on packet.processed: before=0, after=1
+2026-04-22 13:44:10.938 - core.scenario - DEBUG - ExpectStep 'test': waiting (channel=any, timeout=2.0s)
+2026-04-22 13:44:10.989 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:10.990 - core.scenario - DEBUG - ExpectStep 'test': _on_packet called, data keys=['ctx', 'connection_id', 'channel']
+2026-04-22 13:44:10.990 - core.scenario - DEBUG - ExpectStep 'test': channel check - step=None, event='tcp'
+2026-04-22 13:44:10.990 - core.scenario - DEBUG - ExpectStep 'test': extracting data from packet_data=ParseResult
+2026-04-22 13:44:10.990 - core.scenario - DEBUG - ExpectStep 'test': has packet, accessing fields
+2026-04-22 13:44:10.990 - core.scenario - DEBUG - ExpectStep 'test': extracted extra keys=['packet_type', 'packet_id', 'service', 'tid']
+2026-04-22 13:44:10.990 - core.scenario - DEBUG - ExpectStep 'test': extra={'packet_type': 1, 'packet_id': 1, 'service': 1, 'tid': 99999}, checks={'service': 1}
+2026-04-22 13:44:10.990 - core.scenario - DEBUG - ExpectStep 'test': finished with PASS
+2026-04-22 13:44:10.997 - core.export - INFO - Export CSV: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_export_csv_creates_file0/report.csv
+2026-04-22 13:44:11.001 - core.export - INFO - Export CSV: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_export_csv_content0/report.csv
+2026-04-22 13:44:11.017 - core.export - INFO - Export CSV: записано 2 записей в /tmp/pytest-of-root/pytest-2/test_export_csv_filters_by_typ0/packets.csv
+2026-04-22 13:44:11.023 - core.export - INFO - Export CSV: записано 1 записей в /tmp/pytest-of-root/pytest-2/test_export_csv_filters_by_sce0/scenario.csv
+2026-04-22 13:44:11.039 - core.export - INFO - Export CSV: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_export_csv_sorts_by_times0/sorted.csv
+2026-04-22 13:44:11.043 - core.export - WARNING - Export CSV: нет записей для экспорта в /tmp/pytest-of-root/pytest-2/test_export_csv_empty_log_dir0
+2026-04-22 13:44:11.043 - core.export - INFO - Export CSV: записано 0 записей в /tmp/pytest-of-root/pytest-2/test_export_csv_empty_log_dir0/empty.csv
+2026-04-22 13:44:11.056 - core.export - WARNING - Export CSV: нет записей для экспорта в /tmp/pytest-of-root/pytest-2/test_export_csv_no_matching_en0
+2026-04-22 13:44:11.057 - core.export - INFO - Export CSV: записано 0 записей в /tmp/pytest-of-root/pytest-2/test_export_csv_no_matching_en0/none.csv
+2026-04-22 13:44:11.062 - core.export - INFO - Export JSON: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_export_json_creates_file0/report.json
+2026-04-22 13:44:11.079 - core.export - INFO - Export JSON: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_export_json_content0/report.json
+2026-04-22 13:44:11.084 - core.export - INFO - Export JSON: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_export_json_summary0/report.json
+2026-04-22 13:44:11.099 - core.export - INFO - Export JSON: записано 2 записей в /tmp/pytest-of-root/pytest-2/test_export_json_filters0/packets.json
+2026-04-22 13:44:11.116 - core.export - INFO - Export JSON: записано 4 записей в /tmp/pytest-of-root/pytest-2/test_export_json_pretty_print0/pretty.json
+2026-04-22 13:44:11.120 - core.export - INFO - Export JSON: записано 0 записей в /tmp/pytest-of-root/pytest-2/test_export_json_empty_log_dir0/empty.json
+2026-04-22 13:44:11.138 - core.export - INFO - Export scenario CSV: записано 3 шагов в /tmp/pytest-of-root/pytest-2/test_export_scenario_csv0/scenario.csv
+2026-04-22 13:44:11.142 - core.export - INFO - Export scenario JSON: сохранено в /tmp/pytest-of-root/pytest-2/test_export_scenario_json0/scenario.json
+2026-04-22 13:44:11.155 - core.export - INFO - Export scenario CSV: записано 0 шагов в /tmp/pytest-of-root/pytest-2/test_export_scenario_csv_no_st0/empty.csv
+2026-04-22 13:44:11.159 - core.export - WARNING - Export: пропуск битой строки в /tmp/pytest-of-root/pytest-2/test_export_handles_malformed_0/bad.jsonl
+2026-04-22 13:44:11.160 - core.export - INFO - Export JSON: записано 2 записей в /tmp/pytest-of-root/pytest-2/test_export_handles_malformed_0/report.json
+2026-04-22 13:44:11.164 - core.export - INFO - Export JSON: записано 0 записей в /tmp/pytest-of-root/pytest-2/test_export_json_with_scenario0/none.json
+2026-04-22 13:44:11.279 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_creates_log_dir0/subdir/logs, session_id=(date-based), flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:11.295 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_subscribes_on_init0, session_id=(date-based), flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:11.302 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.316 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_stop_unsubscribes0, session_id=(date-based), flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:11.318 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:11.341 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_packet_hex0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.342 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.343 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.378 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_parsed_data0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.379 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.380 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.385 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_metadata0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.386 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.396 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.401 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_errors0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.402 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.403 - core.logger - DEBUG - LogManager: packet conn=err-conn channel=tcp crc=False dup=False
+2026-04-22 13:44:11.422 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_duplicate0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.422 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.436 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=True
+2026-04-22 13:44:11.442 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_sms_channel0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.442 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.443 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=sms crc=True dup=False
+2026-04-22 13:44:11.459 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_empty_raw_packet0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.460 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.461 - core.logger - DEBUG - LogManager: packet conn=empty-conn channel=tcp crc=False dup=False
+2026-04-22 13:44:11.465 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_parsed_is_none0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.477 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.478 - core.logger - DEBUG - LogManager: packet conn=no-parse-conn channel=tcp crc=False dup=False
+2026-04-22 13:44:11.495 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_state_change0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.496 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.497 - core.logger - DEBUG - LogManager: connection conn-1 DISCONNECTED -> CONNECTED
+2026-04-22 13:44:11.502 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_without_prev_state0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.503 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.504 - core.logger - DEBUG - LogManager: connection new-conn None -> CONNECTED
+2026-04-22 13:44:11.522 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_step_result0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.524 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.535 - core.logger - DEBUG - LogManager: scenario auth step=wait_auth_info result=PASS
+2026-04-22 13:44:11.544 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_logs_fail_result0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.555 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.557 - core.logger - DEBUG - LogManager: scenario auth step=wait_auth_info result=FAIL
+2026-04-22 13:44:11.576 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_flush_creates_file0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.578 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.579 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.580 - core.logger - INFO - LogManager: записано 1 записей в /tmp/pytest-of-root/pytest-2/test_flush_creates_file0/2026-04-22.jsonl
+2026-04-22 13:44:11.595 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_flush_writes_jsonl0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.597 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.598 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.599 - core.logger - INFO - LogManager: записано 1 записей в /tmp/pytest-of-root/pytest-2/test_flush_writes_jsonl0/2026-04-22.jsonl
+2026-04-22 13:44:11.604 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_flush_sorts_by_timestamp0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.604 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.616 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.616 - core.logger - DEBUG - LogManager: packet conn=conn-2 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.617 - core.logger - INFO - LogManager: записано 2 записей в /tmp/pytest-of-root/pytest-2/test_flush_sorts_by_timestamp0/2026-04-22.jsonl
+2026-04-22 13:44:11.623 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_flush_clears_buffer0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.637 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.638 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.639 - core.logger - INFO - LogManager: записано 1 записей в /tmp/pytest-of-root/pytest-2/test_flush_clears_buffer0/2026-04-22.jsonl
+2026-04-22 13:44:11.657 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.658 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_flush_empty_buffer_no_fil0, session_id=(date-based), flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:11.677 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_multiple_events_in_buffer0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:11.678 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.679 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.679 - core.logger - DEBUG - LogManager: connection conn-1 None -> CONNECTED
+2026-04-22 13:44:11.679 - core.logger - DEBUG - LogManager: scenario test step=step1 result=PASS
+2026-04-22 13:44:11.696 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.698 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_daily_log_filename0, session_id=(date-based), flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:11.698 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.698 - core.logger - INFO - LogManager: записано 1 записей в /tmp/pytest-of-root/pytest-2/test_daily_log_filename0/2026-04-22.jsonl
+2026-04-22 13:44:11.703 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.717 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_stop_flushes_before_unsub0, session_id=(date-based), flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:11.717 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.718 - core.logger - INFO - LogManager: записано 1 записей в /tmp/pytest-of-root/pytest-2/test_stop_flushes_before_unsub0/2026-04-22.jsonl
+2026-04-22 13:44:11.719 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:11.735 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:11.738 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_auto_flush_loop0, session_id=(date-based), flush_interval=0.1, batch_size=3
+2026-04-22 13:44:11.738 - core.logger - DEBUG - LogManager: packet conn=conn-0 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.738 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.738 - core.logger - DEBUG - LogManager: packet conn=conn-2 channel=tcp crc=True dup=False
+2026-04-22 13:44:11.839 - core.logger - INFO - LogManager: записано 3 записей в /tmp/pytest-of-root/pytest-2/test_auto_flush_loop0/2026-04-22.jsonl
+2026-04-22 13:44:12.040 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:12.044 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.046 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_stop_cancels_flush_task0, session_id=(date-based), flush_interval=999.0, batch_size=9999
+2026-04-22 13:44:12.047 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:12.056 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.058 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_append_to_existing_file0, session_id=(date-based), flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:12.059 - core.logger - DEBUG - LogManager: packet conn=c1 channel=tcp crc=True dup=False
+2026-04-22 13:44:12.059 - core.logger - INFO - LogManager: записано 1 записей в /tmp/pytest-of-root/pytest-2/test_append_to_existing_file0/2026-04-22.jsonl
+2026-04-22 13:44:12.059 - core.logger - DEBUG - LogManager: packet conn=c2 channel=tcp crc=True dup=False
+2026-04-22 13:44:12.059 - core.logger - INFO - LogManager: записано 1 записей в /tmp/pytest-of-root/pytest-2/test_append_to_existing_file0/2026-04-22.jsonl
+2026-04-22 13:44:12.077 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.079 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_load_records_from_jsonl0/test_log.jsonl
+2026-04-22 13:44:12.098 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.099 - core.packet_source - INFO - ReplaySource: загружено 0 записей из /tmp/pytest-of-root/pytest-2/test_load_empty_file1/empty.jsonl
+2026-04-22 13:44:12.115 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.120 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.121 - core.packet_source - INFO - ReplaySource: загружено 1 записей из /tmp/pytest-of-root/pytest-2/test_load_skips_non_packet_rec0/mixed.jsonl
+2026-04-22 13:44:12.136 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.137 - core.packet_source - WARNING - ReplaySource: пропуск строки JSON: Expecting value: line 1 column 1 (char 0)
+2026-04-22 13:44:12.138 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_load_skips_malformed_json0/bad.jsonl
+2026-04-22 13:44:12.160 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.161 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_replay_sends_through_pipe0/test_log.jsonl
+2026-04-22 13:44:12.162 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-22 13:44:12.179 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.180 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_replay_emits_packet_proce0/test_log.jsonl
+2026-04-22 13:44:12.181 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-22 13:44:12.196 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.197 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_replay_without_pipeline0/test_log.jsonl
+2026-04-22 13:44:12.198 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-22 13:44:12.203 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.204 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_replay_hex_to_bytes0/test_log.jsonl
+2026-04-22 13:44:12.216 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-22 13:44:12.221 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.222 - core.packet_source - INFO - ReplaySource: загружено 3 записей из /tmp/pytest-of-root/pytest-2/test_skip_duplicates_enabled0/dupes.jsonl
+2026-04-22 13:44:12.223 - core.packet_source - DEBUG - ReplaySource: пропуск дубликата c1
+2026-04-22 13:44:12.223 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=1, errors=0
+2026-04-22 13:44:12.239 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.240 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_skip_duplicates_disabled0/dupes.jsonl
+2026-04-22 13:44:12.241 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-22 13:44:12.259 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.261 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_replay_returns_stats0/test_log.jsonl
+2026-04-22 13:44:12.262 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-22 13:44:12.276 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.278 - core.packet_source - INFO - ReplaySource: загружено 1 записей из /tmp/pytest-of-root/pytest-2/test_replay_counts_only_packet0/mixed.jsonl
+2026-04-22 13:44:12.278 - core.packet_source - INFO - ReplaySource: завершено — processed=1, skipped=0, errors=0
+2026-04-22 13:44:12.303 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.314 - core.packet_source - INFO - ReplaySource: загружено 1 записей из /tmp/pytest-of-root/pytest-2/test_replay_handles_pipeline_e0/err.jsonl
+2026-04-22 13:44:12.315 - core.packet_source - WARNING - ReplaySource: Ошибка replay: pipeline error
+2026-04-22 13:44:12.315 - core.packet_source - INFO - ReplaySource: завершено — processed=0, skipped=0, errors=1
+2026-04-22 13:44:12.320 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.326 - core.packet_source - INFO - ReplaySource: загружено 2 записей из /tmp/pytest-of-root/pytest-2/test_replay_invalid_hex0/bad_hex.jsonl
+2026-04-22 13:44:12.326 - core.packet_source - WARNING - ReplaySource: Некорректный hex в записи: non-hexadecimal number found in fromhex() arg at position 0
+2026-04-22 13:44:12.336 - core.packet_source - INFO - ReplaySource: завершено — processed=1, skipped=0, errors=1
+2026-04-22 13:44:12.378 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.381 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.383 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.396 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.399 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.402 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.417 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.419 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.434 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.438 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.655 - core.scenario - INFO - Scenario loaded: 'Test Scenario' (v1), 2 steps, timeout=30.0s
+2026-04-22 13:44:12.659 - core.scenario - DEBUG - Scenario load warnings: ["steps[0]: Missing 'timeout' (default 30.0s will be used)"]
+2026-04-22 13:44:12.697 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.699 - core.scenario - DEBUG - Scenario load warnings: ["steps[0]: Missing 'timeout' (default 30.0s will be used)"]
+2026-04-22 13:44:12.700 - core.scenario - INFO - Scenario loaded: 'Test' (v1), 1 steps, timeout=30.0s
+2026-04-22 13:44:12.700 - core.scenario - INFO - === Step 1/1: 'step1' ===
+2026-04-22 13:44:12.701 - core.scenario - DEBUG - ExpectStep 'step1': handlers on packet.processed: before=0, after=1
+2026-04-22 13:44:12.701 - core.scenario - DEBUG - ExpectStep 'step1': waiting (channel=tcp, timeout=30.0s)
+2026-04-22 13:44:12.702 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:12.702 - core.scenario - DEBUG - ExpectStep 'step1': _on_packet called, data keys=['ctx', 'connection_id', 'channel']
+2026-04-22 13:44:12.702 - core.scenario - DEBUG - ExpectStep 'step1': channel check - step='tcp', event='tcp'
+2026-04-22 13:44:12.702 - core.scenario - DEBUG - ExpectStep 'step1': extracting data from packet_data=MagicMock
+2026-04-22 13:44:12.703 - core.scenario - DEBUG - ExpectStep 'step1': has packet, accessing fields
+2026-04-22 13:44:12.715 - core.scenario - DEBUG - ExpectStep 'step1': extracted extra keys=['packet_type', 'packet_id', 'service', 'ct', 'cid']
+2026-04-22 13:44:12.715 - core.scenario - DEBUG - ExpectStep 'step1': extra={'packet_type': <MagicMock name='mock.parsed.packet.packet_type' id='139680739824112'>, 'packet_id': <MagicMock name='mock.parsed.packet.packet_id' id='139680741681648'>, 'service': <MagicMock name='mock.parsed.packet.records.__getitem__().service_type' id='139680741644704'>, 'ct': <MagicMock name='mock.parsed.packet.ct' id='139680741575808'>, 'cid': <MagicMock name='mock.parsed.packet.cid' id='139680741583776'>}, checks={}
+2026-04-22 13:44:12.716 - core.scenario - DEBUG - ExpectStep 'step1': finished with PASS
+2026-04-22 13:44:12.716 - core.scenario - INFO - Scenario: step 'step1' finished with PASS (1776865174.12s)
+2026-04-22 13:44:12.716 - core.scenario - INFO - Scenario 'Test' completed PASS
+2026-04-22 13:44:12.720 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.721 - core.scenario - DEBUG - Scenario load warnings: ["steps[0]: Missing 'timeout' (default 30.0s will be used)"]
+2026-04-22 13:44:12.721 - core.scenario - INFO - Scenario loaded: 'Test' (v1), 1 steps, timeout=30.0s
+2026-04-22 13:44:12.722 - core.scenario - INFO - === Step 1/1: 'step1' ===
+2026-04-22 13:44:12.722 - core.scenario - DEBUG - ExpectStep 'step1': handlers on packet.processed: before=0, after=1
+2026-04-22 13:44:12.722 - core.scenario - DEBUG - ExpectStep 'step1': waiting (channel=tcp, timeout=0.1s)
+2026-04-22 13:44:12.823 - core.scenario - DEBUG - ExpectStep 'step1': finished with TIMEOUT
+2026-04-22 13:44:12.823 - core.scenario - INFO - Scenario: step 'step1' finished with TIMEOUT (1776865174.21s)
+2026-04-22 13:44:12.823 - core.scenario - WARNING - ScenarioManager: step 'step1' returned TIMEOUT
+2026-04-22 13:44:12.959 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:12.961 - core.scenario - DEBUG - SendStep 'test': sending on channel=tcp (timeout=2.0s)
+2026-04-22 13:44:12.961 - core.event_bus - DEBUG - EventBus.emit: event=command.send, data_keys=['packet_bytes', 'channel', 'step_name', 'connection_id'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:12.961 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=command.send
+2026-04-22 13:44:13.011 - core.event_bus - DEBUG - EventBus.emit: event=command.sent, data_keys=['status'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:13.012 - core.scenario - DEBUG - SendStep 'test': finished with PASS
+2026-04-22 13:44:13.015 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.016 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-22 13:44:13.019 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.020 - core.scenario - DEBUG - SendStep 'test': sending on channel=tcp (timeout=0.1s)
+2026-04-22 13:44:13.020 - core.event_bus - DEBUG - EventBus.emit: event=command.send, data_keys=['packet_bytes', 'channel', 'step_name', 'connection_id'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.020 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=command.send
+2026-04-22 13:44:13.121 - core.scenario - DEBUG - SendStep 'test': finished with TIMEOUT
+2026-04-22 13:44:13.124 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.126 - core.scenario - DEBUG - SendStep 'test': sending on channel=tcp (timeout=2.0s)
+2026-04-22 13:44:13.126 - core.event_bus - DEBUG - EventBus.emit: event=command.send, data_keys=['packet_bytes', 'channel', 'step_name', 'connection_id'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.126 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=command.send
+2026-04-22 13:44:13.176 - core.event_bus - DEBUG - EventBus.emit: event=command.sent, data_keys=['status'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:13.177 - core.scenario - DEBUG - SendStep 'test': finished with PASS
+2026-04-22 13:44:13.201 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.216 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.220 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.235 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.240 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.244 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.259 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.277 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.278 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:33423
+2026-04-22 13:44:13.278 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.279 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.280 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.280 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.282 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.283 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:38041
+2026-04-22 13:44:13.283 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.283 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.283 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.283 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.297 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.298 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:42029
+2026-04-22 13:44:13.298 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.298 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.299 - core.tcp_server - DEBUG - TcpServerManager уже запущен, пропускаю start()
+2026-04-22 13:44:13.300 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.300 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.301 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.302 - core.tcp_server - DEBUG - TcpServerManager не запущен, пропускаю stop()
+2026-04-22 13:44:13.304 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.317 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:33061
+2026-04-22 13:44:13.317 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.317 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.317 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.318 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.318 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:44195
+2026-04-22 13:44:13.318 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.318 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.319 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.319 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.321 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.323 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:37277
+2026-04-22 13:44:13.323 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:13.323 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.323 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.336 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.337 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:36753
+2026-04-22 13:44:13.337 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.337 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.339 - core.tcp_server - INFO - Новое подключение 19d24d78-b4e0-4d41-bc6f-c646214e04db от ('127.0.0.1', 60238)
+2026-04-22 13:44:13.339 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:13.440 - core.tcp_server - DEBUG - Клиент 19d24d78-b4e0-4d41-bc6f-c646214e04db закрыл соединение
+2026-04-22 13:44:13.440 - core.tcp_server - INFO - Отключение 19d24d78-b4e0-4d41-bc6f-c646214e04db
+2026-04-22 13:44:13.441 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:13.442 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.442 - core.tcp_server - DEBUG - Задача чтения 19d24d78-b4e0-4d41-bc6f-c646214e04db отменена
+2026-04-22 13:44:13.442 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.445 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.445 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:46595
+2026-04-22 13:44:13.446 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.446 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.447 - core.tcp_server - INFO - Новое подключение 4f36fa1a-4d99-4cfe-a49e-1084fee7061a от ('127.0.0.1', 39848)
+2026-04-22 13:44:13.447 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:13.498 - core.tcp_server - DEBUG - Клиент 4f36fa1a-4d99-4cfe-a49e-1084fee7061a закрыл соединение
+2026-04-22 13:44:13.499 - core.tcp_server - INFO - Отключение 4f36fa1a-4d99-4cfe-a49e-1084fee7061a
+2026-04-22 13:44:13.499 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:13.800 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.800 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.802 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.803 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:41323
+2026-04-22 13:44:13.803 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.803 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.805 - core.tcp_server - INFO - Новое подключение 00cd2da0-5fb7-4eed-8d86-04eff515cf34 от ('127.0.0.1', 43998)
+2026-04-22 13:44:13.805 - asyncio - ERROR - Unhandled exception in client_connected_cb
+transport: <_SelectorSocketTransport fd=20 read=polling write=<idle, bufsize=0>>
+Traceback (most recent call last):
+  File "/workspace/core/tcp_server.py", line 162, in _handle_connection
+    if conn.fsm is not None:
+       ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'fsm'
+2026-04-22 13:44:13.907 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:13.907 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:13.909 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:13.910 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:33813
+2026-04-22 13:44:13.910 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.910 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:13.912 - core.tcp_server - INFO - Новое подключение a8d99bee-2327-46e8-b0fc-0c631b0e92f0 от ('127.0.0.1', 46986)
+2026-04-22 13:44:13.912 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:13.912 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:13.963 - core.tcp_server - DEBUG - Получено 11 байт от a8d99bee-2327-46e8-b0fc-0c631b0e92f0: 012A000000000000010203
+2026-04-22 13:44:13.963 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:14.264 - core.tcp_server - DEBUG - Клиент a8d99bee-2327-46e8-b0fc-0c631b0e92f0 закрыл соединение
+2026-04-22 13:44:14.264 - core.tcp_server - INFO - Отключение a8d99bee-2327-46e8-b0fc-0c631b0e92f0
+2026-04-22 13:44:14.264 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.265 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.266 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:14.266 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:14.268 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:14.269 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:39997
+2026-04-22 13:44:14.269 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.269 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:14.270 - core.tcp_server - INFO - Новое подключение 8c313abb-e185-45ae-910b-54335f08f0b3 от ('127.0.0.1', 39606)
+2026-04-22 13:44:14.271 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.271 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.321 - core.tcp_server - DEBUG - Получено 18 байт от 8c313abb-e185-45ae-910b-54335f08f0b3: 010100000000000000010200000000000000
+2026-04-22 13:44:14.322 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:14.823 - core.tcp_server - DEBUG - Клиент 8c313abb-e185-45ae-910b-54335f08f0b3 закрыл соединение
+2026-04-22 13:44:14.823 - core.tcp_server - INFO - Отключение 8c313abb-e185-45ae-910b-54335f08f0b3
+2026-04-22 13:44:14.824 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.824 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.825 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:14.825 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:14.827 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:14.828 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:34907
+2026-04-22 13:44:14.828 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.828 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:14.830 - core.tcp_server - INFO - Новое подключение a6c7126d-7fa2-4b16-8190-d4139362a9c4 от ('127.0.0.1', 49608)
+2026-04-22 13:44:14.830 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.830 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.881 - core.tcp_server - DEBUG - Клиент a6c7126d-7fa2-4b16-8190-d4139362a9c4 закрыл соединение
+2026-04-22 13:44:14.881 - core.tcp_server - INFO - Отключение a6c7126d-7fa2-4b16-8190-d4139362a9c4
+2026-04-22 13:44:14.881 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.881 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.882 - core.tcp_server - INFO - Новое подключение df52df3e-fba4-4ef0-a281-7e8f4b3a9bef от ('127.0.0.1', 49610)
+2026-04-22 13:44:14.882 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.882 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.933 - core.tcp_server - DEBUG - Клиент df52df3e-fba4-4ef0-a281-7e8f4b3a9bef закрыл соединение
+2026-04-22 13:44:14.933 - core.tcp_server - INFO - Отключение df52df3e-fba4-4ef0-a281-7e8f4b3a9bef
+2026-04-22 13:44:14.934 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.934 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.935 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:14.935 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:14.938 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:14.939 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:44797
+2026-04-22 13:44:14.939 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.939 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:14.940 - core.tcp_server - INFO - Новое подключение f8e75b7a-8634-41b2-874b-813c63434ac8 от ('127.0.0.1', 46838)
+2026-04-22 13:44:14.940 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.940 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.991 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:14.991 - core.tcp_server - INFO - Отключение f8e75b7a-8634-41b2-874b-813c63434ac8
+2026-04-22 13:44:14.991 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.991 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=connection.changed
+2026-04-22 13:44:14.992 - core.tcp_server - DEBUG - Задача чтения f8e75b7a-8634-41b2-874b-813c63434ac8 отменена
+2026-04-22 13:44:14.992 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:14.996 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:14.998 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:35097
+2026-04-22 13:44:14.998 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:14.998 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:15.000 - core.tcp_server - INFO - Новое подключение 1b88a3cb-038e-42fc-8e95-70b70160a5c7 от ('127.0.0.1', 48348)
+2026-04-22 13:44:15.001 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:15.102 - core.tcp_server - DEBUG - Клиент 1b88a3cb-038e-42fc-8e95-70b70160a5c7 закрыл соединение
+2026-04-22 13:44:15.102 - core.tcp_server - INFO - Отключение 1b88a3cb-038e-42fc-8e95-70b70160a5c7
+2026-04-22 13:44:15.102 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:15.104 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:15.104 - core.tcp_server - DEBUG - Задача чтения 1b88a3cb-038e-42fc-8e95-70b70160a5c7 отменена
+2026-04-22 13:44:15.104 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:15.106 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:15.107 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:40575
+2026-04-22 13:44:15.107 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:15.107 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:15.109 - core.tcp_server - INFO - Новое подключение be55080e-f31c-4e3d-a812-9e9283bc0913 от ('127.0.0.1', 34078)
+2026-04-22 13:44:15.109 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:15.160 - core.tcp_server - DEBUG - Получено 9 байт от be55080e-f31c-4e3d-a812-9e9283bc0913: 010100000000000000
+2026-04-22 13:44:15.160 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:15.361 - core.tcp_server - DEBUG - Клиент be55080e-f31c-4e3d-a812-9e9283bc0913 закрыл соединение
+2026-04-22 13:44:15.361 - core.tcp_server - INFO - Отключение be55080e-f31c-4e3d-a812-9e9283bc0913
+2026-04-22 13:44:15.361 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:15.563 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:15.564 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:15.778 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:15.780 - core.logger - INFO - LogManager инициализирован, log_dir=/tmp/pytest-of-root/pytest-2/test_auth_three_packets_with_r0/logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:15.781 - core.tcp_server - INFO - TcpServerManager запущен на 0.0.0.0:3098
+2026-04-22 13:44:15.781 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:15.781 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:15.781 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:15.781 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:15.782 - core.tcp_server - INFO - Новое подключение cc53f701-2d36-43b1-9411-35e66145c99b от ('127.0.0.1', 33400)
+2026-04-22 13:44:15.783 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=1, parallel=1)
+2026-04-22 13:44:15.783 - core.logger - DEBUG - LogManager: connection cc53f701-2d36-43b1-9411-35e66145c99b None -> CONNECTED
+2026-04-22 13:44:15.784 - core.tcp_server - DEBUG - Получено 59 байт от cc53f701-2d36-43b1-9411-35e66145c99b: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-22 13:44:15.784 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:15.784 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=cc53f701-2d36-43b1-9411-35e66145c99b, size=59
+2026-04-22 13:44:15.784 - core.pipeline - DEBUG - CRC check passed for connection cc53f701-2d36-43b1-9411-35e66145c99b
+2026-04-22 13:44:15.795 - core.pipeline - DEBUG - Parse successful for connection cc53f701-2d36-43b1-9411-35e66145c99b (packet_type=1)
+2026-04-22 13:44:15.796 - core.pipeline - DEBUG - First seen PID=42 from cc53f701-2d36-43b1-9411-35e66145c99b
+2026-04-22 13:44:15.796 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-22 13:44:15.796 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=2, parallel=2)
+2026-04-22 13:44:15.796 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=1, parallel=1)
+2026-04-22 13:44:15.796 - core.logger - DEBUG - LogManager: connection cc53f701-2d36-43b1-9411-35e66145c99b authenticating -> authenticating
+2026-04-22 13:44:15.797 - core.logger - DEBUG - LogManager: packet conn=cc53f701-2d36-43b1-9411-35e66145c99b channel=tcp crc=True dup=False
+2026-04-22 13:44:15.797 - core.dispatcher - INFO - RESPONSE отправлен cc53f701-2d36-43b1-9411-35e66145c99b через TCP (29 байт)
+2026-04-22 13:44:15.797 - core.pipeline - DEBUG - Emitted packet.processed for connection cc53f701-2d36-43b1-9411-35e66145c99b (terminated=False, crc_valid=True)
+2026-04-22 13:44:16.799 - core.tcp_server - DEBUG - Получено 48 байт от cc53f701-2d36-43b1-9411-35e66145c99b: 0100000B0023002B0001781C004A00800101031900314434475032354230333831303837373501000000010000006CE1
+2026-04-22 13:44:16.799 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:16.799 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=cc53f701-2d36-43b1-9411-35e66145c99b, size=48
+2026-04-22 13:44:16.800 - core.pipeline - DEBUG - CRC check passed for connection cc53f701-2d36-43b1-9411-35e66145c99b
+2026-04-22 13:44:16.800 - core.pipeline - DEBUG - Parse successful for connection cc53f701-2d36-43b1-9411-35e66145c99b (packet_type=1)
+2026-04-22 13:44:16.800 - core.pipeline - DEBUG - First seen PID=43 from cc53f701-2d36-43b1-9411-35e66145c99b
+2026-04-22 13:44:16.801 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=43 (29 байт)
+2026-04-22 13:44:16.801 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=2, parallel=2)
+2026-04-22 13:44:16.801 - core.logger - DEBUG - LogManager: packet conn=cc53f701-2d36-43b1-9411-35e66145c99b channel=tcp crc=True dup=False
+2026-04-22 13:44:16.801 - core.dispatcher - INFO - RESPONSE отправлен cc53f701-2d36-43b1-9411-35e66145c99b через TCP (29 байт)
+2026-04-22 13:44:16.801 - core.pipeline - DEBUG - Emitted packet.processed for connection cc53f701-2d36-43b1-9411-35e66145c99b (terminated=False, crc_valid=True)
+2026-04-22 13:44:17.803 - core.tcp_server - DEBUG - Получено 29 байт от cc53f701-2d36-43b1-9411-35e66145c99b: 0100000B0010002C00006A20000006004B008001010003002F0000F139
+2026-04-22 13:44:17.803 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:17.804 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=cc53f701-2d36-43b1-9411-35e66145c99b, size=29
+2026-04-22 13:44:17.804 - core.pipeline - DEBUG - CRC check passed for connection cc53f701-2d36-43b1-9411-35e66145c99b
+2026-04-22 13:44:17.804 - core.pipeline - DEBUG - Parse successful for connection cc53f701-2d36-43b1-9411-35e66145c99b (packet_type=0)
+2026-04-22 13:44:17.804 - core.pipeline - DEBUG - First seen PID=44 from cc53f701-2d36-43b1-9411-35e66145c99b
+2026-04-22 13:44:17.804 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=44 (29 байт)
+2026-04-22 13:44:17.805 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=2, parallel=2)
+2026-04-22 13:44:17.805 - core.logger - DEBUG - LogManager: packet conn=cc53f701-2d36-43b1-9411-35e66145c99b channel=tcp crc=True dup=False
+2026-04-22 13:44:17.805 - core.dispatcher - INFO - RESPONSE отправлен cc53f701-2d36-43b1-9411-35e66145c99b через TCP (29 байт)
+2026-04-22 13:44:17.805 - core.pipeline - DEBUG - Emitted packet.processed for connection cc53f701-2d36-43b1-9411-35e66145c99b (terminated=False, crc_valid=True)
+2026-04-22 13:44:17.806 - core.tcp_server - DEBUG - Клиент cc53f701-2d36-43b1-9411-35e66145c99b закрыл соединение
+2026-04-22 13:44:17.806 - core.tcp_server - INFO - Отключение cc53f701-2d36-43b1-9411-35e66145c99b
+2026-04-22 13:44:17.806 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'usv_id', 'state', 'prev_state', 'action', 'reason', 'timestamp'], handlers=(ordered=1, parallel=1)
+2026-04-22 13:44:17.806 - core.logger - DEBUG - LogManager: connection cc53f701-2d36-43b1-9411-35e66145c99b authenticating -> DISCONNECTED
+2026-04-22 13:44:18.310 - core.logger - INFO - LogManager: записано 6 записей в /tmp/pytest-of-root/pytest-2/test_auth_three_packets_with_r0/logs/20260422-134324.jsonl
+2026-04-22 13:44:18.316 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:18.316 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:18.317 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:18.317 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:18.318 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:18.318 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:18.318 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
+2026-04-22 13:44:19.558 - asyncio - DEBUG - Using selector: EpollSelector
+2026-04-22 13:44:19.559 - core.logger - INFO - LogManager инициализирован, log_dir=logs, session_id=20260422-134324, flush_interval=5.0, batch_size=1000
+2026-04-22 13:44:19.560 - core.tcp_server - INFO - TcpServerManager запущен на 0.0.0.0:8090
+2026-04-22 13:44:19.560 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:19.560 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:19.561 - core.event_bus - DEBUG - EventBus.emit: event=server.started, data_keys=['port', 'gost_version'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:19.561 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.started
+2026-04-22 13:44:19.561 - core.event_bus - DEBUG - EventBus.emit: event=connection.changed, data_keys=['connection_id', 'state', 'prev_state', 'timestamp'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:19.561 - core.logger - DEBUG - LogManager: connection test-conn-1 DISCONNECTED -> CONNECTED
+2026-04-22 13:44:19.561 - core.event_bus - DEBUG - EventBus.emit: event=raw.packet.received, data_keys=['raw', 'channel', 'connection_id'], handlers=(ordered=0, parallel=1)
+2026-04-22 13:44:19.561 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=test-conn-1, size=10
+2026-04-22 13:44:19.562 - core.pipeline - WARNING - CRC check: connection test-conn-1 not found
+2026-04-22 13:44:19.562 - core.event_bus - DEBUG - EventBus.emit: event=packet.processed, data_keys=['ctx', 'connection_id', 'channel', 'parsed', 'crc_valid', 'is_duplicate', 'terminated'], handlers=(ordered=1, parallel=2)
+2026-04-22 13:44:19.562 - core.logger - DEBUG - LogManager: packet conn=test-conn-1 channel=tcp crc=False dup=False
+2026-04-22 13:44:19.562 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn-1 (terminated=True, crc_valid=False)
+2026-04-22 13:44:19.663 - core.logger - INFO - LogManager: записано 2 записей в logs/20260422-134324.jsonl
+2026-04-22 13:44:19.664 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-22 13:44:19.664 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-22 13:44:19.664 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-22 13:44:19.664 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-22 13:44:19.665 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-22 13:44:19.665 - core.event_bus - DEBUG - EventBus.emit: event=server.stopped, data_keys=['reason'], handlers=(ordered=0, parallel=0)
+2026-04-22 13:44:19.665 - core.event_bus - DEBUG - EventBus.emit: no handlers for event=server.stopped
