@@ -6,6 +6,24 @@
 
 ## [Unreleased]
 
+### Аудит core/ и исправления (завершена)
+
+**Дата:** 23.04.2026
+
+#### Fixed
+- **LogManager — утечка обработчика `packet.sent`** — `stop()` теперь отписывается от
+  события `packet.sent` (logger.py:113). Добавлена симметричность подписки/отписки.
+  Тест обновлён: 4 события вместо 3.
+- **Hardcoded `logging.basicConfig` в dispatcher.py** — удалён закомментированный
+  `basicConfig(level=CRITICAL) #fixme` из строки 38. Логирование управляется
+  централизованно через `python_logger`.
+
+#### Тесты
+- 27 тестов logger.py: 27 passed, 13 warnings (RuntimeWarning о не-awaited coroutine)
+- Все тесты: 482 passed, 2 skipped
+
+---
+
 ### Итерация 12: Сценарий авторизации PASS (завершена)
 
 **Ветка:** `debug/manual-testing` | **Коммит:** pending

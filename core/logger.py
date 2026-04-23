@@ -110,6 +110,7 @@ class LogManager:
         # Отписаться от событий
         try:
             self._bus.off("packet.processed", self._on_packet_processed)
+            self._bus.off("packet.sent", self._on_packet_sent)
             self._bus.off("connection.changed", self._on_connection_changed)
             self._bus.off("scenario.step", self._on_scenario_step)
         except Exception as e:
