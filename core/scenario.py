@@ -13,7 +13,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from core.event_bus import EventBus
 from core.scenario_parser import (
@@ -22,6 +22,9 @@ from core.scenario_parser import (
     ScenarioParserFactory,
     StepDefinition,
 )
+
+if TYPE_CHECKING:
+    from libs.egts.models import Packet
 
 logger = logging.getLogger(__name__)
 
@@ -395,6 +398,159 @@ class SendStep:
         result: dict[str, Any] = _substitute(self.build)
         return result
 
+    def _dict_to_packet(self, data: dict[str, Any]) -> "Packet":
+        """Конвертировать dict в модель Packet.
+
+        Args:
+            data: Dict со структурой пакета (из build.template.packet).
+
+        Returns:
+            Модель Packet для сборки в байты.
+
+        Raises:
+            ValueError: Если обязательные поля отсутствуют.
+        """
+        from libs.egts.models import Packet, Record, Subrecord
+
+        def process_hex(obj: Any) -> Any:
+            """Рекурсивно обработать _hex суффикс (конвертировать в bytes)."""
+            if isinstance(obj, dict):
+                result = {}
+                for k, v in obj.items():
+                    if isinstance(v, dict):
+                        result[k] = process_hex(v)
+                    elif isinstance(v, list):
+                        result[k] = [process_hex(item) for item in v]
+                    elif isinstance(v, str) and k.endswith("_hex"):
+                        result[k[:-4]] = bytes.fromhex(v)
+                    else:
+                        result[k] = v
+                return result
+            elif isinstance(obj, list):
+                return [process_hex(item) for item in obj]
+            return obj
+
+        def convert_int(obj: Any) -> Any:
+            """Рекурсивно конвертировать строковые числа в int."""
+            if isinstance(obj, dict):
+                return {k: convert_int(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [convert_int(item) for item in obj]
+            elif isinstance(obj, str):
+                if obj.isdigit() or (obj.lstrip('-').isdigit()):
+                    return int(obj)
+                return obj
+            return obj
+
+        data = convert_int(process_hex(data))
+
+        if "packet_id" not in data:
+            raise ValueError("packet_id is required in build packet")
+        if "packet_type" not in data:
+            raise ValueError("packet_type is required in build packet")
+
+        subrecords = []
+        for sr_data in data.get("subrecords", []):
+            sr = Subrecord(
+                subrecord_type=sr_data["subrecord_type"],
+                data=sr_data.get("data", {}),
+            )
+            subrecords.append(sr)
+
+        records = []
+        for rec_data in data.get("records", []):
+            rec_subrecords = []
+            for sr_data in rec_data.get("subrecords", []):
+                sr = Subrecord(
+                    subrecord_type=sr_data["subrecord_type"],
+                    data=sr_data.get("data", {}),
+                )
+                rec_subrecords.append(sr)
+
+            rec = Record(
+                record_id=rec_data["record_id"],
+                service_type=rec_data["service_type"],
+                recipient_service_type=rec_data.get("recipient_service_type", 0),
+                subrecords=rec_subrecords,
+                object_id=rec_data.get("object_id"),
+                event_id=rec_data.get("event_id"),
+                timestamp=rec_data.get("timestamp"),
+                ssod=rec_data.get("ssod", False),
+                rsod=rec_data.get("rsod", False),
+                rpp=rec_data.get("rpp", 0),
+            )
+            records.append(rec)
+
+        packet = Packet(
+            protocol_version=data.get("protocol_version", 1),
+            security_key_id=data.get("security_key_id", 0),
+            prefix=data.get("prefix", False),
+            routing=data.get("routing", False),
+            encryption=data.get("encryption", 0),
+            compressed=data.get("compressed", False),
+            priority=data.get("priority", 0),
+            header_encoding=data.get("header_encoding", 0),
+            packet_id=data["packet_id"],
+            packet_type=data["packet_type"],
+            peer_address=data.get("peer_address"),
+            recipient_address=data.get("recipient_address"),
+            ttl=data.get("ttl"),
+            response_packet_id=data.get("response_packet_id"),
+            processing_result=data.get("processing_result"),
+            records=records,
+        )
+
+        return packet
+
+    def _build_from_template_bytes(self, ctx: ScenarioContext) -> bytes:
+        """Построить пакет из build-template и вернуть байты.
+
+        Поддерживает два формата:
+        - Новый: build = {"packet": {...}, "gost_version": "2015"}
+        -_old (обратная совместимость): build = {"packet_bytes": b"..."}
+
+        Args:
+            ctx: Контекст с переменными для подстановки.
+
+        Returns:
+            Байты собранного EGTS-пакета.
+
+        Raises:
+            ValueError: Если шаблон некорректен.
+        """
+        if not self.build:
+            raise ValueError("build template is required")
+
+        def _substitute(obj: Any) -> Any:
+            if isinstance(obj, str):
+                return ctx.substitute(obj)
+            if isinstance(obj, dict):
+                return {k: _substitute(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [_substitute(item) for item in obj]
+            return obj
+
+        template_data: dict[str, Any] = _substitute(self.build)
+
+        # Старый формат (обратная совместимость)
+        packet_bytes_val = template_data.get("packet_bytes")
+        if packet_bytes_val is not None:
+            assert isinstance(packet_bytes_val, bytes), "packet_bytes must be bytes"
+            return packet_bytes_val
+
+        # Новый формат: build.packet -> dict -> Packet -> bytes
+        packet_dict = template_data.get("packet")
+        if not packet_dict:
+            raise ValueError("'packet' key is required in build template")
+
+        gost_version = template_data.get("gost_version", "2015")
+
+        from core.egts_adapter import create_protocol
+        protocol = create_protocol(gost_version)
+
+        packet = self._dict_to_packet(packet_dict)
+        return protocol.build_packet(packet)
+
     async def execute(
         self,
         ctx: ScenarioContext,
@@ -414,18 +570,14 @@ class SendStep:
             logger.error("SendStep: connection_id required for TCP channel")
             return "ERROR"
 
-        # Построение пакета
+        # Построение пакета (приоритет: build > packet_file)
         pid: int | None = None
         rn: int | None = None
 
-        if self.packet_file:
+        if self.build:
+            packet_bytes = self._build_from_template_bytes(ctx)
+        elif self.packet_file:
             packet_bytes = self._build_packet(ctx)
-        elif self.build:
-            template_data = self._build_from_template(ctx)
-            packet_bytes = template_data.get("packet_bytes", b"")
-            # pid/rn из шаблона (если указаны)
-            pid = template_data.get("pid")
-            rn = template_data.get("rn")
         else:
             logger.error("SendStep: packet_file or build required")
             return "ERROR"
