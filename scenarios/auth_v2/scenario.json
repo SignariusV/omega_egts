@@ -1,0 +1,89 @@
+{
+  "name": "Аутентификация",
+  "scenario_version": "2",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 30,
+  "description": "Процедура аутентификации УСВ по TCP/IP: TERM_IDENTITY → VEHICLE_DATA → RESULT_CODE",
+  "channels": ["tcp"],
+  "steps": [
+    {
+      "name": "Идентификация терминала",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "EGTS_SR_TERM_IDENTITY",
+      "timeout": 6,
+      "capture": {
+        "tid": "data.TID",
+        "imei": "data.IMEI",
+        "imsi": "data.IMSI"
+      },
+      "checks": {
+        "service": 1,
+        "subrecord_type": "EGTS_SR_TERM_IDENTITY"
+      },
+      "description": "УСВ отправляет TID, IMEI, IMSI"
+    },
+    {
+      "name": "Подтверждение TERM_IDENTITY",
+      "type": "send",
+      "channel": "tcp",
+      "build": {
+        "packet_hex": "0100000B0010001E00003B2A000006002D00400101000300490000E6BE"
+      },
+      "timeout": 5,
+      "description": "Платформа подтверждает приём TERM_IDENTITY (RPID=PID)"
+    },
+    {
+      "name": "Данные транспортного средства",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "EGTS_SR_VEHICLE_DATA",
+      "timeout": 6,
+      "capture": {
+        "vin": "data.VIN",
+        "vehicle_type": "data.VHT",
+        "fuel_type": "data.VPST"
+      },
+      "checks": {
+        "service": 1,
+        "subrecord_type": "EGTS_SR_VEHICLE_DATA"
+      },
+      "description": "УСВ отправляет VIN, тип ТС, тип энергоносителя"
+    },
+    {
+      "name": "Подтверждение VEHICLE_DATA",
+      "type": "send",
+      "channel": "tcp",
+      "build": {
+        "packet_hex": "0100000B0010001F00007D2B000006002E004001010003004A00006837"
+      },
+      "timeout": 5,
+      "description": "Платформа подтверждает приём VEHICLE_DATA"
+    },
+    {
+      "name": "Результат аутентификации",
+      "type": "send",
+      "channel": "tcp",
+      "build": {
+        "packet_hex": "0100000B000B002000012604002F0040010109010000BA4C"
+      },
+      "timeout": 5,
+      "checks": {
+        "result_code": 0
+      },
+      "description": "Платформа отправляет EGTS_PC_OK (0)"
+    },
+    {
+      "name": "Подтверждение результата",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "EGTS_SR_RECORD_RESPONSE",
+      "timeout": 5,
+      "checks": {
+        "subrecord_type": "EGTS_SR_RECORD_RESPONSE",
+        "record_status": 0
+      },
+      "description": "УСВ подтверждает результат аутентификации (RST=EGTS_PC_OK)"
+    }
+  ]
+}

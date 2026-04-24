@@ -1,0 +1,160 @@
+{
+  "name": "Верификация (SMS)",
+  "scenario_version": "3",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 60,
+  "description": "Первоначальная настройка УСВ через SMS с динамической генерацией пакетов",
+  "channels": ["sms"],
+  "variables": {
+    "packet_id": 27,
+    "record_id": 42,
+    "service_type": 4,
+    "recipient_service_type": 4
+  },
+  "steps": [
+    {
+      "name": "Настройка GPRS/APN",
+      "type": "send",
+      "channel": "sms",
+      "build": {
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": "{{packet_id}}",
+          "packet_type": 1,
+          "records": [
+            {
+              "record_id": "{{record_id}}",
+              "service_type": "{{service_type}}",
+              "recipient_service_type": "{{recipient_service_type}}",
+              "rsod": true,
+              "subrecords": [
+                {
+                  "subrecord_type": 51,
+                  "data": {
+                    "ct": 5,
+                    "cct": 0,
+                    "cid": 0,
+                    "sid": 0,
+                    "cd": "020302696e7465726e6574"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "timeout": 60,
+      "description": "Отправка настроек GPRS/APN (internet)"
+    },
+    {
+      "name": "Подтверждение APN",
+      "type": "expect",
+      "channel": "sms",
+      "packet_type": "CT_COMCONF",
+      "timeout": 30,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 0
+      },
+      "description": "УСВ подтверждает приём настроек APN"
+    },
+    {
+      "name": "Настройка адреса сервера",
+      "type": "send",
+      "channel": "sms",
+      "build": {
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": "{{packet_id}}",
+          "packet_type": 1,
+          "records": [
+            {
+              "record_id": "{{record_id}}",
+              "service_type": "{{service_type}}",
+              "recipient_service_type": "{{recipient_service_type}}",
+              "rsod": true,
+              "subrecords": [
+                {
+                  "subrecord_type": 51,
+                  "data": {
+                    "ct": 5,
+                    "cct": 0,
+                    "cid": 1,
+                    "sid": 0,
+                    "cd": "0204023230302e32302e322e3137313a393039305e55"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "timeout": 5,
+      "description": "Отправка адреса и порта сервера"
+    },
+    {
+      "name": "Подтверждение адреса",
+      "type": "expect",
+      "channel": "sms",
+      "packet_type": "CT_COMCONF",
+      "timeout": 5,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 1
+      },
+      "description": "УСВ подтверждает приём адреса сервера"
+    },
+    {
+      "name": "Запрос UNIT_ID",
+      "type": "send",
+      "channel": "sms",
+      "build": {
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": "{{packet_id}}",
+          "packet_type": 1,
+          "records": [
+            {
+              "record_id": "{{record_id}}",
+              "service_type": "{{service_type}}",
+              "recipient_service_type": "{{recipient_service_type}}",
+              "rsod": true,
+              "subrecords": [
+                {
+                  "subrecord_type": 51,
+                  "data": {
+                    "ct": 5,
+                    "cct": 0,
+                    "cid": 2,
+                    "sid": 0,
+                    "cd": "02040400000001"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "timeout": 5,
+      "description": "Запрос идентификатора устройства"
+    },
+    {
+      "name": "Ответ с UNIT_ID",
+      "type": "expect",
+      "channel": "sms",
+      "packet_type": "CT_COMCONF",
+      "timeout": 5,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 2
+      },
+      "capture": {
+        "unit_id": "data"
+      },
+      "description": "УСВ возвращает UNIT_ID"
+    }
+  ]
+}

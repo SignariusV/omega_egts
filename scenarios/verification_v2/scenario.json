@@ -1,0 +1,82 @@
+{
+  "name": "Верификация (SMS)",
+  "scenario_version": "2",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 60,
+  "description": "Первоначальная настройка УСВ через SMS: APN, адрес сервера, запрос UNIT_ID",
+  "channels": ["sms"],
+  "steps": [
+    {
+      "name": "Настройка GPRS/APN",
+      "type": "send",
+      "channel": "sms",
+      "build": {
+        "packet_hex": "0100000B0021001B0001321A002A00400404331700500000000000000000000000020302696E7465726E65740D48"
+      },
+      "timeout": 60,
+      "description": "Отправка настроек GPRS/APN (internet)"
+    },
+    {
+      "name": "Подтверждение APN",
+      "type": "expect",
+      "channel": "sms",
+      "packet_type": "CT_COMCONF",
+      "timeout": 30,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 0
+      },
+      "description": "УСВ подтверждает приём настроек APN"
+    },
+    {
+      "name": "Настройка адреса сервера",
+      "type": "send",
+      "channel": "sms",
+      "build": {
+        "packet_hex": "0100000B002A001C0001AB23002B004004043320005001000000000000000000000204023230302E32302E322E3137313A393039305E55"
+      },
+      "timeout": 5,
+      "description": "Отправка адреса и порта сервера (200.20.2.171:9090)"
+    },
+    {
+      "name": "Подтверждение адреса",
+      "type": "expect",
+      "channel": "sms",
+      "packet_type": "CT_COMCONF",
+      "timeout": 5,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 1
+      },
+      "description": "УСВ подтверждает приём адреса сервера"
+    },
+    {
+      "name": "Запрос UNIT_ID",
+      "type": "send",
+      "channel": "sms",
+      "build": {
+        "packet_hex": "0100000B001D001D00013216002C0040040433130050020000000000000000000002040400000001BE2C"
+      },
+      "timeout": 5,
+      "description": "Запрос идентификатора устройства"
+    },
+    {
+      "name": "Ответ с UNIT_ID",
+      "type": "expect",
+      "channel": "sms",
+      "packet_type": "CT_COMCONF",
+      "timeout": 5,
+      "checks": {
+        "subrecord_type": "EGTS_SR_COMMAND_DATA",
+        "ct": 1,
+        "cid": 2
+      },
+      "capture": {
+        "unit_id": "data"
+      },
+      "description": "УСВ возвращает UNIT_ID"
+    }
+  ]
+}
