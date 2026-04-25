@@ -1,9 +1,9 @@
 {
-  "name": "Аутентификация (build формат)",
-  "scenario_version": "3",
+  "name": "Аутентификация",
+  "scenario_version": "1",
   "gost_version": "ГОСТ 33465-2015",
   "timeout": 30,
-  "description": "Процедура аутентификации с динамической генерацией пакетов",
+  "description": "Процедура аутентификации УСВ по TCP/IP: TERM_IDENTITY → VEHICLE_DATA → RESULT_CODE",
   "channels": ["tcp"],
   "steps": [
     {
@@ -28,30 +28,10 @@
       "type": "send",
       "channel": "tcp",
       "build": {
-        "gost_version": "2015",
-        "packet": {
-          "packet_id": "{{pid}}",
-          "packet_type": 0,
-          "records": [
-            {
-              "record_id": 1,
-              "service_type": 6,
-              "recipient_service_type": 1,
-              "subrecords": [
-                {
-                  "subrecord_type": 0,
-                  "data": {
-                    "crn": 1,
-                    "rst": 0
-                  }
-                }
-              ]
-            }
-          ]
-        }
+        "packet_hex": "0100000B0010001E00003B2A000006002D00400101000300490000E6BE"
       },
       "timeout": 5,
-      "description": "Платформа подтверждает приём TERM_IDENTITY"
+      "description": "Платформа подтверждает приём TERM_IDENTITY (RPID=PID)"
     },
     {
       "name": "Данные транспортного средства",
@@ -75,27 +55,7 @@
       "type": "send",
       "channel": "tcp",
       "build": {
-        "gost_version": "2015",
-        "packet": {
-          "packet_id": "{{pid}}",
-          "packet_type": 0,
-          "records": [
-            {
-              "record_id": 2,
-              "service_type": 6,
-              "recipient_service_type": 1,
-              "subrecords": [
-                {
-                  "subrecord_type": 0,
-                  "data": {
-                    "crn": 2,
-                    "rst": 0
-                  }
-                }
-              ]
-            }
-          ]
-        }
+        "packet_hex": "0100000B0010001F00007D2B000006002E004001010003004A00006837"
       },
       "timeout": 5,
       "description": "Платформа подтверждает приём VEHICLE_DATA"
@@ -105,28 +65,12 @@
       "type": "send",
       "channel": "tcp",
       "build": {
-        "gost_version": "2015",
-        "packet": {
-          "packet_id": "{{pid}}",
-          "packet_type": 0,
-          "records": [
-            {
-              "record_id": 3,
-              "service_type": 6,
-              "recipient_service_type": 1,
-              "subrecords": [
-                {
-                  "subrecord_type": 9,
-                  "data": {
-                    "rcd": 0
-                  }
-                }
-              ]
-            }
-          ]
-        }
+        "packet_hex": "0100000B000B002000012604002F0040010109010000BA4C"
       },
       "timeout": 5,
+      "checks": {
+        "result_code": 0
+      },
       "description": "Платформа отправляет EGTS_PC_OK (0)"
     },
     {

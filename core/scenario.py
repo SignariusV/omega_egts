@@ -538,6 +538,15 @@ class SendStep:
             assert isinstance(packet_bytes_val, bytes), "packet_bytes must be bytes"
             return packet_bytes_val
 
+        # packet_hex (строка hex)
+        packet_hex_val = template_data.get("packet_hex")
+        if packet_hex_val is not None:
+            assert isinstance(packet_hex_val, str), "packet_hex must be str"
+            try:
+                return bytes.fromhex(packet_hex_val)
+            except ValueError as exc:
+                raise ValueError(f"Invalid hex in packet_hex: {exc}") from exc
+
         # Новый формат: build.packet -> dict -> Packet -> bytes
         packet_dict = template_data.get("packet")
         if not packet_dict:

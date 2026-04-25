@@ -4,7 +4,39 @@
 
 ---
 
-## [Unreleased]
+### Поддержка packet_hex в SendStep (завершена)
+
+**Дата:** 25.04.2026
+
+#### Added
+- **packet_hex — поддержка hex-строки в build** — SendStep теперь принимает
+  `build.packet_hex` (строка hex) в дополнение к `packet_bytes` (bytes) и `packet` (dict).
+  Преобразование: `bytes.fromhex(packet_hex)`.
+
+- **Тесты для packet_hex** — 2 новых теста:
+  - `test_packet_hex_format` — позитивный тест
+  - `test_packet_hex_invalid_raises` — негативный (невалидный hex)
+
+- **Переименование сценариев:**
+  - `verification_v2/` → `verification_static/`
+  - `verification_v3/` → `verification_dynamic/`
+  - `auth_v2/` → `auth_static/`
+  - `auth_v3/` → `auth_dynamic/`
+  - Все `scenario_version` = "1"
+
+#### Fixed
+- **scenario_version исправлен** — все сценарии теперь имеют `"scenario_version": "1"`
+  (было 2, 3 — они обрабатываются через V1 парсер)
+
+#### Приоритет обработки build (финальный)
+
+| # | Ключ | Формат |
+|---|------|-------|
+| 1 | `packet` | dict → Packet → bytes |
+| 2 | `packet_bytes` | bytes напрямую |
+| 3 | `packet_hex` | строка hex → bytes |
+
+---
 
 ### Аудит core/ и исправления (завершена)
 

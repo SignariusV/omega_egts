@@ -154,6 +154,29 @@ class TestBuildFromTemplateBytes:
         with pytest.raises(ValueError, match="'packet' key is required"):
             step._build_from_template_bytes(ctx)
 
+    def test_packet_hex_format(self):
+        """Формат с packet_hex — строка hex."""
+        step = SendStep(
+            name="test",
+            build={"packet_hex": "DEADBEEF"},
+        )
+        ctx = ScenarioContext()
+
+        result = step._build_from_template_bytes(ctx)
+
+        assert result == b"\xde\xad\xbe\xef"
+
+    def test_packet_hex_invalid_raises(self):
+        """Ошибка при невалидном hex."""
+        step = SendStep(
+            name="test",
+            build={"packet_hex": "ZZZ"},
+        )
+        ctx = ScenarioContext()
+
+        with pytest.raises(ValueError, match="Invalid hex"):
+            step._build_from_template_bytes(ctx)
+
 
 class TestVariableSubstitution:
     """Тесты подстановки переменных."""
