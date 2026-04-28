@@ -566,6 +566,117 @@ class ScenarioManager:
 }
 ```
 
+### Способы отправки пакетов
+
+SendStep поддерживает **3 способа** генерации EGTS-пакетов:
+
+#### 1. packet_file (статический HEX из файла)
+
+```json
+{
+  "type": "send",
+  "packet_file": "packets/platform/record_response_term_identity.hex"
+}
+```
+
+Пакет загружается из HEX-файла. Поддерживаются относительные пути (относительно директории сценария).
+
+#### 2. packet_hex (статический HEX в JSON)
+
+```json
+{
+  "type": "send",
+  "build": {
+    "packet_hex": "0100000B0021001B0001321A002A00400404331700500000000000000000000000020302696E7465726E65740D48"
+  }
+}
+```
+
+Пакет указывается напрямую hex-строкой в JSON. Удобно для small payloads, inline в сценарии.
+
+#### 3. packet dict (динамическая генерация)
+
+```json
+{
+  "type": "send",
+  "build": {
+    "gost_version": "2015",
+    "packet": {
+      "packet_id": 27,
+      "packet_type": 1,
+      "records": [
+        {
+          "record_id": 1,
+          "service_type": 4,
+          "recipient_service_type": 4,
+          "rsod": true,
+          "subrecords": [
+            {
+              "subrecord_type": 51,
+              "data": {
+                "ct": 5,
+                "cct": 0,
+                "cid": 0,
+                "sid": 0,
+                "cd": "020302696e7465726e6574"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+Декларативное описание структуры пакета. Конвертируется в модель `Packet` и сериализуется через EGTS-протокол.
+
+#### Приоритет обработки (в build)
+
+| # | Ключ | Формат | Описание |
+|---|------|-------|----------|
+| 1 | `packet` | dict → Packet → bytes | Динамическая генерация |
+| 2 | `packet_bytes` | bytes напрямую | Готовые байты |
+| 3 | `packet_hex` | строка hex → bytes | Inline hex |
+
+#### Переменные и подстановка
+
+В `packet dict` можно использовать подстановку переменных:
+
+```json
+{
+  "variables": {
+    "packet_id": 27,
+    "record_id": 42
+  },
+  "build": {
+    "gost_version": "2015",
+    "packet": {
+      "packet_id": "{{packet_id}}",
+      "packet_type": 1,
+      "records": [
+        {
+          "record_id": "{{record_id}}",
+          "service_type": 4,
+          ...
+        }
+      ]
+    }
+  }
+}
+```
+
+Переменные задаются в секции `variables` и подставляются через синтаксис `{{var_name}}`.
+
+#### Примеры
+
+| Сценарий | Способ | Файл |
+|----------|--------|------|
+| `auth` | packet_file | `scenarios/auth/scenario.json` |
+| `auth_dynamic` | packet dict | `scenarios/auth_dynamic/scenario.json` |
+| `verification_static` | packet_hex | `scenarios/verification_static/scenario.json` |
+| `verification_dynamic` | packet dict | `scenarios/verification_dynamic/scenario.json` |
+
 **StepFactory:**
 
 ```python
