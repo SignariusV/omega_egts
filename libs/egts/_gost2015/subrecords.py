@@ -8,6 +8,10 @@ from __future__ import annotations
 from typing import Any
 
 from libs.egts._core.subrecord_registry import register_subrecord
+from libs.egts.types import (
+    CommandType, ConfirmationType, ActionType, Charset,
+    COMMAND_CODES,
+)
 
 # ──────────────────────────────────────────────────────────────
 # Helper-функции
@@ -745,6 +749,7 @@ class ServiceFullDataParser:
 # SRT=51 COMMAND_DATA
 # ──────────────────────────────────────────────────────────────
 
+# Оставляем для обратной совместимости, но используем Charset enum
 _CHARSETS = {
     0: "CP-1251", 1: "ASCII", 2: "BINARY", 3: "Latin1",
     4: "BINARY", 5: "JIS", 6: "Cyrillic", 7: "Latin/Hebrew", 8: "UCS2",
@@ -788,13 +793,21 @@ class CommandDataParser:
                 ac = raw[offset:offset+acl]
                 offset += acl
 
-        cd = raw[offset:]
+        # Парсинг CD (Command Data) в зависимости от CT
+        cd_data: dict[str, Any] | bytes = raw[offset:]
+        if len(raw) > offset:
+            try:
+                cd_data = self._parse_cd_data(ct, raw[offset:])
+            except Exception:
+                cd_data = raw[offset:]  # Fallback to raw bytes
 
         return {
             "ct": ct, "cct": cct, "cid": cid, "sid": sid,
             "acfe": acfe, "chsfe": chsfe, "chs": chs,
-            "chs_text": _CHARSETS.get(chs) if chs is not None else None,
-            "acl": acl, "ac": ac, "cd": cd,
+            "chs_text": Charset(chs).name if chs is not None else None,
+            "ct_text": CommandType(ct).name if ct in [e.value for e in CommandType] else f"Unknown(0x{ct:02X})",
+            "cct_text": ConfirmationType(cct).name if cct in [e.value for e in ConfirmationType] else f"Unknown(0x{cct:02X})",
+            "acl": acl, "ac": ac, "cd": cd_data,
         }
 
     def serialize(self, data: dict[str, Any]) -> bytes:
@@ -815,18 +828,141 @@ class CommandDataParser:
 
         if acfe:
             ac = data.get("ac", b"")
-            if isinstance(ac, bytes):
+            if isinstance(ac, str):
+                ac_bytes = ac.encode("cp1251")
+                result += bytes([len(ac_bytes)]) + ac_bytes
+            elif isinstance(ac, bytes):
                 result += bytes([len(ac)]) + ac
             else:
-                ac_bytes = b""
-                result += bytes([len(ac_bytes)]) + ac_bytes
+                result += bytes([0])
 
+        # Сериализация CD (Command Data)
         cd = data.get("cd", b"")
-        if isinstance(cd, bytes):
+        if isinstance(cd, dict):
+            cd_bytes = self._serialize_cd_data(ct, cd)
+            result += cd_bytes
+        elif isinstance(cd, bytes):
             result += cd
-        else:
-            result += b""
         return result
+
+    # ──────────────────────────────────────────────────────
+    # Методы парсинга CD (Command Data)
+    # ──────────────────────────────────────────────────────
+
+    def _parse_cd_data(self, ct: int, cd_bytes: bytes) -> dict[str, Any] | bytes:
+        """Парсинг CD в зависимости от CT (Command Type)."""
+        if ct == CommandType.COM:
+            return self._parse_cd_com(cd_bytes)
+        elif ct == CommandType.COMCONF:
+            return self._parse_cd_comconf(cd_bytes)
+        elif ct in (CommandType.MSGCONF, CommandType.DELIV):
+            return self._parse_cd_conf(cd_bytes)
+        else:
+            # Для остальных возвращаем raw bytes
+            return cd_bytes
+
+    def _parse_cd_com(self, cd: bytes) -> dict[str, Any]:
+        """CT_COM (5) - Таблица 30: Формат команды автомобильной системы."""
+        if len(cd) < 5:
+            return {"raw": cd}
+
+        offset = 0
+        adr = int.from_bytes(cd[offset:offset+2], "little")
+        offset += 2
+
+        act_sz = cd[offset]
+        offset += 1
+        sz = (act_sz >> 5) & 0x07   # Старшие 3 бита
+        act = act_sz & 0x1F          # Младшие 5 бит
+
+        ccd = int.from_bytes(cd[offset:offset+2], "little")
+        offset += 2
+
+        dt = cd[offset:] if offset < len(cd) else b""
+
+        return {
+            "adr": adr,
+            "act": act, "act_text": ActionType(act).name if act in [e.value for e in ActionType] else f"Unknown({act})",
+            "sz": sz,
+            "ccd": ccd, "ccd_text": COMMAND_CODES.get(ccd, f"Unknown(0x{ccd:04X})"),
+            "dt": dt,
+        }
+
+    def _parse_cd_comconf(self, cd: bytes) -> dict[str, Any]:
+        """CT_COMCONF (1) - Таблица 31: Формат подтверждения на команду УСВ."""
+        if len(cd) < 4:
+            return {"raw": cd}
+
+        offset = 0
+        adr = int.from_bytes(cd[offset:offset+2], "little")
+        offset += 2
+
+        ccd = int.from_bytes(cd[offset:offset+2], "little")
+        offset += 2
+
+        dt = cd[offset:] if offset < len(cd) else b""
+
+        return {
+            "adr": adr,
+            "ccd": ccd, "ccd_text": COMMAND_CODES.get(ccd, f"Unknown(0x{ccd:04X})"),
+            "dt": dt,
+        }
+
+    def _parse_cd_conf(self, cd: bytes) -> dict[str, Any]:
+        """Для CT_MSGCONF, CT_DELIV - аналогично таблице 31."""
+        return self._parse_cd_comconf(cd)
+
+    # ──────────────────────────────────────────────────────
+    # Методы сериализации CD (Command Data)
+    # ──────────────────────────────────────────────────────
+
+    def _serialize_cd_data(self, ct: int, cd: dict) -> bytes:
+        """Сериализация CD в зависимости от CT."""
+        if ct == CommandType.COM:
+            return self._serialize_cd_com(cd)
+        elif ct == CommandType.COMCONF:
+            return self._serialize_cd_comconf(cd)
+        elif ct in (CommandType.MSGCONF, CommandType.DELIV):
+            return self._serialize_cd_conf(cd)
+        return b""
+
+    def _serialize_cd_com(self, cd: dict) -> bytes:
+        """Сериализация для CT_COM (таблица 30)."""
+        result = int(cd.get("adr", 0)).to_bytes(2, "little")
+
+        act = int(cd.get("act", 0))
+        sz = int(cd.get("sz", 0))
+        result += bytes([(sz << 5) | (act & 0x1F)])
+
+        result += int(cd.get("ccd", 0)).to_bytes(2, "little")
+
+        dt = cd.get("dt", b"")
+        if isinstance(dt, str):
+            # Автоматически определяем кодировку и кодируем
+            dt_bytes = dt.encode("cp1251")
+            result += dt_bytes
+        elif isinstance(dt, bytes):
+            result += dt
+
+        return result
+
+    def _serialize_cd_comconf(self, cd: dict) -> bytes:
+        """Сериализация для CT_COMCONF (таблица 31)."""
+        result = int(cd.get("adr", 0)).to_bytes(2, "little")
+        result += int(cd.get("ccd", 0)).to_bytes(2, "little")
+
+        dt = cd.get("dt", b"")
+        if isinstance(dt, str):
+            dt_bytes = dt.encode("cp1251")
+            result += dt_bytes
+        elif isinstance(dt, bytes):
+            result += dt
+
+        return result
+
+    def _serialize_cd_conf(self, cd: dict) -> bytes:
+        """Для CT_MSGCONF, CT_DELIV - аналогично таблице 31."""
+        return self._serialize_cd_comconf(cd)
 
 
 # ──────────────────────────────────────────────────────────────

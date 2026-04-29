@@ -11,7 +11,37 @@
       "type": "send",
       "channel": "sms",
       "build": {
-        "packet_hex": "0100000B0021001B0001321A002A00400404331700500000000000000000000000020302696E7465726E65740D48"
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": 27,
+          "packet_type": 1,
+          "records": [
+            {
+              "record_id": 1,
+              "service_type": 4,
+              "recipient_service_type": 4,
+              "rsod": true,
+              "subrecords": [
+                {
+                  "subrecord_type": 51,
+                  "data": {
+                    "ct": 5,
+                    "cct": 0,
+                    "cid": 0,
+                    "sid": 0,
+                    "cd": {
+                      "adr": 0,
+                      "act": 2,
+                      "sz": 0,
+                      "ccd": 515,
+                      "dt": "internet"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
       },
       "timeout": 60,
       "description": "Отправка настроек GPRS/APN (internet)"
@@ -34,7 +64,37 @@
       "type": "send",
       "channel": "sms",
       "build": {
-        "packet_hex": "0100000B002A001C0001AB23002B004004043320005001000000000000000000000204023230302E32302E322E3137313A393039305E55"
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": 28,
+          "packet_type": 1,
+          "records": [
+            {
+              "record_id": 2,
+              "service_type": 4,
+              "recipient_service_type": 4,
+              "rsod": true,
+              "subrecords": [
+                {
+                  "subrecord_type": 51,
+                  "data": {
+                    "ct": 5,
+                    "cct": 0,
+                    "cid": 1,
+                    "sid": 0,
+                    "cd": {
+                      "adr": 0,
+                      "act": 2,
+                      "sz": 0,
+                      "ccd": 516,
+                      "dt": "200.20.2.171:9090"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
       },
       "timeout": 5,
       "description": "Отправка адреса и порта сервера (200.20.2.171:9090)"
@@ -57,7 +117,37 @@
       "type": "send",
       "channel": "sms",
       "build": {
-        "packet_hex": "0100000B001D001D00013216002C0040040433130050020000000000000000000002040400000001BE2C"
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": 29,
+          "packet_type": 1,
+          "records": [
+            {
+              "record_id": 3,
+              "service_type": 4,
+              "recipient_service_type": 4,
+              "rsod": true,
+              "subrecords": [
+                {
+                  "subrecord_type": 51,
+                  "data": {
+                    "ct": 5,
+                    "cct": 0,
+                    "cid": 2,
+                    "sid": 0,
+                    "cd": {
+                      "adr": 0,
+                      "act": 4,
+                      "sz": 0,
+                      "ccd": 0,
+                      "dt": "\x00\x01"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
       },
       "timeout": 5,
       "description": "Запрос идентификатора устройства"

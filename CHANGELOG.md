@@ -4,6 +4,34 @@
 
 ---
 
+### Интеграция статуса CMW-500 в EventBus (завершена)
+
+**Дата:** 29.04.2026  
+**Ветка:** `debug-session` | **Коммит:** `0c54bf7`
+
+#### Added
+- **Событие `cmw.status`** — периодический emit полного статуса CMW-500 через EventBus
+  - Публикуется каждые `_poll_interval` секунд (по умолчанию 2.0)
+  - Содержит: `cs_state`, `ps_state`, `rssi`, `rssi_range`, `cell_status`, `ber`, `rx_level`, `imei`, `imsi`, `serial`, `simulate`, `ip`, `timestamp`
+- **Расширение `get_full_status()`** — добавлены поля `imei`, `imsi`, `timestamp`
+  - В `Cmw500Controller.get_full_status()` — с обработкой ошибок (возврат `None` при сбое)
+  - В `Cmw500Emulator.get_full_status()` — моковые данные
+- **Тесты для нового функционала:**
+  - `TestGetFullStatusWithImeiImsi` — проверка включения IMEI/IMSI и корректности timestamp
+  - `TestPollLoopEmitsStatus` — проверка emit `cmw.status` в `_poll_loop()`
+
+#### Changed
+- **`Cmw500Controller._poll_loop()`** — добавлен emit `cmw.status` с полным статусом после опроса SMS
+- **`docs/ARCHITECTURE.md`** — добавлено событие `cmw.status` в таблицу событий
+
+#### Technical Details
+- Используется существующий метод `get_full_status()` (минимизация изменений)
+- Сохранено кеширование статуса (TTL 5 секунд)
+- Обработка ошибок IMEI/IMSI — возврат `None` без блокировки emit
+- Событие не логируется в LogManager (слишком частые обновления, только для GUI)
+
+---
+
 ### Поддержка packet_hex в SendStep (завершена)
 
 **Дата:** 25.04.2026
