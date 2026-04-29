@@ -126,6 +126,7 @@ class EventBus:
 | `cmw.error` | `error, command` | Cmw500Controller | CLI/GUI |
 | `cmw.connected` | `ip, serial, simulate` | Cmw500Controller | CLI/GUI |
 | `cmw.disconnected` | `{}` | Cmw500Controller | CLI/GUI |
+| `cmw.status` | `cs_state, ps_state, rssi, ber, rx_level, cell_status, imei, imsi, timestamp, serial, simulate, ip` | Cmw500Controller | GUI |
 
 **Каналы (`channel`):**
 - `"tcp"` — пакет через WiFi CMW-500 (TCP-соединение, `connection_id` есть)

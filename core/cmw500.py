@@ -428,6 +428,12 @@ class Cmw500Controller:
         while self._connected:
             try:
                 await self._poll_incoming_sms()
+                # НОВОЕ: emit cmw.status с полным статусом
+                try:
+                    status = await self.get_full_status()
+                    await self.bus.emit("cmw.status", status)
+                except Exception as e:
+                    await self.bus.emit("cmw.error", {"error": str(e), "command": "poll_status"})
             except Exception as e:
                 await self.bus.emit("cmw.error", {"error": str(e), "command": "poll_sms"})
             await asyncio.sleep(self._poll_interval)
@@ -558,8 +564,11 @@ class Cmw500Controller:
                 "cell_status": "ON,ADJ",
                 "ber": 0.001,
                 "rx_level": -70.0,
+                "imei": "351234567890123",
+                "imsi": "250011234567890",
                 "simulate": True,
                 "ip": self._ip,
+                "timestamp": time.time(),
             }
         else:
             if not self._driver or not self._driver.is_open:
@@ -594,6 +603,16 @@ class Cmw500Controller:
                     )
                 )
 
+                # Получаем IMEI и IMSI (могут быть None при ошибке)
+                try:
+                    imei = await self.get_imei()
+                except Exception:
+                    imei = None
+                try:
+                    imsi = await self.get_imsi()
+                except Exception:
+                    imsi = None
+
                 result = {
                     "connected": True,
                     "serial": serial,
@@ -604,8 +623,11 @@ class Cmw500Controller:
                     "cell_status": cell_status,
                     "ber": ber,
                     "rx_level": rx_level,
+                    "imei": imei,
+                    "imsi": imsi,
                     "simulate": False,
                     "ip": self._ip,
+                    "timestamp": time.time(),
                 }
             except Exception as e:
                 result = {"connected": False, "error": str(e)}
@@ -925,8 +947,11 @@ class Cmw500Emulator(Cmw500Controller):
             "cell_status": self._mock_driver.get_cell_status(),
             "ber": self._mock_driver.get_ber(),
             "rx_level": self._mock_driver.get_rx_level(),
+            "imei": self._mock_driver.get_imei(),
+            "imsi": self._mock_driver.get_imsi(),
             "simulate": True,
             "ip": self._ip,
+            "timestamp": time.time(),
         }
 
         self._status_cache = result
