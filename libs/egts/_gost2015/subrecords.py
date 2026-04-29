@@ -10,7 +10,7 @@ from typing import Any
 from libs.egts._core.subrecord_registry import register_subrecord
 from libs.egts.types import (
     CommandType, ConfirmationType, ActionType, Charset,
-    COMMAND_CODES,
+    COMMAND_CODES, COMMAND_TYPE_VALUES, CONFIRMATION_TYPE_VALUES, ACTION_TYPE_VALUES,
 )
 
 # ──────────────────────────────────────────────────────────────
@@ -801,12 +801,19 @@ class CommandDataParser:
             except Exception:
                 cd_data = raw[offset:]  # Fallback to raw bytes
 
+        # Get text representations with safe enum lookups
+        def _safe_name(enum_cls, value):
+            try:
+                return enum_cls(value).name
+            except ValueError:
+                return f"Unknown(0x{value:02X})"
+
         return {
             "ct": ct, "cct": cct, "cid": cid, "sid": sid,
             "acfe": acfe, "chsfe": chsfe, "chs": chs,
             "chs_text": Charset(chs).name if chs is not None else None,
-            "ct_text": CommandType(ct).name if ct in [e.value for e in CommandType] else f"Unknown(0x{ct:02X})",
-            "cct_text": ConfirmationType(cct).name if cct in [e.value for e in ConfirmationType] else f"Unknown(0x{cct:02X})",
+            "ct_text": _safe_name(CommandType, ct),
+            "cct_text": _safe_name(ConfirmationType, cct),
             "acl": acl, "ac": ac, "cd": cd_data,
         }
 
@@ -878,11 +885,22 @@ class CommandDataParser:
         ccd = int.from_bytes(cd[offset:offset+2], "little")
         offset += 2
 
-        dt = cd[offset:] if offset < len(cd) else b""
+        dt_bytes = cd[offset:] if offset < len(cd) else b""
+        # Декодируем dt в строку (по умолчанию CP1251)
+        try:
+            dt = dt_bytes.decode("cp1251") if dt_bytes else ""
+        except (UnicodeDecodeError, ValueError):
+            dt = dt_bytes  # Fallback to bytes if can't decode
+
+        # Safe enum lookup for act_text
+        try:
+            act_text = ActionType(act).name
+        except ValueError:
+            act_text = f"Unknown({act})"
 
         return {
             "adr": adr,
-            "act": act, "act_text": ActionType(act).name if act in [e.value for e in ActionType] else f"Unknown({act})",
+            "act": act, "act_text": act_text,
             "sz": sz,
             "ccd": ccd, "ccd_text": COMMAND_CODES.get(ccd, f"Unknown(0x{ccd:04X})"),
             "dt": dt,
@@ -900,7 +918,12 @@ class CommandDataParser:
         ccd = int.from_bytes(cd[offset:offset+2], "little")
         offset += 2
 
-        dt = cd[offset:] if offset < len(cd) else b""
+        dt_bytes = cd[offset:] if offset < len(cd) else b""
+        # Декодируем dt в строку (по умолчанию CP1251)
+        try:
+            dt = dt_bytes.decode("cp1251") if dt_bytes else ""
+        except (UnicodeDecodeError, ValueError):
+            dt = dt_bytes  # Fallback to bytes if can't decode
 
         return {
             "adr": adr,

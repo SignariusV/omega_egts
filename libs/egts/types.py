@@ -118,7 +118,7 @@ class Charset(IntEnum):
     UCS2 = 8         # UCS2
 
 
-    # Словарь кодов команд (CCD) из таблицы 32
+# Словарь кодов команд (CCD) из таблицы 32 ГОСТ 33465-2015
 COMMAND_CODES = {
     0x0000: "EGTS_RAW_DATA",
     0x0001: "EGTS_TEST_MODE",
@@ -148,3 +148,8 @@ COMMAND_CODES = {
     0x0404: "EGTS_UNIT_ID",
     0x0405: "EGTS_UNIT_IMEI",
 }
+
+# Множество значений CommandType для быстрой проверки
+COMMAND_TYPE_VALUES = {e.value for e in CommandType}
+CONFIRMATION_TYPE_VALUES = {e.value for e in ConfirmationType}
+ACTION_TYPE_VALUES = {e.value for e in ActionType}

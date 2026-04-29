@@ -89,7 +89,8 @@ class TestCommandDataParserParse:
         assert cd["act"] == ActionType.PARAMS
         assert cd["ccd"] == 0x0101  # EGTS_GPRS_APN
         assert "GPRS_APN" in cd["ccd_text"]
-        assert cd["dt"] == dt
+        # dt is now returned as string (decoded from cp1251)
+        assert cd["dt"] == dt.decode("cp1251")
 
     def test_parse_ct_comconf_with_cd(self):
         """CT_COMCONF (1) с данными CD (таблица 31)."""
@@ -120,7 +121,8 @@ class TestCommandDataParserParse:
         assert cd["adr"] == 0
         assert cd["ccd"] == 0x0102  # EGTS_SERVER_ADDRESS
         assert "SERVER_ADDRESS" in cd["ccd_text"]
-        assert cd["dt"] == dt
+        # dt is now returned as string (decoded from cp1251)
+        assert cd["dt"] == dt.decode("cp1251")
 
 
 class TestCommandDataParserSerialize:
@@ -183,7 +185,7 @@ class TestCommandDataParserSerialize:
                 "act": ActionType.PARAMS,
                 "sz": 0,
                 "ccd": 0x0101,  # EGTS_GPRS_APN
-                "dt": b"internet",
+                "dt": "internet",  # String, will be encoded to cp1251
             },
         }
 
@@ -197,7 +199,8 @@ class TestCommandDataParserSerialize:
         assert cd["adr"] == 0
         assert cd["act"] == ActionType.PARAMS
         assert cd["ccd"] == 0x0101
-        assert cd["dt"] == b"internet"
+        # After roundtrip, dt is a string (decoded from cp1251)
+        assert cd["dt"] == "internet"
 
     def test_serialize_ct_comconf_with_dict_cd(self):
         """Сериализация CT_COMCONF с CD в виде dict."""
@@ -211,7 +214,7 @@ class TestCommandDataParserSerialize:
             "cd": {
                 "adr": 0,
                 "ccd": 0x0102,  # EGTS_SERVER_ADDRESS
-                "dt": b"10.20.2.171:9090",
+                "dt": "10.20.2.171:9090",  # String, will be encoded to cp1251
             },
         }
 
@@ -224,7 +227,8 @@ class TestCommandDataParserSerialize:
         assert isinstance(cd, dict)
         assert cd["adr"] == 0
         assert cd["ccd"] == 0x0102
-        assert cd["dt"] == b"10.20.2.171:9090"
+        # After roundtrip, dt is a string (decoded from cp1251)
+        assert cd["dt"] == "10.20.2.171:9090"
 
 
 class TestCommandDataRoundtrip:
