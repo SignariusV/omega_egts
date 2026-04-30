@@ -40,22 +40,22 @@ async def main():
     wrapper = EngineWrapper(config)
     wrapper.loop = asyncio.get_running_loop()
 
+    # Создаём EventBus и EventBridge ДО запуска движка
+    from core.event_bus import EventBus
+    bus = EventBus()
+    bridge = EventBridge(bus)
+
+    # Передаём bus в wrapper, чтобы engine использовал тот же bus
+    wrapper.bus = bus
+
     try:
         await wrapper.start_engine()
         print("CoreEngine запущен")
     except Exception as e:
+        import traceback
         print(f"CoreEngine недоступен: {e}")
+        traceback.print_exc()
         wrapper.engine = None
-
-    # EventBridge
-    if wrapper.engine and hasattr(wrapper.engine, 'bus'):
-        from core.event_bus import EventBus
-        bus = wrapper.engine.bus
-    else:
-        from core.event_bus import EventBus
-        bus = EventBus()
-
-    bridge = EventBridge(bus)
 
     window = MainWindow(wrapper, bridge)
     window.show()

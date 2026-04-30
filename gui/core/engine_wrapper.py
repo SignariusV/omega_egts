@@ -12,11 +12,13 @@ class EngineWrapper(QObject):
         self.config = config
         self.engine: CoreEngine | None = None
         self.loop: asyncio.AbstractEventLoop | None = None
+        self.bus: EventBus | None = None
 
     async def start_engine(self):
         """Запуск CoreEngine."""
-        bus = EventBus()
-        self.engine = CoreEngine(self.config, bus)
+        if self.bus is None:
+            self.bus = EventBus()
+        self.engine = CoreEngine(self.config, self.bus)
         await self.engine.start()
 
     async def stop_engine(self):
@@ -26,18 +28,26 @@ class EngineWrapper(QObject):
 
     def start_server(self):
         """Запуск сервера (вызывается из UI)."""
+        print(f"[DEBUG] start_server called, engine={self.engine}")
         if not self.engine:
+            print("[DEBUG] No engine, cannot start")
             return
 
         async def _start():
             try:
+                print("[DEBUG] Starting engine...")
                 await self.engine.start()
+                print("[DEBUG] Engine started successfully")
             except Exception as e:
+                import traceback
                 print(f"Ошибка запуска сервера: {e}")
+                traceback.print_exc()
 
         if self.loop:
+            print(f"[DEBUG] Using existing loop: {self.loop}")
             asyncio.run_coroutine_threadsafe(_start(), self.loop)
         else:
+            print("[DEBUG] No loop, using QTimer.singleShot")
             QTimer.singleShot(0, lambda: asyncio.run(_start()))
 
     def stop_server(self):
