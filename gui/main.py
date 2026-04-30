@@ -38,6 +38,7 @@ async def main():
 
     # Создание обёртки над движком
     wrapper = EngineWrapper(config)
+    wrapper.loop = asyncio.get_running_loop()
 
     try:
         await wrapper.start_engine()

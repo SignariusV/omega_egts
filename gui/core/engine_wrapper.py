@@ -1,5 +1,5 @@
 import asyncio
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, QTimer
 from core.engine import CoreEngine, Config
 from core.event_bus import EventBus
 
@@ -26,15 +26,48 @@ class EngineWrapper(QObject):
 
     def start_server(self):
         """Запуск сервера (вызывается из UI)."""
-        if self.engine:
-            asyncio.create_task(self.engine.start())
+        if not self.engine:
+            return
+
+        async def _start():
+            try:
+                await self.engine.start()
+            except Exception as e:
+                print(f"Ошибка запуска сервера: {e}")
+
+        if self.loop:
+            asyncio.run_coroutine_threadsafe(_start(), self.loop)
+        else:
+            QTimer.singleShot(0, lambda: asyncio.run(_start()))
 
     def stop_server(self):
         """Остановка сервера."""
-        if self.engine:
-            asyncio.create_task(self.engine.stop())
+        if not self.engine:
+            return
+
+        async def _stop():
+            try:
+                await self.engine.stop()
+            except Exception as e:
+                print(f"Ошибка остановки сервера: {e}")
+
+        if self.loop:
+            asyncio.run_coroutine_threadsafe(_stop(), self.loop)
+        else:
+            QTimer.singleShot(0, lambda: asyncio.run(_stop()))
 
     def run_scenario(self, scenario_path: str):
         """Запуск сценария."""
-        if self.engine:
-            asyncio.create_task(self.engine.run_scenario(scenario_path))
+        if not self.engine:
+            return
+
+        async def _run():
+            try:
+                await self.engine.run_scenario(scenario_path)
+            except Exception as e:
+                print(f"Ошибка запуска сценария: {e}")
+
+        if self.loop:
+            asyncio.run_coroutine_threadsafe(_run(), self.loop)
+        else:
+            QTimer.singleShot(0, lambda: asyncio.run(_run()))
