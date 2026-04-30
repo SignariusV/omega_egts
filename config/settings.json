@@ -4,9 +4,10 @@
   "tcp_host": "0.0.0.0",
   "cmw500": {
     "ip": "192.168.1.100",
+    "simulate": true,
     "timeout": 5,
     "retries": 3,
-    "sms_send_timeout":30,
+    "sms_send_timeout": 30,
     "status_poll_interval": 2
   },
   "timeouts": {
