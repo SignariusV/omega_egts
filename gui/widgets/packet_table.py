@@ -23,6 +23,16 @@ class PacketTable(QTableWidget):
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.cellDoubleClicked.connect(self._on_double_click)
 
+        self.setStyleSheet("""
+            QTableWidget::item {
+                padding: 10px 8px;
+                font-size: 13px;
+            }
+            QTableWidget::item:selected {
+                background-color: #094771;
+            }
+        """)
+
         # Фильтры
         self.filter_direction = "Все"
         self.filter_text = ""

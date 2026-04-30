@@ -26,7 +26,7 @@ class ConnectionTab(QWidget):
         # Заголовок
         title = QLabel("🔌 ПОДКЛЮЧЕНИЕ И УПРАВЛЕНИЕ СЕРВЕРОМ")
         title.setFont(QFont("Segoe UI", 16, QFont.Bold))
-        title.setStyleSheet("color: #FFFFFF;")
+        title.setStyleSheet("color: #FFFFFF; font-size: 18px; padding: 10px;")
         layout.addWidget(title)
 
         # Статус панель (верхняя)

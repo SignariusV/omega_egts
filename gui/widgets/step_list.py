@@ -15,8 +15,18 @@ class StepList(QTableWidget):
         self.setSelectionBehavior(QTableWidget.SelectRows)
         self.verticalHeader().setVisible(False)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # №
-        self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Статус
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+
+        self.setStyleSheet("""
+            QTableWidget::item {
+                padding: 8px;
+                font-size: 13px;
+            }
+            QTableWidget::item:selected {
+                background-color: #094771;
+            }
+        """)
 
     def set_steps(self, steps: list[dict]):
         """Загрузка шагов сценария."""
