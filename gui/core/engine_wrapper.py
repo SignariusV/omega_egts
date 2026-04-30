@@ -36,7 +36,11 @@ class EngineWrapper(QObject):
             except Exception as e:
                 print(f"Ошибка остановки сервера: {e}")
 
-        QTimer.singleShot(0, lambda: asyncio.run(_stop()))
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            asyncio.ensure_future(_stop())
+        else:
+            asyncio.run(_stop())
 
     def run_scenario(self, scenario_path: str):
         """Запуск сценария."""
@@ -49,4 +53,8 @@ class EngineWrapper(QObject):
             except Exception as e:
                 print(f"Ошибка запуска сценария: {e}")
 
-        QTimer.singleShot(0, lambda: asyncio.run(_run()))
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            asyncio.ensure_future(_run())
+        else:
+            asyncio.run(_run())
