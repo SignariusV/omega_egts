@@ -1,0 +1,267 @@
+# 📘 МАКСИМАЛЬНО ПОДРОБНЫЙ ПЛАН РЕАЛИЗАЦИИ OMEGA_EGTS GUI v3.0 (Dashboard)
+**Версия плана:** 3.0 Final
+**Дата:** 30.04.2026
+**Цель:** Переход от вкладочной архитектуры к модульному дашборду с сохранением полной функциональности ТЗ v2.0, внедрение прогрессивного раскрытия информации, VS Code Dark стиль, высокая производительность.
+
+---
+
+## 🔹 0. АРХИТЕКТУРНЫЙ ФУНДАМЕНТ И ПОДГОТОВКА
+### 0.1. Стек и Инфраструктура
+| Компонент | Выбор | Обоснование |
+|-----------|-------|-------------|
+| **GUI Framework** | `PySide6 >= 6.6.0` | Официальная поддержка Qt6, лицензия LGPL, стабильность |
+| **Async Runtime** | `qasync` + `asyncio` | Бесшовная интеграция `asyncio` с `QEventLoop` без блокировок |
+| **Layout Engine** | Кастомный `DashboardContainer` на `QWidget` + `QGridLayout` | Гибкость, поддержка drag-swap, resize, collapse без сторонних зависимостей |
+| **Таблицы** | `QAbstractTableModel` + `QSortFilterProxyModel` | Виртуализация, фильтрация без перерисовки, работа с 5000+ строк |
+| **Стилизация** | QSS (программная генерация) + `QPalette` | Обход ограничений QSS (нет CSS-переменных), поддержка High DPI |
+| **Иконки** | Динамическая загрузка `QIcon(path)` | Гибкость темы, fallback на Unicode/текст при отсутствии файла |
+| **Сборка** | `PyInstaller` (Windows) | Единый `.exe`, изоляция зависимостей |
+
+### 0.2. Структура проекта (обновлённая)
+```
+gui/
+├── __init__.py
+├── main.py                      # Точка входа: qasync.run(main_async)
+├── main_window.py               # QMainWindow, меню, StatusBar
+│
+├── dashboard/                   # ← ЯДРО ДАШБОРДА
+│   ├── __init__.py
+│   ├── container.py            # DashboardContainer (сетка, drag-swap, persistence)
+│   ├── card_base.py            # BaseCard (TitleBar, collapse, resize handles, state machine)
+│   ├── layout_engine.py        # Математика сетки, анимации, адаптивные пороги
+│   ├── persistence.py          # JSON save/load layout.json
+│   ── cards/
+│       ├── system_status.py
+│       ├── scenario_runner.py
+│       ├── live_packets.py
+│       └── system_logs.py
+│
+├── overlays/
+│   └── scenario_editor.py      # Full-screen overlay (не карточка)
+│
+├── core/                        # Интеграция
+│   ├── engine_wrapper.py       # Thread-safe вызовы CoreEngine
+│   └── event_bridge.py         # Async EventBus → Qt Signals (QueuedConnection)
+│
+├── widgets/                     # Переиспользуемые
+│   ├── packet_table.py         # Optimized QTableView
+│   ├── log_viewer.py           # Optimized QPlainTextEdit
+│   ├── status_indicator.py     # /🔴 точки с tooltip
+│   └── progress_bar.py         # Кастомный прогресс с процентами
+│
+├── utils/
+│   ├── hex_formatter.py
+│   ├── validators.py
+│   └── icon_loader.py          # Динамическая загрузка + fallback
+│
+└── resources/
+    ├── styles.qss              # Генерируется программно
+    ├── icons/                  # SVG (опционально)
+    └── layout_default.json     # Минимальный пресет
+```
+
+### 0.3. Ключевые архитектурные решения (Нюансы)
+1. **Async → Qt Bridge**: Все события от `CoreEngine` приходят в фоне. `EventBridge` использует `Qt.QueuedConnection` + `QMetaObject.invokeMethod` для маршалинга в главный поток. Никаких `asyncio.create_task` напрямую в слотах Qt.
+2. **Batch UI Updates**: Таблицы пакетов и логов обновляются пачками каждые `100мс` через `QTimer`. Вставка строк через `beginInsertRows`/`endInsertRows` блокирует перерисовку до конца пакета.
+3. **Progressive Disclosure**: Карточки слушают `resizeEvent`. При `width < 320px` → `State.COMPACT`, при `width > 600px` → `State.EXPANDED`. Переход анимируется через `QPropertyAnimation` на `maximumHeight`.
+4. **Layout Persistence**: Сохраняется не абсолютная позиция, а `grid_index`, `span_x`, `span_y`, `collapsed`, `hidden`. При старте: чтение → валидация → применение → fallback на `layout_default.json` при ошибке.
+5. **Memory Limit**: Таблица пакетов хранит максимум `5000` строк (`collections.deque(maxlen=5000)`). Старые строки удаляются автоматически, proxy-model фильтрует без копирования.
+
+---
+
+## 🔹 1. ФАЗОВЫЙ ПЛАН РЕАЛИЗАЦИИ
+
+###  ФАЗА 1: Базовый каркас и Dashboard Engine (Недели 1-2)
+**Цель:** Рабочее окно с пустым дашбордом, поддержка drag-swap, resize, collapse, сохранение раскладки.
+
+| Задача | Детали | Нюансы | Тестирование |
+|--------|--------|--------|--------------|
+| 1.1 Инициализация проекта | Настройка `pyproject.toml`, `qasync`, `PySide6`, логирование | Включить `Qt.AA_EnableHighDpiScaling`, `Qt.AA_UseHighDpiPixmaps` | ✅ Smoke: запуск, закрытие, DPI 150% |
+| 1.2 `BaseCard` | Наследник `QFrame`. Заголовок (`TitleBar`), контент, handles ресайза | `mousePressEvent` на заголовке → drag init. Handles на углах 12x12px | ✅ Unit: события мыши, переключение состояний |
+| 1.3 `DashboardContainer` | `QWidget` с `QGridLayout`. Управление списком карточек | При drag: создание `placeholder`, сдвиг соседей, `grid.addWidget` с новыми индексами | ✅ UI: drag-swap без лагов, корректные индексы |
+| 1.4 Resize & Collapse | Двойной клик → toggle collapse. Resize → recalc grid | `QPropertyAnimation` 150ms `EaseInOut`. Блокировка layout во время анимации | ✅ UI: плавность, корректные min/max размеры |
+| 1.5 Persistence | `layout.json` сериализация/десериализация | Валидация схемы JSON. Fallback при повреждении. Сохранение при `closeEvent` | ✅ Integration: перезапуск → восстановление позиции |
+
+**🏁 Deliverable Phase 1:** Приложение запускается, показывает пустую сетку. Можно добавить тестовые карточки, перетаскивать, менять размер, сворачивать. Раскладка сохраняется между сессиями.
+
+---
+
+### 🟦 ФАЗА 2: Карточки и Progressive Disclosure (Недели 3-4)
+**Цель:** Реализация 4 основных карточек с адаптивным UI, overlay редактора.
+
+| Задача | Детали | Нюансы | Тестирование |
+|--------|--------|--------|--------------|
+| 2.1 `SystemStatusCard` | Объединение Server + CMW. Компакт: 🔴 + порт/IP. Развернуто: поля, кнопки, uptime, RSSI/BER | Блокировка полей при active state. Кнопки меняют текст/цвет | ✅ UI: переход compact/expanded, блокировка, tooltip |
+| 2.2 `ScenarioRunnerCard` | Dropdown, Play/Stop/Pause, прогресс, шаги. Компакт: минимальные контролы. Развернуто: таблица шагов | Прогресс-бар кастомный (градиент). Статусы шагов: 🟢🟡⚪ | ✅ UI: обновление прогресса, цвета шагов, автопрокрутка |
+| 2.3 `LivePacketsCard` | Таблица RX/TX. Компакт: 5 строк + счётчик. Развернуто: полная таблица, фильтры, поиск | `QAbstractTableModel` + `QSortFilterProxyModel`. Виртуализация | ✅ Performance: 1000 пакетов/сек без фризов, фильтрация |
+| 2.4 `SystemLogsCard` | Логи Python. Компакт: 3 строки. Развернуто: уровни, поиск, экспорт | Цветовая маркировка уровней в тексте. `QTextDocument` для рендера | ✅ UI: парсинг уровней, поиск, копирование строки |
+| 2.5 `ScenarioEditorOverlay` | Full-screen overlay поверх дашборда. JSON редактор, валидация, подсветка | `QGraphicsOpacityEffect` 40% на фон. Закрытие по `Esc`/`✕`. Состояние дашборда не меняется | ✅ UI: открытие/закрытие, валидация, сохранение, отмена |
+
+**🏁 Deliverable Phase 2:** Все карточки работают в компактном/развернутом режиме. Данные отображаются корректно. Редактор открывается поверх. Адаптивность под 1280x720 проверена.
+
+---
+
+### 🟦 ФАЗА 3: Интеграция с CoreEngine (Недели 5-6)
+**Цель:** Бесшовный обмен данными, thread-safety, обработка ошибок.
+
+| Задача | Детали | Нюансы | Тестирование |
+|--------|--------|--------|
+| 3.1 `EventBridge` | Подписка на `EventBus`. Маппинг на Qt Signals. `Qt.QueuedConnection` | Обработка `async` колбэков → `QTimer.singleShot(0, emit)` | ✅ Integration: сигналы приходят в главный поток |
+| 3.2 `EngineWrapper` | Thread-safe вызовы `start_server`, `stop`, `run_scenario` | `asyncio.run_coroutine_threadsafe` + обработка исключений | ✅ Unit: вызовы не блокируют UI, ошибки логируются |
+| 3.3 Data Flow | Пакеты → `LivePacketsCard`. Логи → `SystemLogsCard`. Статусы → `SystemStatusCard` | Batch update 100ms. Ограничение 5000 строк. Циклический буфер | ✅ Performance: 10k пакетов, память < 200MB, CPU < 15% |
+| 3.4 Error Handling | Отлов исключений от CoreEngine. Диалоги ошибок. Graceful degradation | `QMessageBox` для критических ошибок. Попытка переподключения | ✅ E2E: отключение CMW → восстановление, логи ошибок |
+
+**🏁 Deliverable Phase 3:** GUI полностью управляется через CoreEngine. Данные обновляются в реальном времени. Ошибки обрабатываются корректно. UI не блокируется.
+
+---
+
+### 🟦 ФАЗА 4: Стилизация и UX Polish (Недели 7-8)
+**Цель:** VS Code Dark тема, высокая контрастность, плавные анимации, иконки.
+
+| Задача | Детали | Нюансы | Тестирование |
+|--------|--------|--------|--------------|
+| 4.1 QSS Generation | Программная генерация стилей. Переменные через string formatting | Обход отсутствия CSS-variables в QSS. Динамическая подстановка цветов | ✅ Visual: соответствие палитре, hover/pressed states |
+| 4.2 VS Code Palette | `#1E1E1E` bg, `#252526` cards, `#3E3E42` borders, `#007ACC` accent | High contrast check (WCAG AA). Фокус-ринги видимы | ✅ Accessibility: контраст ≥ 4.5:1, навигация с клавиатуры |
+| 4.3 Fonts & Icons | Segoe UI (UI), Consolas (data). Динамическая загрузка SVG/PNG | Fallback на Unicode если иконка не найдена. DPI scaling иконок | ✅ Visual: четкость на 150% DPI, корректные шрифты |
+| 4.4 Animations | Collapse/expand 150ms, drag placeholder fade, button press | `QPropertyAnimation` только для geometry. Отключение при `QT_QUICK_BACKEND=software` | ✅ UX: плавность без артефактов, отклик < 100ms |
+
+**🏁 Deliverable Phase 4:** Полностью стилизованное приложение. Соответствие VS Code Dark. Высокая контрастность. Плавные переходы. Иконки загружаются динамически.
+
+---
+
+###  ФАЗА 5: Тестирование и Стабилизация (Недели 9-10)
+**Цель:** Покрытие тестами ≥ 80%, ручная проверка всех сценариев, оптимизация.
+
+#### 🧪 Автоматическое тестирование
+| Тип | Инструмент | Что покрывает | Критерий |
+|-----|------------|---------------|----------|
+| **Unit** | `pytest` | Layout math, persistence, validators, formatters, icon loader | ≥ 80% coverage |
+| **Integration** | `pytest-qt` + `qasync` | EventBridge, EngineWrapper, signal routing, data flow | Все сигналы корректно маршалируются |
+| **UI** | `pytest-qt` | Drag-swap, resize, collapse, button clicks, table updates | UI не блокируется, состояния корректны |
+| **Performance** | `pytest-benchmark` + `tracemalloc` | Packet ingestion, memory leak check, CPU usage | < 200MB RAM при 5000 пакетах, < 15% CPU |
+
+#### 👥 Ручное тестирование (Матрица)
+| Сценарий | Шаги | Ожидаемый результат |
+|----------|------|---------------------|
+| **R-1: Startup** | Запуск на 1280x720, 1920x1080, 4K. DPI 100%, 150% | Корректное отображение, минимальный набор карточек, время < 3с |
+| **R-2: Layout** | Drag карточек, resize до min/max, double-click collapse, hide/show | Плавные анимации, корректная сетка, persistence после рестарта |
+| **R-3: Data Flow** | Запуск сценария auth_test. Наблюдение пакетов, логов, прогресса | Таблицы обновляются в реальном времени, цвета шагов корректны, компактный вид на малой ширине |
+| **R-4: Editor** | Открытие редактора, редактирование JSON, валидация, сохранение, закрытие | Overlay поверх дашборда, подсветка синтаксиса, ошибки валидации видны, дашборд не сбрасывается |
+| **R-5: Error Cases** | Отключение CMW, падение CoreEngine, некорректный JSON, переполнение памяти | Graceful degradation, диалоги ошибок, автовосстановление, утечек памяти нет |
+| **R-6: UX/Accessibility** | Навигация Tab/Enter, горячие клавиши (минимум), контрастность, tooltips | Все элементы доступны с клавиатуры, контраст ≥ 4.5:1, подсказки на всех контролах |
+
+**🏁 Deliverable Phase 5:** Отчёт о тестировании. Покрытие ≥ 80%. Исправлены все критические/высокие баги. Производительность в норме.
+
+---
+
+### 🟦 ФАЗА 6: Релиз и Документация (Неделя 11)
+**Цель:** Сборка, упаковка, документация, приёмка.
+
+| Задача | Детали |
+|--------|--------|
+| 6.1 Packaging | `PyInstaller` spec. Включение `qasync`, `PySide6`, иконок, QSS. Создание `.exe` |
+| 6.2 Config & Defaults | `layout_default.json`, `settings.json`. First-run experience (проверка путей, создание папок) |
+| 6.3 Documentation | README (запуск, зависимости), Quick Start (настройка карточек, сценарии), Troubleshooting |
+| 6.4 Final Acceptance | Проверка по критериям из ТЗ (FR-1 to FR-6). Подписание акта приёмки |
+
+**🏁 Deliverable Phase 6:** Готовый `.exe`, документация, отчёт о приёмке.
+
+---
+
+## 🔹 2. ДЕТАЛЬНЫЕ НЮАНСЫ РЕАЛИЗАЦИИ
+
+### 🧩 Layout Engine: Как работает drag-swap без лагов
+1. При `mouseMoveEvent` на `TitleBar` создаётся `QDrag` с `QMimeData`.
+2. `DashboardContainer` переопределяет `dragEnterEvent`/`dropEvent`.
+3. При наведении вычисляется ближайший `grid_index` через `childAt()` + геометрию.
+4. Создаётся полупрозрачный `placeholder` (`QFrame` с dashed border).
+5. При `drop` вызывается `grid.removeWidget()`, `grid.addWidget()` с новыми индексами, `update()`.
+6. Анимация сдвига соседей: `QParallelAnimationGroup` с `QPropertyAnimation` для `geometry`.
+
+### 📊 Progressive Disclosure: Точные пороги
+| Ширина карточки | Состояние | Что видно | Что скрыто |
+|-----------------|-----------|-----------|------------|
+| `< 320px` | `COMPACT` | Заголовок, статус-точки, порт/IP, счётчик пакетов/логов | Поля ввода, кнопки, таблицы, прогресс-бар детально |
+| `320px - 600px` | `TRANSITION` | Анимация раскрытия, частичное отображение | Полные таблицы (скролл внутри) |
+| `> 600px` | `EXPANDED` | Полный функционал, таблицы, фильтры, кнопки | Ничего |
+
+### 🎨 QSS Generation: Обход ограничений
+```python
+# utils/theme.py
+def generate_qss(theme: dict) -> str:
+    return f"""
+    QMainWindow {{ background-color: {theme['bg']}; color: {theme['text']}; }}
+    .CardWidget {{ background-color: {theme['card_bg']}; border: 1px solid {theme['border']}; border-radius: 6px; }}
+    .TitleBar {{ background-color: {theme['title_bg']}; }}
+    QPushButton {{ background-color: {theme['accent']}; color: #FFF; border-radius: 4px; }}
+    QPushButton:hover {{ background-color: {theme['accent_hover']}; }}
+    QTableWidget {{ background-color: {theme['card_bg']}; gridline-color: {theme['border']}; }}
+    QHeaderView::section {{ background-color: {theme['header_bg']}; color: #FFF; }}
+    """
+```
+Применяется через `app.setStyleSheet(generate_qss(THEME_VSCODE_DARK))`.
+
+### 🧵 Async Safety: Паттерн EventBridge
+```python
+class EventBridge(QObject):
+    packet_received = Signal(dict)
+
+    def __init__(self, event_bus: EventBus):
+        super().__init__()
+        event_bus.on("packet.processed", self._handle_packet)
+
+    def _handle_packet(self, data: dict):
+        # Async callback from EventBus
+        # Marshal to Qt main thread safely
+        QTimer.singleShot(0, lambda: self.packet_received.emit(data))
+```
+
+---
+
+## 🔹 3. КРИТЕРИИ ГОТОВНОСТИ (DoD) И РИСКИ
+
+### ✅ Definition of Done (по фазам)
+- [ ] Код покрыт тестами ≥ 80%
+- [ ] Все ручные сценарии (R-1 to R-6) пройдены без критических багов
+- [ ] Производительность: < 100ms отклик UI, < 200MB RAM при нагрузке
+- [ ] Стилизация: соответствие VS Code Dark, контрастность ≥ 4.5:1
+- [ ] Persistence: раскладка восстанавливается после 3+ рестартов
+- [ ] Документация: README, Quick Start, Troubleshooting готовы
+
+### ⚠️ Риски и Митигация
+| Риск | Вероятность | Влияние | Митигация |
+|------|-------------|---------|-----------|
+| Блокировка UI при высокой нагрузке пакетов | Средняя | Высокое | Batch updates 100ms, `QAbstractTableModel`, виртуализация |
+| Layout thrashing при resize/drag | Низкая | Среднее | Блокировка layout во время анимации, `setUpdatesEnabled(False)` |
+| Несоответствие DPI на разных мониторах | Средняя | Среднее | `Qt.AA_EnableHighDpiScaling`, тесты на 100%/150%/200% |
+| Утечки памяти в таблицах | Низкая | Высокое | `deque(maxlen=5000)`, `model.beginRemoveRows`, профилирование `tracemalloc` |
+| Сложность поддержки кастомного layout | Средняя | Среднее | Четкое разделение `DashboardContainer` и `BaseCard`, юнит-тесты на математику сетки |
+
+---
+
+## 🔹 4. КАЛЕНДАРНЫЙ ПЛАН (11 НЕДЕЛЬ)
+| Неделя | Фаза | Ключевые Deliverables |
+|--------|------|------------------------|
+| 1-2 | 0-1 | Каркас приложения, Dashboard Engine, drag-swap, resize, collapse, persistence |
+| 3-4 | 2 | 4 карточки + overlay редактора, progressive disclosure, адаптивность 1280x720 |
+| 5-6 | 3 | EventBridge, EngineWrapper, data flow, batch updates, error handling |
+| 7-8 | 4 | VS Code Dark QSS, high contrast, dynamic icons, animations, fonts |
+| 9-10 | 5 | Автоматические тесты (unit/integration/UI/perf), ручное тестирование (R-1 to R-6), оптимизация |
+| 11 | 6 | PyInstaller сборка, документация, first-run config, final acceptance |
+
+---
+
+## 🔹 5. ЗАКЛЮЧЕНИЕ И СЛЕДУЮЩИЕ ШАГИ
+Этот план полностью закрывает требования ТЗ v2.0, трансформируя его в модульный дашборд v3.0. Ключевые преимущества:
+1. **Прогрессивное раскрытие** решает проблему перегруженности на 1280x720.
+2. **Batch updates + виртуализация** гарантируют производительность при реальном времени.
+3. **Persistence + адаптивность** дают пользователю полный контроль без навязывания.
+4. **Тестирование** встроено в каждую фазу, что гарантирует движение в верном направлении.
+
+**Следующие шаги:**
+1. Утвердить план.
+2. Создать репозиторий, настроить CI/CD (pytest, coverage, pylint).
+3. Начать Фазу 1 (каркас + layout engine).
+4. Еженедельные демо с проверкой DoD.
+
+Готов приступить к генерации кода для Фазы 1 или детализировать любой блок.

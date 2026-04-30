@@ -1,0 +1,52 @@
+2026-04-30 13:43:26,232 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-30 13:43:26,233 - __main__ - INFO - === Запуск GUI ===
+2026-04-30 13:43:26,270 - __main__ - INFO - QApplication created
+2026-04-30 13:43:26,271 - __main__ - INFO - Конфигурация загружена: tcp_port=3001
+2026-04-30 13:43:26,271 - __main__ - INFO - EventBus created
+2026-04-30 13:43:26,271 - __main__ - INFO - EventBridge created
+2026-04-30 13:43:26,271 - __main__ - INFO - EngineWrapper created
+2026-04-30 13:43:26,271 - __main__ - INFO - Starting engine...
+2026-04-30 13:43:26,297 - core.logger - INFO - LogManager инициализирован, log_dir=logs, flush_interval=5.0, batch_size=1000
+2026-04-30 13:43:26,305 - core.tcp_server - INFO - TcpServerManager запущен на 0.0.0.0:3001
+2026-04-30 13:43:30,181 - __main__ - INFO - CoreEngine запущен!
+2026-04-30 13:43:30,182 - __main__ - INFO - Creating MainWindow...
+2026-04-30 13:43:30,826 - __main__ - INFO - MainWindow shown
+2026-04-30 13:43:30,827 - __main__ - INFO - Entering Qt event loop...
+2026-04-30 13:45:01,892 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-30 13:45:01,893 - __main__ - INFO - === Запуск GUI ===
+2026-04-30 13:45:01,931 - __main__ - INFO - QApplication created
+2026-04-30 13:45:01,932 - __main__ - INFO - Конфигурация загружена: tcp_port=3001
+2026-04-30 13:45:01,932 - __main__ - INFO - EventBus created
+2026-04-30 13:45:01,932 - __main__ - INFO - EventBridge created
+2026-04-30 13:45:01,932 - __main__ - INFO - EngineWrapper created
+2026-04-30 13:45:01,932 - __main__ - INFO - Starting engine...
+2026-04-30 13:45:01,960 - core.logger - INFO - LogManager инициализирован, log_dir=logs, flush_interval=5.0, batch_size=1000
+2026-04-30 13:45:01,965 - core.tcp_server - INFO - TcpServerManager запущен на 0.0.0.0:3001
+2026-04-30 13:45:06,177 - __main__ - INFO - CoreEngine запущен!
+2026-04-30 13:45:06,178 - __main__ - INFO - Creating MainWindow...
+2026-04-30 13:45:07,078 - __main__ - INFO - MainWindow shown
+2026-04-30 13:45:07,078 - __main__ - INFO - Entering Qt event loop...
+2026-04-30 13:45:43,306 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,306 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,308 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,308 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,310 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,310 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,312 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,312 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,314 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,314 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,315 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,315 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,316 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,316 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,316 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,316 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,317 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-30 13:45:43,317 - core.scenario - WARNING - ScenarioManager: step 'Команда конфигурирования' returned ERROR
+2026-04-30 13:45:43,317 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-30 13:45:43,320 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-30 13:45:43,323 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-30 13:45:43,323 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-30 13:45:43,323 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-30 13:45:43,326 - __main__ - INFO - === GUI closed ===
