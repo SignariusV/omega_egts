@@ -18,6 +18,10 @@ class ConnectionTab(QWidget):
         self._init_ui()
         self._connect_signals()
 
+        # Обновляем статус если движок уже запущен
+        if self.engine_wrapper.engine and self.engine_wrapper.engine._started:
+            self._on_server_started({"port": 3001})
+
     def _init_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -89,8 +93,8 @@ class ConnectionTab(QWidget):
         self.stop_btn = QPushButton("⏹ СТОП")
         self.stop_btn.setObjectName("btnStop")
         self.stop_btn.setStyleSheet(self._btn_style("#555555"))
-        self.stop_btn.clicked.connect(self._on_stop_clicked)
         self.stop_btn.setEnabled(False)
+        self.stop_btn.clicked.connect(self._on_stop_clicked)
 
         btn_layout.addWidget(self.start_btn)
         btn_layout.addWidget(self.stop_btn)

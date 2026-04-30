@@ -36,16 +36,13 @@ async def main():
         cmw = CmwConfig(ip="192.168.1.100", simulate=True)
         config = Config(cmw500=cmw)
 
-    # Создание обёртки над движком
-    wrapper = EngineWrapper(config)
-    wrapper.loop = asyncio.get_running_loop()
-
     # Создаём EventBus и EventBridge ДО запуска движка
     from core.event_bus import EventBus
     bus = EventBus()
     bridge = EventBridge(bus)
 
-    # Передаём bus в wrapper, чтобы engine использовал тот же bus
+    # Создание обёртки над движком
+    wrapper = EngineWrapper(config)
     wrapper.bus = bus
 
     try:
