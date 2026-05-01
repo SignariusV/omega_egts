@@ -1,17 +1,15 @@
 # OMEGA_EGTS GUI
 import sys
-import qasync
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import Qt
 from gui.main_window import MainWindow
 
-async def main():
-    app = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+
+def main():
+    app = QApplication.instance() or QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    await qasync.qeventloop(app)
+    return app.exec()
+
 
 if __name__ == "__main__":
-    qasync.run(main())
+    sys.exit(main())
