@@ -1,7 +1,7 @@
 # OMEGA_EGTS GUI
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy
-from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve, QMimeData
-from PySide6.QtGui import QDrag
+from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve, QMimeData, QEvent
+from PySide6.QtGui import QDrag, QMouseEvent
 from enum import Enum
 
 
@@ -26,6 +26,40 @@ class BaseCard(QFrame):
         self._anim = QPropertyAnimation(self._content, b"maximumHeight")
         self._anim.setDuration(150)
         self._anim.setEasingCurve(QEasingCurve.InOutQuad)
+
+    def showEvent(self, event):
+        if not hasattr(self, '_event_filters_installed'):
+            self._install_event_filters()
+            self._event_filters_installed = True
+        super().showEvent(event)
+
+    def _install_event_filters(self):
+        self._title_bar.installEventFilter(self)
+        for grip in self._grips:
+            grip.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.MouseButtonPress:
+            if obj == self._title_bar:
+                self._on_title_press(event)
+                return True
+            for grip in self._grips:
+                if obj == grip:
+                    self._on_grip_press(event)
+                    return True
+        elif event.type() == QEvent.Type.MouseButtonDClick:
+            if obj == self._title_bar:
+                self._on_title_double_click(event)
+                return True
+        elif event.type() == QEvent.Type.MouseMove:
+            if obj == self._title_bar:
+                self._on_title_move(event)
+                return True
+            for grip in self._grips:
+                if obj == grip:
+                    self._on_grip_move(event)
+                    return True
+        return super().eventFilter(obj, event)
 
     def _init_ui(self):
         main_layout = QVBoxLayout(self)
@@ -62,13 +96,7 @@ class BaseCard(QFrame):
             grip.setStyleSheet("background: transparent;")
             grip.setCursor(Qt.CursorShape.SizeFDiagCursor if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomRightCorner) else Qt.CursorShape.SizeBDiagCursor)
             grip.edge = edge
-            grip.mousePressEvent = self._grip_mouse_press
-            grip.mouseMoveEvent = self._grip_mouse_move
             self._grips.append(grip)
-
-        self._title_bar.mousePressEvent = self._title_mouse_press
-        self._title_bar.mouseMoveEvent = self._title_mouse_move
-        self._title_bar.mouseDoubleClickEvent = self._title_double_click
 
     def set_content_widget(self, widget):
         self._content_layout.addWidget(widget)
@@ -136,12 +164,12 @@ class BaseCard(QFrame):
             else:
                 grip.move(w - 8, h - 8)
 
-    def _title_mouse_press(self, event):
+    def _on_title_press(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.LeftButton:
             self._drag_start_pos = event.globalPosition().toPoint()
             self.drag_started.emit()
 
-    def _title_mouse_move(self, event):
+    def _on_title_move(self, event: QMouseEvent):
         if hasattr(self, '_drag_start_pos'):
             delta = event.globalPosition().toPoint() - self._drag_start_pos
             if delta.manhattanLength() > 10:
@@ -152,16 +180,16 @@ class BaseCard(QFrame):
                 drag.exec(Qt.DropAction.MoveAction)
                 del self._drag_start_pos
 
-    def _title_double_click(self, event):
+    def _on_title_double_click(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.LeftButton:
             self.toggle_collapse()
 
-    def _grip_mouse_press(self, event):
+    def _on_grip_press(self, event: QMouseEvent):
         self._resize_start_geometry = self.geometry()
         self._resize_start_pos = event.globalPosition().toPoint()
         self.resize_started.emit(event.widget().edge)
 
-    def _grip_mouse_move(self, event):
+    def _on_grip_move(self, event: QMouseEvent):
         if hasattr(self, '_resize_start_pos'):
             delta = event.globalPosition().toPoint() - self._resize_start_pos
             edge = event.widget().edge

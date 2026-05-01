@@ -1,18 +1,28 @@
 # OMEGA_EGTS GUI
 import sys
-import qasync
+import asyncio
 from PySide6.QtWidgets import QApplication
 from gui.main_window import MainWindow
 from gui.utils.theme import apply_theme
 
 
-async def main():
+def main():
     app = QApplication.instance() or QApplication(sys.argv)
     apply_theme(app)
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
     window = MainWindow()
+    window._loop = loop
     window.show()
-    await qasync.qeventloop(app)
+
+    def stop_loop():
+        loop.stop()
+
+    app.aboutToQuit.connect(stop_loop)
+    app.exec()
 
 
 if __name__ == "__main__":
-    qasync.run(main())
+    main()
