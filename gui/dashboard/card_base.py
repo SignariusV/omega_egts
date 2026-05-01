@@ -1,6 +1,7 @@
 # OMEGA_EGTS GUI
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy
-from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve
+from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve, QMimeData
+from PySide6.QtGui import QDrag
 from enum import Enum
 
 
@@ -67,6 +68,7 @@ class BaseCard(QFrame):
 
         self._title_bar.mousePressEvent = self._title_mouse_press
         self._title_bar.mouseMoveEvent = self._title_mouse_move
+        self._title_bar.mouseDoubleClickEvent = self._title_double_click
 
     def set_content_widget(self, widget):
         self._content_layout.addWidget(widget)
@@ -138,9 +140,18 @@ class BaseCard(QFrame):
         if event.button() == Qt.MouseButton.LeftButton:
             self._drag_start_pos = event.globalPosition().toPoint()
             self.drag_started.emit()
+            drag = QDrag(self)
+            mime = QMimeData()
+            mime.setText(str(id(self)))
+            drag.setMimeData(mime)
+            drag.exec(Qt.DropAction.MoveAction)
 
     def _title_mouse_move(self, event):
         pass
+
+    def _title_double_click(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.toggle_collapse()
 
     def _grip_mouse_press(self, event):
         self._resize_start_geometry = self.geometry()

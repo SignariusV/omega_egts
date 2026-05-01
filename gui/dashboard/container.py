@@ -19,7 +19,7 @@ class DashboardContainer(QWidget):
         card_id = id(card)
         self._grid.addWidget(card, row, col, row_span, col_span)
         self._cards[card_id] = (row, col, row_span, col_span)
-        card.destroyed.connect(lambda: self._on_card_destroyed(card_id))
+        card.destroyed.connect(lambda cid=card_id: self._on_card_destroyed(cid))
         self.cards_changed.emit()
 
     def _on_card_destroyed(self, card_id):
