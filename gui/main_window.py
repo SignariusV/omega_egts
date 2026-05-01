@@ -88,25 +88,34 @@ class MainWindow(QMainWindow):
         eb.cmw_error.connect(lambda msg: self._status_bar.showMessage(f"CMW Error: {msg}", 5000))
         eb.command_error.connect(lambda data: self._status_bar.showMessage(f"Command Error: {data}", 5000))
 
-        self._status_card.start_requested.connect(self._on_start_requested)
-        self._status_card.stop_requested.connect(self._on_stop_requested)
-        self._scenario_card.run_requested.connect(self._on_run_scenario)
+        self._status_card.start_requested.connect(self._start_server)
+        self._status_card.stop_requested.connect(self._stop_server)
+        self._scenario_card.run_requested.connect(self._run_scenario)
 
-    async def _on_start_requested(self):
+    def _start_server(self):
+        asyncio.ensure_future(self._start_server_async())
+
+    async def _start_server_async(self):
         try:
             await self._engine_wrapper.start()
             self._status_bar.showMessage("Server started", 3000)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to start: {e}")
 
-    async def _on_stop_requested(self):
+    def _stop_server(self):
+        asyncio.ensure_future(self._stop_server_async())
+
+    async def _stop_server_async(self):
         try:
             await self._engine_wrapper.stop()
             self._status_bar.showMessage("Server stopped", 3000)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to stop: {e}")
 
-    async def _on_run_scenario(self, path):
+    def _run_scenario(self, path):
+        asyncio.ensure_future(self._run_scenario_async(path))
+
+    async def _run_scenario_async(self, path):
         try:
             await self._engine_wrapper.run_scenario(path)
         except Exception as e:
@@ -119,5 +128,9 @@ class MainWindow(QMainWindow):
             except Exception:
                 pass
 
-        asyncio.get_event_loop().run_until_complete(shutdown())
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            asyncio.ensure_future(shutdown())
+        else:
+            loop.run_until_complete(shutdown())
         event.accept()
