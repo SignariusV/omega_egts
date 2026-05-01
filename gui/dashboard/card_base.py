@@ -140,14 +140,17 @@ class BaseCard(QFrame):
         if event.button() == Qt.MouseButton.LeftButton:
             self._drag_start_pos = event.globalPosition().toPoint()
             self.drag_started.emit()
-            drag = QDrag(self)
-            mime = QMimeData()
-            mime.setText(str(id(self)))
-            drag.setMimeData(mime)
-            drag.exec(Qt.DropAction.MoveAction)
 
     def _title_mouse_move(self, event):
-        pass
+        if hasattr(self, '_drag_start_pos'):
+            delta = event.globalPosition().toPoint() - self._drag_start_pos
+            if delta.manhattanLength() > 10:
+                drag = QDrag(self)
+                mime = QMimeData()
+                mime.setText(str(id(self)))
+                drag.setMimeData(mime)
+                drag.exec(Qt.DropAction.MoveAction)
+                del self._drag_start_pos
 
     def _title_double_click(self, event):
         if event.button() == Qt.MouseButton.LeftButton:

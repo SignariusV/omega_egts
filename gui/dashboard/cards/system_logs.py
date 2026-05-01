@@ -20,6 +20,10 @@ class SystemLogsCard(BaseCard):
         self._build_widgets()
         self._show_expanded()
 
+    def deleteLater(self):
+        logging.getLogger().removeHandler(self._log_handler)
+        super().deleteLater()
+
     def _build_widgets(self):
         self._compact_widget = self._create_compact_widget()
         self._expanded_widget = QWidget()
