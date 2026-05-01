@@ -1,5 +1,7 @@
 # OMEGA_EGTS GUI
 import asyncio
+import sys
+import logging
 
 from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox
 from PySide6.QtCore import QTimer
@@ -15,6 +17,18 @@ from gui.bridge.event_bridge import EventBridge
 
 from core.config import Config, CmwConfig, TimeoutsConfig, LogConfig
 from core.event_bus import EventBus
+
+logger = logging.getLogger(__name__)
+
+
+def _global_exception_handler(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+sys.excepthook = _global_exception_handler
 
 
 class MainWindow(QMainWindow):
