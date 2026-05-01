@@ -137,12 +137,12 @@ class SystemStatusCard(BaseCard):
     def _update_cmw_ui(self):
         if not hasattr(self, '_cmw_imei_label'):
             return
-        self._cmw_imei_label.setText(self._cmw_data.get("imei", "-"))
-        self._cmw_imsi_label.setText(self._cmw_data.get("imsi", "-"))
-        self._cmw_rssi_label.setText(self._cmw_data.get("rssi", "-"))
-        self._cmw_ber_label.setText(self._cmw_data.get("ber", "-"))
-        self._cmw_cs_label.setText(self._cmw_data.get("cs_state", "-"))
-        self._cmw_ps_label.setText(self._cmw_data.get("ps_state", "-"))
+        self._cmw_imei_label.setText(str(self._cmw_data.get("imei", "-")))
+        self._cmw_imsi_label.setText(str(self._cmw_data.get("imsi", "-")))
+        self._cmw_rssi_label.setText(str(self._cmw_data.get("rssi", "-")))
+        self._cmw_ber_label.setText(str(self._cmw_data.get("ber", "-")))
+        self._cmw_cs_label.setText(str(self._cmw_data.get("cs_state", "-")))
+        self._cmw_ps_label.setText(str(self._cmw_data.get("ps_state", "-")))
 
     def _update_compact_server(self):
         if hasattr(self._compact_widget, 'set_server_status'):
