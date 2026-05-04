@@ -82,6 +82,7 @@ class BaseCard(QFrame):
             grip.edge = edge
             grip.mousePressEvent = lambda event, g=grip: self._grip_mouse_press(event, g)
             grip.mouseMoveEvent = lambda event, g=grip: self._grip_mouse_move(event, g)
+            grip.mouseReleaseEvent = lambda event, g=grip: self._grip_mouse_release(event, g)
             grip.setToolTip("Drag to resize card")
             grip.raise_()
             self._grips.append(grip)
@@ -202,24 +203,53 @@ class BaseCard(QFrame):
             self._resize_start_geometry = self.geometry()
             self._resize_start_pos = event.globalPosition().toPoint()
             self._resize_edge = grip.edge
+            # Store start spans
+            self._resize_start_row_span = self._row_span
+            self._resize_start_col_span = self._col_span
+            # Grab mouse for reliable drag
+            grip.grabMouse()
 
     def _grip_mouse_move(self, event, grip):
-        """Handle mouse move on resize grip."""
-        if hasattr(self, '_resize_start_pos') and hasattr(self, '_resize_edge'):
-            delta = event.globalPosition().toPoint() - self._resize_start_pos
-            new_geo = QRect(self._resize_start_geometry)
-            edge = self._resize_edge
+        """Handle mouse move on resize grip - snap to grid cells."""
+        if not hasattr(self, '_resize_start_pos') or not hasattr(self, '_resize_edge'):
+            return
+        
+        # Calculate grid cell size from parent container
+        parent = self.parent()
+        if not parent or not hasattr(parent, 'width'):
+            return
+            
+        cell_w = (parent.width() - 6 * 9) // 8  # GRID_COLS=8, GRID_GAP=6
+        cell_h = (parent.height() - 6 * 9) // 8  # GRID_ROWS=8
+        
+        delta = event.globalPosition().toPoint() - self._resize_start_pos
+        edge = self._resize_edge
+        
+        # Calculate new span based on delta from start (snap to grid)
+        new_col_span = self._resize_start_col_span
+        new_row_span = self._resize_start_row_span
+        
+        if edge in (Qt.Corner.TopRightCorner, Qt.Corner.BottomRightCorner):
+            # Right edge - adjust column span
+            delta_cols = round(delta.x() / (cell_w + 6))
+            new_col_span = max(1, min(8, self._resize_start_col_span + delta_cols))
+        if edge in (Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner):
+            # Bottom edge - adjust row span
+            delta_rows = round(delta.y() / (cell_h + 6))
+            new_row_span = max(1, min(8, self._resize_start_row_span + delta_rows))
+        
+        # Apply immediately for visual feedback (snap to grid steps)
+        if new_col_span != self._col_span or new_row_span != self._row_span:
+            self.set_grid_size(new_row_span, new_col_span)
 
-            if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomLeftCorner):
-                new_geo.setLeft(max(new_geo.left() + delta.x(), self.minimumWidth()))
-            if edge in (Qt.Corner.TopRightCorner, Qt.Corner.BottomRightCorner):
-                new_geo.setRight(max(new_geo.right() + delta.x(), self.minimumWidth()))
-            if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.TopRightCorner):
-                new_geo.setTop(max(new_geo.top() + delta.y(), self.minimumHeight()))
-            if edge in (Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner):
-                new_geo.setBottom(max(new_geo.bottom() + delta.y(), self.minimumHeight()))
-
-            self.setGeometry(new_geo)
+    def _grip_mouse_release(self, event, grip):
+        """Handle mouse release on resize grip - clear state."""
+        # Clear resize state
+        attrs_to_clear = ['_resize_start_pos', '_resize_edge', '_resize_start_geometry',
+                        '_resize_start_row_span', '_resize_start_col_span']
+        for attr in attrs_to_clear:
+            if hasattr(self, attr):
+                delattr(self, attr)
 
     def _show_context_menu(self, pos):
         menu = QMenu(self)
