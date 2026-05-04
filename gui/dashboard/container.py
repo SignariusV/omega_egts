@@ -12,7 +12,15 @@ class DashboardContainer(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._cards = {}  # card_id -> (row, col, row_span, col_span)
+        self._processing = False
         self.setAcceptDrops(True)
+
+    def _is_within_grid(self, row: int, col: int, row_span: int, col_span: int) -> bool:
+        """Check if position and size are within grid bounds."""
+        return (0 <= row < GRID_ROWS and 
+                0 <= col < GRID_COLS and 
+                row + row_span <= GRID_ROWS and 
+                col + col_span <= GRID_COLS)
 
     def add_card(self, card: BaseCard, row: int = 0, col: int = 0, row_span: Optional[int] = None, col_span: Optional[int] = None):
         """Add a card to the dashboard at the specified grid position."""
@@ -21,6 +29,9 @@ class DashboardContainer(QWidget):
         if card_id in self._cards:
             self.move_card(card_id, row, col, row_span, col_span)
             return
+        
+        if not self._is_within_grid(row, col, row_span or 1, col_span or 1):
+            row, col = 0, 0
         
         card.setParent(self)
         
@@ -63,6 +74,9 @@ class DashboardContainer(QWidget):
         row_span = new_row_span if new_row_span is not None else old_row_span
         col_span = new_col_span if new_col_span is not None else old_col_span
         
+        if not self._is_within_grid(new_row, new_col, row_span, col_span):
+            return
+        
         if not self._is_area_free(new_row, new_col, row_span, col_span, card_id):
             return
         
@@ -81,6 +95,9 @@ class DashboardContainer(QWidget):
             return
         row, col = self._cards[card_id][0], self._cards[card_id][1]
         
+        if not self._is_within_grid(row, col, row_span, col_span):
+            return
+        
         if not self._is_area_free(row, col, row_span, col_span, card_id):
             return
         
@@ -94,20 +111,36 @@ class DashboardContainer(QWidget):
         self.cards_changed.emit()
 
     def _on_grid_size_changed(self, card: BaseCard, row_span: int, col_span: int):
-        """Handle card grid size change."""
+        """Handle card grid size change - with sync protection."""
+        if self._processing:
+            return
+        
         card_id = card.card_id
-        if card_id in self._cards:
-            row, col = self._cards[card_id][0], self._cards[card_id][1]
-            
-            if not self._is_area_free(row, col, row_span, col_span, card_id):
-                return
-            
-            self._cards[card_id] = (row, col, row_span, col_span)
-            self._update_card_geometry(card)
-            self.cards_changed.emit()
+        if card_id not in self._cards:
+            return
+        
+        old_row, old_col, old_row_span, old_col_span = self._cards[card_id]
+        
+        if not self._is_within_grid(old_row, old_col, row_span, col_span):
+            self._revert_card_size(card, old_row_span, old_col_span)
+            return
+        
+        if not self._is_area_free(old_row, old_col, row_span, col_span, card_id):
+            self._revert_card_size(card, old_row_span, old_col_span)
+            return
+        
+        self._cards[card_id] = (old_row, old_col, row_span, col_span)
+        self._update_card_geometry(card)
+        self.cards_changed.emit()
+
+    def _revert_card_size(self, card: BaseCard, row_span: int, col_span: int):
+        """Revert card size to previous value."""
+        self._processing = True
+        card.set_grid_size(row_span, col_span)
+        self._processing = False
 
     def _on_drag_start(self, card: BaseCard):
-        """Handle drag start."""
+        """Handle drag start - placeholder for future visual feedback."""
         pass
 
     def _is_area_free(self, row: int, col: int, row_span: int, col_span: int, exclude_card_id: str = None) -> bool:
@@ -180,10 +213,7 @@ class DashboardContainer(QWidget):
         if not event.mimeData().hasText():
             return
         
-        try:
-            card_id = event.mimeData().text()
-        except ValueError:
-            return
+        card_id = event.mimeData().text()
         
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
