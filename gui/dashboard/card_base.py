@@ -1,5 +1,5 @@
 # OMEGA_EGTS GUI
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu
 from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve, QMimeData, QObject, QSize, QRect
 from PySide6.QtGui import QDrag
 from enum import Enum
@@ -25,12 +25,18 @@ class BaseCard(QFrame):
         self.setFrameStyle(QFrame.Box)
         self.setMinimumSize(100, 60)
         self._init_ui()
-        # Animation removed - use grid size change for visual feedback
+        # Animation for collapse/expand
+        self._anim = QPropertyAnimation(self._content, b"maximumHeight")
+        self._anim.setDuration(150)
+        self._anim.setEasingCurve(QEasingCurve.InOutQuad)
+        self._anim.finished.connect(self._on_anim_finished)
 
     def _init_ui(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._show_context_menu)
 
         # TitleBar
         self._title_bar = QFrame()

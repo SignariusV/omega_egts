@@ -14,6 +14,7 @@ class LivePacketsCard(BaseCard):
         self._current_widget = None
         self._build_widgets()
         self._show_expanded()
+        self.finish_init()
 
     def _build_widgets(self):
         self._compact_widget = self._create_compact_widget()

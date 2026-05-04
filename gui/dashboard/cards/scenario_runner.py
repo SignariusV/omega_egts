@@ -65,6 +65,7 @@ class ScenarioRunnerCard(BaseCard):
         self._build_widgets()
         self._load_scenarios()
         self._show_expanded()
+        self.finish_init()
 
     def _build_widgets(self):
         self._compact_widget = self._create_compact_widget()
