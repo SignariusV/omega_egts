@@ -23,6 +23,7 @@ THEME_VSCODE_DARK = {
     "grip_hover": "rgba(0, 120, 215, 80)",
     "title_color": "#FFD700",
     "title_size": 18,
+    "border_radius": "12px",
 }
 
 
@@ -36,6 +37,7 @@ def generate_qss(theme: dict) -> str:
     
     title_color = theme.get("title_color", "#FFD700")
     title_size = theme.get("title_size", 18)
+    border_radius = theme.get("border_radius", "12px")
     
     return f"""
     QMainWindow {{
@@ -47,7 +49,7 @@ def generate_qss(theme: dict) -> str:
     QFrame[class="CardWidget"] {{
         background-color: {theme['card_bg']};
         border: 1px solid {theme['border']};
-        border-radius: 6px;
+        border-radius: {border_radius};
     }}
 
     QFrame[class="TitleBar"] {{
