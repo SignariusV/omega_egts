@@ -44,7 +44,9 @@ class SystemStatusCard(BaseCard):
 
         server_buttons = QHBoxLayout()
         self._start_btn = QPushButton("Start Server")
+        self._start_btn.setToolTip("Start TCP server to listen for EGTS connections (Ctrl+R)")
         self._stop_btn = QPushButton("Stop Server")
+        self._stop_btn.setToolTip("Stop TCP server and disconnect all clients")
         self._stop_btn.setEnabled(False)
         self._start_btn.clicked.connect(self.start_requested.emit)
         self._stop_btn.clicked.connect(self.stop_requested.emit)

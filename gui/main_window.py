@@ -4,8 +4,9 @@ import sys
 import logging
 
 import qasync
-from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox
-from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox, QShortcut
+from PySide6.QtCore import QTimer, QSize
+from PySide6.QtGui import QKeySequence
 
 from gui.dashboard.container import DashboardContainer
 from gui.dashboard.cards.system_status import SystemStatusCard
@@ -58,7 +59,62 @@ class MainWindow(QMainWindow):
         self._status_bar = QStatusBar()
         self.setStatusBar(self._status_bar)
 
+        self._setup_shortcuts()
+
         self._shutdown_task = None
+
+    def _setup_shortcuts(self):
+        """Setup keyboard shortcuts for the main window."""
+        # Ctrl+Q: Quit application
+        quit_shortcut = QShortcut(QKeySequence("Ctrl+Q"), self)
+        quit_shortcut.activated.connect(self.close)
+
+        # Ctrl+R: Toggle server start/stop
+        toggle_shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
+        toggle_shortcut.activated.connect(self._on_toggle_server)
+
+        # F5: Run selected scenario
+        run_shortcut = QShortcut(QKeySequence("F5"), self)
+        run_shortcut.activated.connect(self._on_run_scenario_shortcut)
+
+        # Escape: Close any open overlay
+        escape_shortcut = QShortcut(QKeySequence("Escape"), self)
+        escape_shortcut.activated.connect(self._close_overlay_if_open)
+
+        # Ctrl+1-4: Focus specific cards
+        for i, card_name in enumerate(["_status_card", "_scenario_card", "_packets_card", "_logs_card"], 1):
+            if hasattr(self, card_name):
+                shortcut = QShortcut(QKeySequence(f"Ctrl+{i}"), self)
+                shortcut.activated.connect(lambda c=card_name: self._focus_card(c))
+
+        # Set focus policy for keyboard navigation
+        self.setFocusPolicy(Qt.StrongFocus)
+        for card in [self._status_card, self._scenario_card, self._packets_card, self._logs_card]:
+            card.setFocusPolicy(Qt.StrongFocus)
+
+    def _on_toggle_server(self):
+        """Toggle server start/stop via keyboard shortcut."""
+        if self._status_card._server_running:
+            asyncio.ensure_future(self._on_stop_requested())
+        else:
+            asyncio.ensure_future(self._on_start_requested())
+
+    def _on_run_scenario_shortcut(self):
+        """Run scenario via F5 shortcut."""
+        if hasattr(self._scenario_card, 'on_run_clicked'):
+            self._scenario_card.on_run_clicked()
+
+    def _close_overlay_if_open(self):
+        """Close any open overlay dialog."""
+        # Placeholder for overlay support
+        pass
+
+    def _focus_card(self, card_attr: str):
+        """Focus a specific card by attribute name."""
+        if hasattr(self, card_attr):
+            card = getattr(self, card_attr)
+            card.setFocus()
+            card.show()
 
     def _create_cards(self):
         self._status_card = SystemStatusCard()

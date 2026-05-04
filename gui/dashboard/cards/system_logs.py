@@ -34,6 +34,7 @@ class SystemLogsCard(BaseCard):
         self._compact_edit = QPlainTextEdit()
         self._compact_edit.setReadOnly(True)
         self._compact_edit.setMaximumHeight(60)
+        self._compact_edit.setToolTip("Last 3 log messages")
         self._compact_edit.setStyleSheet("""
             QPlainTextEdit {
                 background-color: #1E1E1E;
@@ -55,15 +56,18 @@ class SystemLogsCard(BaseCard):
         self._level_combo = QComboBox()
         self._level_combo.addItems(["All", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
         self._level_combo.setCurrentText("All")
+        self._level_combo.setToolTip("Filter log messages by level")
         self._level_combo.currentTextChanged.connect(self._on_level_changed)
         toolbar.addWidget(self._level_combo)
         self._clear_btn = QPushButton("Clear")
+        self._clear_btn.setToolTip("Clear all log messages")
         self._clear_btn.clicked.connect(self._on_clear)
         toolbar.addWidget(self._clear_btn)
         toolbar.addStretch()
         layout.addLayout(toolbar)
 
         self._log_viewer = LogViewer()
+        self._log_viewer.setToolTip("System log messages with color-coded levels")
         layout.addWidget(self._log_viewer)
 
     def _on_log_message(self, data: dict):

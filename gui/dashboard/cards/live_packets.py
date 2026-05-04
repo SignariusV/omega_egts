@@ -27,6 +27,7 @@ class LivePacketsCard(BaseCard):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(2)
         self._mini_table = QTableView()
+        self._mini_table.setToolTip("Last 5 packets received/transmitted")
         self._mini_model = PacketTableModel()
         self._mini_proxy = QSortFilterProxyModel()
         self._mini_proxy.setSourceModel(self._mini_model)
@@ -38,6 +39,7 @@ class LivePacketsCard(BaseCard):
         layout.addWidget(self._mini_table)
         self._counter_label = QLabel("Rx: 0 | Tx: 0")
         self._counter_label.setStyleSheet("font-size: 10px;")
+        self._counter_label.setToolTip("Total packet counts")
         layout.addWidget(self._counter_label)
         return widget
 
@@ -50,14 +52,17 @@ class LivePacketsCard(BaseCard):
         toolbar.addWidget(QLabel("Filter:"))
         self._filter_input = QLineEdit()
         self._filter_input.setPlaceholderText("Search packets...")
+        self._filter_input.setToolTip("Filter packets by any field (regex supported)")
         self._filter_input.textChanged.connect(self._on_filter_changed)
         toolbar.addWidget(self._filter_input)
         toolbar.addWidget(QLabel("Channel:"))
         self._channel_combo = QComboBox()
         self._channel_combo.addItems(["All", "EGTS", "SRTC", "FRMR", "VEH"])
+        self._channel_combo.setToolTip("Filter by packet channel type")
         self._channel_combo.currentTextChanged.connect(self._on_filter_changed)
         toolbar.addWidget(self._channel_combo)
         self._clear_btn = QPushButton("Clear")
+        self._clear_btn.setToolTip("Clear all packets from table")
         self._clear_btn.clicked.connect(self._on_clear)
         toolbar.addWidget(self._clear_btn)
         toolbar.addStretch()
@@ -69,6 +74,7 @@ class LivePacketsCard(BaseCard):
         self._proxy.setFilterKeyColumn(-1)
 
         self._table = QTableView()
+        self._table.setToolTip("All captured packets (double-click for details)")
         self._table.setModel(self._proxy)
         header = self._table.horizontalHeader()
         for i in range(self._model.columnCount()):
@@ -77,6 +83,7 @@ class LivePacketsCard(BaseCard):
         layout.addWidget(self._table)
 
         self._stats_label = QLabel("Rx: 0 | Tx: 0")
+        self._stats_label.setToolTip("Total received/transmitted packet counts")
         layout.addWidget(self._stats_label)
 
     def _on_filter_changed(self, text):

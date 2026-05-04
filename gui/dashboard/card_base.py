@@ -155,10 +155,22 @@ class BaseCard(QFrame):
         if self._collapsed:
             expand_action = menu.addAction("Expand")
             expand_action.triggered.connect(self.expand)
+            expand_action.setToolTip("Expand card to show full content")
         else:
             collapse_action = menu.addAction("Collapse")
             collapse_action.triggered.connect(self.collapse)
+            collapse_action.setToolTip("Collapse card to compact view")
+        menu.addSeparator()
+        reset_action = menu.addAction("Reset Settings")
+        reset_action.triggered.connect(self._on_reset_settings)
+        reset_action.setToolTip("Reset card to default state")
         menu.addSeparator()
         close_action = menu.addAction("Close")
         close_action.triggered.connect(self.hide)
+        close_action.setToolTip("Hide this card")
         menu.exec(self.mapToGlobal(pos))
+
+    def _on_reset_settings(self):
+        """Reset card to default state. Override in subclasses."""
+        self.expand()
+        self.set_grid_size(4, 4)
