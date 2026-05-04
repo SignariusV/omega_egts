@@ -113,13 +113,6 @@ class DashboardContainer(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        # Reposition all cards if needed
-        for card_id, (row, col, row_span, col_span) in self._cards.items():
-            for card in self.findChildren(BaseCard):
-                if id(card) == card_id:
-                    self._grid.removeWidget(card)
-                    self._grid.addWidget(card, row, col, row_span, col_span)
-                    break
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
