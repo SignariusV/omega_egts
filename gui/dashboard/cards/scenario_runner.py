@@ -1,4 +1,5 @@
 # OMEGA_EGTS GUI
+import logging
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
     QPushButton, QTableView, QHeaderView, QLabel
@@ -7,6 +8,9 @@ from PySide6.QtCore import Signal, Slot, Qt, QAbstractTableModel, QModelIndex
 from gui.dashboard.card_base import BaseCard, DisplayState
 from gui.utils.scenario_scanner import scan_scenarios, get_default_scenarios_path, ScenarioInfo
 from gui.widgets.progress_bar import ProgressBarWidget
+
+
+logger = logging.getLogger(__name__)
 
 
 class StepTableModel(QAbstractTableModel):
@@ -191,10 +195,17 @@ class ScenarioRunnerCard(BaseCard):
         steps = data.get("steps", [])
         if steps and not self._step_model._steps:
             self._step_model.set_steps(steps)
+        
+        # Find step by name - warn if duplicates exist
+        found = False
         for i, step in enumerate(self._step_model._steps):
             if step.get("name") == step_name:
+                if found:
+                    logger.warning(f"Duplicate step name '{step_name}' found in scenario")
                 self._step_model.update_step(i, status, duration)
+                found = True
                 break
+        
         progress = data.get("progress")
         if progress is not None:
             self._progress_bar.set_value(progress)
