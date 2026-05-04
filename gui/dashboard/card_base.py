@@ -48,10 +48,11 @@ class BaseCard(QFrame):
         # TitleBar
         self._title_bar = QFrame()
         self._title_bar.setProperty("class", "TitleBar")
-        self._title_bar.setFixedHeight(24)
+        self._title_bar.setFixedHeight(32)
+        self._title_bar.setStyleSheet("border: none;")
         self._title_bar.setCursor(Qt.CursorShape.OpenHandCursor)
         title_layout = QHBoxLayout(self._title_bar)
-        title_layout.setContentsMargins(4, 2, 4, 2)
+        title_layout.setContentsMargins(8, 4, 8, 4)
         self._title_label = QLabel(self._title)
         self._title_label.setObjectName("titleLabel")
         title_layout.addWidget(self._title_label)
