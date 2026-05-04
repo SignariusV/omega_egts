@@ -49,8 +49,6 @@ class BaseCard(QFrame):
         self._title_bar = QFrame()
         self._title_bar.setProperty("class", "TitleBar")
         self._title_bar.setFixedHeight(32)
-        self._title_bar.setStyleSheet("border: none;")
-        title_layout.setContentsMargins(8, 4, 8, 4)
         self._title_bar.setCursor(Qt.CursorShape.OpenHandCursor)
         title_layout = QHBoxLayout(self._title_bar)
         title_layout.setContentsMargins(8, 4, 8, 4)
