@@ -70,7 +70,7 @@ class MainWindow(QMainWindow):
         self._closing = False
 
     def _load_layout(self):
-        """Load saved layout from persistence."""
+        """Load saved layout and state from persistence."""
         try:
             snapshot = self._persistence.load_layout()
             if snapshot:
@@ -78,14 +78,36 @@ class MainWindow(QMainWindow):
                 logger.info("Loaded layout with %d cards", len(snapshot))
         except Exception as e:
             logger.warning("Could not load layout: %s", e)
+        
+        try:
+            state = self._persistence.load_state()
+            if state:
+                self._status_card.set_state(state.get("status_card", {}))
+                self._scenario_card.set_state(state.get("scenario_card", {}))
+                self._packets_card.set_state(state.get("packets_card", {}))
+                self._logs_card.set_state(state.get("logs_card", {}))
+                logger.info("Loaded card states")
+        except Exception as e:
+            logger.warning("Could not load state: %s", e)
 
     def _save_layout(self):
-        """Save current layout to persistence."""
+        """Save current layout and state to persistence."""
         try:
             snapshot = self._dashboard.get_layout_snapshot()
             self._persistence.save_layout(snapshot)
         except Exception as e:
             logger.error("Could not save layout: %s", e)
+        
+        try:
+            state = {
+                "status_card": self._status_card.get_state(),
+                "scenario_card": self._scenario_card.get_state(),
+                "packets_card": self._packets_card.get_state(),
+                "logs_card": self._logs_card.get_state(),
+            }
+            self._persistence.save_state(state)
+        except Exception as e:
+            logger.error("Could not save state: %s", e)
 
     def _setup_shortcuts(self):
         """Setup keyboard shortcuts for the main window."""
@@ -133,10 +155,10 @@ class MainWindow(QMainWindow):
             card.show()
 
     def _create_cards(self):
-        self._status_card = SystemStatusCard()
-        self._scenario_card = ScenarioRunnerCard()
-        self._packets_card = LivePacketsCard()
-        self._logs_card = SystemLogsCard()
+        self._status_card = SystemStatusCard(card_id="system_status")
+        self._scenario_card = ScenarioRunnerCard(card_id="scenario_runner")
+        self._packets_card = LivePacketsCard(card_id="live_packets")
+        self._logs_card = SystemLogsCard(card_id="system_logs")
 
         self._dashboard.add_card(self._status_card, row=0, col=0)
         self._dashboard.add_card(self._scenario_card, row=0, col=4)

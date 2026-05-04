@@ -11,8 +11,8 @@ import logging
 
 
 class SystemLogsCard(BaseCard):
-    def __init__(self, parent=None):
-        super().__init__("System Logs", card_id="system_logs", parent=parent)
+    def __init__(self, card_id: str = "system_logs", parent=None):
+        super().__init__("System Logs", card_id=card_id, parent=parent)
         self._log_handler = QLogHandler()
         self._log_handler.log_message.connect(self._on_log_message)
         logging.getLogger().addHandler(self._log_handler)

@@ -60,8 +60,8 @@ class ScenarioRunnerCard(BaseCard):
     run_requested = Signal(str)
     stop_requested = Signal()
 
-    def __init__(self, parent=None):
-        super().__init__("Scenario Runner", card_id="scenario_runner", parent=parent)
+    def __init__(self, card_id: str = "scenario_runner", parent=None):
+        super().__init__("Scenario Runner", card_id=card_id, parent=parent)
         self._scenarios: list[ScenarioInfo] = []
         self._selected_path: str = ""
         self._running = False
