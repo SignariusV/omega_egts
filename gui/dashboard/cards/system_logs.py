@@ -90,8 +90,9 @@ class SystemLogsCard(BaseCard):
             self._compact_edit.verticalScrollBar().maximum()
         )
 
-    def _on_level_changed(self, text: str):
-        pass
+    def _on_level_changed(self, text):
+        self._log_viewer.clear()
+        self._compact_edit.clear()
 
     def _on_clear(self):
         self._log_viewer.clear()
