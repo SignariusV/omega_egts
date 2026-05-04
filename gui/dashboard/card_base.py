@@ -202,7 +202,7 @@ class BaseCard(QFrame):
             self.drag_started.emit()
             drag = QDrag(self)
             mime = QMimeData()
-            mime.setText(str(id(self)))
+            mime.setText(self._card_id)
             drag.setMimeData(mime)
             drag.exec(Qt.DropAction.MoveAction)
 

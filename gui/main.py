@@ -14,14 +14,15 @@ def main():
     window.show()
     loop = qasync.QEventLoop(app)
     asyncio.set_event_loop(loop)
-    
-    def cleanup():
+
+    app.aboutToQuit.connect(loop.stop)
+
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
         loop.close()
-    
-    app.aboutToQuit.connect(cleanup)
-    
-    loop.run_forever()
-    loop.close()
 
 
 if __name__ == "__main__":

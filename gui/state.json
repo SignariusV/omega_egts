@@ -1,0 +1,17 @@
+{
+  "status_card": {
+    "server_running": true,
+    "server_port": 8090,
+    "cmw_connected": true
+  },
+  "scenario_card": {
+    "selected_index": 12
+  },
+  "packets_card": {
+    "filter_text": "",
+    "channel": "All"
+  },
+  "logs_card": {
+    "level": "All"
+  }
+}
