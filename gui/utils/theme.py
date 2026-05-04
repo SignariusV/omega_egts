@@ -48,9 +48,8 @@ def generate_qss(theme: dict) -> str:
 
     QFrame[class="CardWidget"] {{
         background-color: {theme['card_bg']};
-        border: 1px solid {theme['border']};
+        border: none;
         border-radius: {border_radius};
-        padding: 4px;
     }}
 
     QFrame[class="TitleBar"] {{
