@@ -265,27 +265,32 @@ class BaseCard(QFrame):
         delta_rows = round(delta.y() / (cell_h + GRID_GAP))
 
         if edge == Qt.Corner.BottomRightCorner:
-            new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
-            new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
-        elif edge == Qt.Corner.TopRightCorner:
-            new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
-            new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
-            if new_row_span < self._resize_start_row_span:
-                new_row = self._resize_start_row + (self._resize_start_row_span - new_row_span)
-        elif edge == Qt.Corner.BottomLeftCorner:
-            new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
-            new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
-            if new_col_span < self._resize_start_col_span:
-                new_col = self._resize_start_col + (self._resize_start_col_span - new_col_span)
-        elif edge == Qt.Corner.TopLeftCorner:
-            new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
-            new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
-            if new_col_span < self._resize_start_col_span:
-                new_col = self._resize_start_col + (self._resize_start_col_span - new_col_span)
-            if new_row_span < self._resize_start_row_span:
-                new_row = self._resize_start_row + (self._resize_start_row_span - new_row_span)
+            new_col_span = self._resize_start_col_span + delta_cols
+            new_row_span = self._resize_start_row_span + delta_rows
 
-        if new_col_span != self._col_span or new_row_span != self._row_span:
+        elif edge == Qt.Corner.TopRightCorner:
+            new_col_span = self._resize_start_col_span + delta_cols
+            new_row_span = self._resize_start_row_span - delta_rows
+            new_row = self._resize_start_row + delta_rows
+
+        elif edge == Qt.Corner.BottomLeftCorner:
+            new_col_span = self._resize_start_col_span - delta_cols
+            new_col = self._resize_start_col + delta_cols
+            new_row_span = self._resize_start_row_span + delta_rows
+
+        elif edge == Qt.Corner.TopLeftCorner:
+            new_col_span = self._resize_start_col_span - delta_cols
+            new_col = self._resize_start_col + delta_cols
+            new_row_span = self._resize_start_row_span - delta_rows
+            new_row = self._resize_start_row + delta_rows
+
+        new_row = max(0, min(new_row, GRID_ROWS - 1))
+        new_col = max(0, min(new_col, GRID_COLS - 1))
+        new_row_span = max(1, min(GRID_ROWS - new_row, new_row_span))
+        new_col_span = max(1, min(GRID_COLS - new_col, new_col_span))
+
+        if (new_row, new_col, new_row_span, new_col_span) != \
+           (self._grid_row, self._grid_col, self._row_span, self._col_span):
             self._row_span = new_row_span
             self._col_span = new_col_span
             self._grid_row = new_row
@@ -295,7 +300,6 @@ class BaseCard(QFrame):
     def _grip_mouse_release(self, event, grip):
         """Handle mouse release on resize grip - clear state."""
         grip.releaseMouse()
-        self.grid_geometry_changed.emit(self._grid_row, self._grid_col, self._row_span, self._col_span)
         attrs_to_clear = ['_resize_start_pos', '_resize_edge', '_resize_start_geometry',
                          '_resize_start_row_span', '_resize_start_col_span',
                          '_resize_start_row', '_resize_start_col']
