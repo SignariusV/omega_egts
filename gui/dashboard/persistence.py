@@ -70,12 +70,17 @@ class PersistenceManager:
         for item in data:
             if not isinstance(item, dict):
                 raise ValueError("Layout item must be a dict")
+            if 'card_id' in item and not isinstance(item['card_id'], str):
+                raise ValueError(f"Card id must be string, got {type(item['card_id']).__name__}")
             if 'id' in item and not isinstance(item['id'], str):
                 raise ValueError(f"Card id must be string, got {type(item['id']).__name__}")
-            required = ['id', 'row', 'col', 'row_span', 'col_span']
-            for key in required:
-                if key not in item:
-                    raise ValueError(f"Missing required key: {key}")
+            key = 'card_id' if 'card_id' in item else 'id'
+            if not key:
+                raise ValueError("Missing required key: card_id")
+            required = ['row', 'col', 'row_span', 'col_span']
+            for req in required:
+                if req not in item:
+                    raise ValueError(f"Missing required key: {req}")
 
     def reset_to_defaults(self) -> None:
         """Delete saved layout and state files to reset to defaults."""
