@@ -195,8 +195,8 @@ class ScenarioRunnerCard(BaseCard):
             if step.get("name") == step_name:
                 self._step_model.update_step(i, status, duration)
                 break
-        progress = data.get("progress", 0)
-        if progress:
+        progress = data.get("progress")
+        if progress is not None:
             self._progress_bar.set_value(progress)
         if status in ("PASS", "FAIL"):
             self._running = False
