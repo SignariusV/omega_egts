@@ -21,6 +21,8 @@ THEME_VSCODE_DARK = {
     "grip_bg": "rgba(0, 120, 215, 30)",
     "grip_border": "rgba(0, 120, 215, 100)",
     "grip_hover": "rgba(0, 120, 215, 80)",
+    "title_color": "#FFD700",
+    "title_size": 18,
 }
 
 
@@ -31,6 +33,9 @@ def generate_qss(theme: dict) -> str:
     grip_bg = theme.get("grip_bg", "rgba(0, 120, 215, 30)")
     grip_border = theme.get("grip_border", "rgba(0, 120, 215, 100)")
     grip_hover = theme.get("grip_hover", "rgba(0, 120, 215, 80)")
+    
+    title_color = theme.get("title_color", "#FFD700")
+    title_size = theme.get("title_size", 18)
     
     return f"""
     QMainWindow {{
@@ -51,8 +56,9 @@ def generate_qss(theme: dict) -> str:
     }}
 
     QLabel#titleLabel {{
-        color: {theme['text']};
+        color: {title_color};
         font-family: "{font_main}";
+        font-size: {title_size}px;
         font-weight: bold;
     }}
 
