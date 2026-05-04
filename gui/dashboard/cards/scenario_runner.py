@@ -133,11 +133,18 @@ class ScenarioRunnerCard(BaseCard):
         self._update_combos()
 
     def _update_combos(self):
+        self._combo_compact.currentIndexChanged.disconnect()
+        self._combo_expanded.currentIndexChanged.disconnect()
+        
         self._combo_compact.clear()
         self._combo_expanded.clear()
         for s in self._scenarios:
             self._combo_compact.addItem(s.name, s.json_file)
             self._combo_expanded.addItem(s.name, s.json_file)
+        
+        # Sync both combo boxes
+        self._combo_compact.currentIndexChanged.connect(self._combo_expanded.setCurrentIndex)
+        self._combo_expanded.currentIndexChanged.connect(self._combo_compact.setCurrentIndex)
 
     def _on_run_clicked(self):
         combo = self._combo_expanded if self._display_state == DisplayState.EXPANDED else self._combo_compact
