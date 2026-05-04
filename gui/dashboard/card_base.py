@@ -63,6 +63,29 @@ class BaseCard(QFrame):
         main_layout.addWidget(self._title_bar)
         main_layout.addWidget(self._content)
 
+        # Resize handles (4 corners)
+        self._grips = []
+        for edge in [Qt.Corner.TopLeftCorner, Qt.Corner.TopRightCorner, Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner]:
+            grip = QFrame(self)
+            grip.setFixedSize(10, 10)
+            grip.setStyleSheet("""
+                QFrame {
+                    background-color: rgba(0, 120, 215, 30);
+                    border: 1px solid rgba(0, 120, 215, 100);
+                    border-radius: 2px;
+                }
+                QFrame:hover {
+                    background-color: rgba(0, 120, 215, 80);
+                }
+            """)
+            grip.setCursor(Qt.CursorShape.SizeFDiagCursor if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomRightCorner) else Qt.CursorShape.SizeBDiagCursor)
+            grip.edge = edge
+            grip.mousePressEvent = lambda event, g=grip: self._grip_mouse_press(event, g)
+            grip.mouseMoveEvent = lambda event, g=grip: self._grip_mouse_move(event, g)
+            grip.setToolTip("Drag to resize card")
+            grip.raise_()
+            self._grips.append(grip)
+
         # Drag support
         self._title_bar.mousePressEvent = self._title_mouse_press
         self._title_bar.mouseDoubleClickEvent = self._title_double_click
@@ -149,6 +172,54 @@ class BaseCard(QFrame):
     def _title_double_click(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.toggle_collapse()
+
+    def resizeEvent(self, event):
+        w = event.size().width()
+        if w < 320 and self._display_state != DisplayState.COMPACT:
+            self._set_display_state(DisplayState.COMPACT)
+        elif w >= 600 and self._display_state != DisplayState.EXPANDED:
+            self._set_display_state(DisplayState.EXPANDED)
+        super().resizeEvent(event)
+        self._reposition_grips()
+
+    def _reposition_grips(self):
+        """Reposition resize grips at card corners."""
+        w = self.width()
+        h = self.height()
+        for grip in self._grips:
+            if grip.edge == Qt.Corner.TopLeftCorner:
+                grip.move(0, 0)
+            elif grip.edge == Qt.Corner.TopRightCorner:
+                grip.move(w - 8, 0)
+            elif grip.edge == Qt.Corner.BottomLeftCorner:
+                grip.move(0, h - 8)
+            else:  # BottomRightCorner
+                grip.move(w - 8, h - 8)
+
+    def _grip_mouse_press(self, event, grip):
+        """Handle mouse press on resize grip."""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._resize_start_geometry = self.geometry()
+            self._resize_start_pos = event.globalPosition().toPoint()
+            self._resize_edge = grip.edge
+
+    def _grip_mouse_move(self, event, grip):
+        """Handle mouse move on resize grip."""
+        if hasattr(self, '_resize_start_pos') and hasattr(self, '_resize_edge'):
+            delta = event.globalPosition().toPoint() - self._resize_start_pos
+            new_geo = QRect(self._resize_start_geometry)
+            edge = self._resize_edge
+
+            if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomLeftCorner):
+                new_geo.setLeft(max(new_geo.left() + delta.x(), self.minimumWidth()))
+            if edge in (Qt.Corner.TopRightCorner, Qt.Corner.BottomRightCorner):
+                new_geo.setRight(max(new_geo.right() + delta.x(), self.minimumWidth()))
+            if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.TopRightCorner):
+                new_geo.setTop(max(new_geo.top() + delta.y(), self.minimumHeight()))
+            if edge in (Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner):
+                new_geo.setBottom(max(new_geo.bottom() + delta.y(), self.minimumHeight()))
+
+            self.setGeometry(new_geo)
 
     def _show_context_menu(self, pos):
         menu = QMenu(self)
