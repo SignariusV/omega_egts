@@ -152,7 +152,9 @@ class LivePacketsCard(BaseCard):
 
     def _on_clear(self):
         self._model.clear()
+        self._mini_model.clear()
         self._stats_label.setText("Rx: 0 | Tx: 0")
+        self._counter_label.setText("Rx: 0 | Tx: 0")
 
     def _show_compact(self):
         if self._current_widget != self._compact_widget:
