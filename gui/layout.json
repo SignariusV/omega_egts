@@ -10,8 +10,8 @@
     "card_id": "scenario_runner",
     "row": 0,
     "col": 4,
-    "row_span": 4,
-    "col_span": 4
+    "row_span": 2,
+    "col_span": 2
   },
   {
     "card_id": "live_packets",
@@ -24,7 +24,7 @@
     "card_id": "system_logs",
     "row": 4,
     "col": 4,
-    "row_span": 4,
-    "col_span": 4
+    "row_span": 3,
+    "col_span": 2
   }
 ]

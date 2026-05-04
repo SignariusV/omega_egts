@@ -20,6 +20,7 @@ class BaseCard(QFrame):
     collapse_toggled = Signal(bool)
     drag_started = Signal()
     grid_size_changed = Signal(int, int)  # row_span, col_span
+    grid_geometry_changed = Signal(int, int, int, int)  # row, col, row_span, col_span
 
     def __init__(self, title: str, card_id: str = None, parent=None):
         super().__init__(parent)
@@ -29,6 +30,8 @@ class BaseCard(QFrame):
         self._display_state = DisplayState.EXPANDED
         self._row_span = 4  # Default expanded size: 4x4
         self._col_span = 4
+        self._grid_row = 0
+        self._grid_col = 0
         self._in_state_change = False
         self._stack = None
         self.setFrameStyle(QFrame.Box)
@@ -134,6 +137,15 @@ class BaseCard(QFrame):
     def grid_size(self):
         return (self._row_span, self._col_span)
 
+    @property
+    def grid_position(self):
+        return (self._grid_row, self._grid_col)
+
+    def set_grid_position(self, row: int, col: int):
+        """Set the card position in grid cells."""
+        self._grid_row = row
+        self._grid_col = col
+
     def set_grid_size(self, row_span: int, col_span: int):
         """Set the card size in grid cells."""
         self._row_span = max(1, row_span)
@@ -226,6 +238,8 @@ class BaseCard(QFrame):
             self._resize_edge = grip.edge
             self._resize_start_row_span = self._row_span
             self._resize_start_col_span = self._col_span
+            self._resize_start_row = self._grid_row
+            self._resize_start_col = self._grid_col
             grip.grabMouse()
 
     def _grip_mouse_move(self, event, grip):
@@ -244,22 +258,47 @@ class BaseCard(QFrame):
 
         new_col_span = self._resize_start_col_span
         new_row_span = self._resize_start_row_span
+        new_col = self._resize_start_col
+        new_row = self._resize_start_row
 
-        if edge in (Qt.Corner.TopRightCorner, Qt.Corner.BottomRightCorner):
-            delta_cols = round(delta.x() / (cell_w + GRID_GAP))
+        delta_cols = round(delta.x() / (cell_w + GRID_GAP))
+        delta_rows = round(delta.y() / (cell_h + GRID_GAP))
+
+        if edge == Qt.Corner.BottomRightCorner:
             new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
-        if edge in (Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner):
-            delta_rows = round(delta.y() / (cell_h + GRID_GAP))
             new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
+        elif edge == Qt.Corner.TopRightCorner:
+            new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
+            new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
+            if new_row_span < self._resize_start_row_span:
+                new_row = self._resize_start_row + (self._resize_start_row_span - new_row_span)
+        elif edge == Qt.Corner.BottomLeftCorner:
+            new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
+            new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
+            if new_col_span < self._resize_start_col_span:
+                new_col = self._resize_start_col + (self._resize_start_col_span - new_col_span)
+        elif edge == Qt.Corner.TopLeftCorner:
+            new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
+            new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
+            if new_col_span < self._resize_start_col_span:
+                new_col = self._resize_start_col + (self._resize_start_col_span - new_col_span)
+            if new_row_span < self._resize_start_row_span:
+                new_row = self._resize_start_row + (self._resize_start_row_span - new_row_span)
 
         if new_col_span != self._col_span or new_row_span != self._row_span:
-            self.set_grid_size(new_row_span, new_col_span)
+            self._row_span = new_row_span
+            self._col_span = new_col_span
+            self._grid_row = new_row
+            self._grid_col = new_col
+            self.grid_geometry_changed.emit(new_row, new_col, new_row_span, new_col_span)
 
     def _grip_mouse_release(self, event, grip):
         """Handle mouse release on resize grip - clear state."""
         grip.releaseMouse()
+        self.grid_geometry_changed.emit(self._grid_row, self._grid_col, self._row_span, self._col_span)
         attrs_to_clear = ['_resize_start_pos', '_resize_edge', '_resize_start_geometry',
-                        '_resize_start_row_span', '_resize_start_col_span']
+                         '_resize_start_row_span', '_resize_start_col_span',
+                         '_resize_start_row', '_resize_start_col']
         for attr in attrs_to_clear:
             if hasattr(self, attr):
                 delattr(self, attr)

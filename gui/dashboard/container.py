@@ -39,10 +39,12 @@ class DashboardContainer(QWidget):
             row_span, col_span = card.grid_size
         
         self._cards[card_id] = (row, col, row_span, col_span)
+        card.set_grid_position(row, col)
         
         card.destroyed.connect(lambda: self._on_card_destroyed(card_id))
         card.drag_started.connect(lambda: self._on_drag_start(card))
         card.grid_size_changed.connect(lambda rs, cs: self._on_grid_size_changed(card, rs, cs))
+        card.grid_geometry_changed.connect(lambda r, c, rs, cs: self._on_grid_geometry_changed(card, r, c, rs, cs))
         
         self._update_card_geometry(card)
         card.show()
@@ -136,6 +138,39 @@ class DashboardContainer(QWidget):
     def _revert_card_size(self, card: BaseCard, row_span: int, col_span: int):
         """Revert card size to previous value."""
         self._processing = True
+        card.set_grid_size(row_span, col_span)
+        self._processing = False
+
+    def _on_grid_geometry_changed(self, card: BaseCard, row: int, col: int, row_span: int, col_span: int):
+        """Handle card grid geometry change (position + size)."""
+        if self._processing:
+            return
+        
+        card_id = card.card_id
+        if card_id not in self._cards:
+            return
+        
+        if not self._is_within_grid(row, col, row_span, col_span):
+            self._revert_card_geometry(card)
+            return
+        
+        if not self._is_area_free(row, col, row_span, col_span, card_id):
+            self._revert_card_geometry(card)
+            return
+        
+        self._cards[card_id] = (row, col, row_span, col_span)
+        card.set_grid_position(row, col)
+        self._update_card_geometry(card)
+        self.cards_changed.emit()
+
+    def _revert_card_geometry(self, card: BaseCard):
+        """Revert card geometry to previous values."""
+        card_id = card.card_id
+        if card_id not in self._cards:
+            return
+        row, col, row_span, col_span = self._cards[card_id]
+        self._processing = True
+        card.set_grid_position(row, col)
         card.set_grid_size(row_span, col_span)
         self._processing = False
 
