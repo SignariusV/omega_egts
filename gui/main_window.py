@@ -4,7 +4,7 @@ import sys
 import logging
 
 import qasync
-from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox, QApplication
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 
@@ -174,16 +174,21 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Handle window close - stop engine gracefully."""
-        event.ignore()  # Don't close yet
-        
+        if getattr(self, '_closing', False):
+            event.accept()
+            return
+        self._closing = True
+        event.ignore()
+
         async def shutdown():
             try:
                 await self._engine_wrapper.stop()
             except Exception:
                 pass
             finally:
-                self.close()  # Close after shutdown completes
-        
+                self._closing = False
+                QApplication.quit()
+
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
