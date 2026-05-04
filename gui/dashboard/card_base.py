@@ -1,8 +1,17 @@
 # OMEGA_EGTS GUI
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy
-from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve, QMimeData
+from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve, QMimeData, QObject, QSize, QPoint, QRect
 from PySide6.QtGui import QDrag
 from enum import Enum
+
+
+CARD_MIN_SIZE = QSize(240, 100)
+RESIZE_THRESHOLD = QSize(5, 5)
+
+TOP_LEFT = int(Qt.Corner.TopLeftCorner)
+TOP_RIGHT = int(Qt.Corner.TopRightCorner)
+BOTTOM_LEFT = int(Qt.Corner.BottomLeftCorner)
+BOTTOM_RIGHT = int(Qt.Corner.BottomRightCorner)
 
 
 class DisplayState(Enum):
@@ -10,10 +19,56 @@ class DisplayState(Enum):
     EXPANDED = "expanded"
 
 
+class TitleBar(QFrame):
+    title_pressed = Signal(object)
+    title_double_clicked = Signal(object)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(32)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+
+    def mousePressEvent(self, event):
+        self.title_pressed.emit(event)
+        super().mousePressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        self.title_double_clicked.emit(event)
+        super().mouseDoubleClickEvent(event)
+
+
+class ResizeGrip(QFrame):
+    grip_pressed = Signal(object)
+    grip_moved = Signal(object)
+    grip_released = Signal(object)
+
+    def __init__(self, edge, parent=None):
+        super().__init__(parent)
+        self.edge = int(edge)  # store as int
+        self.setFixedSize(8, 8)
+        self.setStyleSheet("background: transparent;")
+        if self.edge in (TOP_LEFT, BOTTOM_RIGHT):
+            self.setCursor(Qt.CursorShape.SizeFDiagCursor)
+        else:
+            self.setCursor(Qt.CursorShape.SizeBDiagCursor)
+
+    def mousePressEvent(self, event):
+        self.grip_pressed.emit(event)
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        self.grip_moved.emit(event)
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.grip_released.emit(event)
+        super().mouseReleaseEvent(event)
+
+
 class BaseCard(QFrame):
     collapse_toggled = Signal(bool)
     drag_started = Signal()
-    resize_started = Signal(Qt.Edge)
+    resize_started = Signal(int)
 
     def __init__(self, title: str, parent=None):
         super().__init__(parent)
@@ -32,9 +87,7 @@ class BaseCard(QFrame):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        self._title_bar = QFrame()
-        self._title_bar.setFixedHeight(32)
-        self._title_bar.setCursor(Qt.CursorShape.OpenHandCursor)
+        self._title_bar = TitleBar()
         title_layout = QHBoxLayout(self._title_bar)
         title_layout.setContentsMargins(8, 4, 8, 4)
         self._title_label = QLabel(self._title)
@@ -55,20 +108,20 @@ class BaseCard(QFrame):
         main_layout.addWidget(self._title_bar)
         main_layout.addWidget(self._content)
 
+        self._title_bar.title_pressed.connect(self._on_title_press)
+        self._title_bar.title_double_clicked.connect(self._on_title_double_click)
+
         self._grips = []
         for edge in [Qt.Corner.TopLeftCorner, Qt.Corner.TopRightCorner, Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner]:
-            grip = QFrame(self)
-            grip.setFixedSize(8, 8)
-            grip.setStyleSheet("background: transparent;")
-            grip.setCursor(Qt.CursorShape.SizeFDiagCursor if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomRightCorner) else Qt.CursorShape.SizeBDiagCursor)
-            grip.edge = edge
-            grip.mousePressEvent = self._grip_mouse_press
-            grip.mouseMoveEvent = self._grip_mouse_move
+            grip = ResizeGrip(edge, self)
+            grip.grip_pressed.connect(self._on_grip_press)
+            grip.grip_moved.connect(self._on_grip_move)
+            grip.grip_released.connect(self._on_grip_release)
             self._grips.append(grip)
 
-        self._title_bar.mousePressEvent = self._title_mouse_press
-        self._title_bar.mouseMoveEvent = self._title_mouse_move
-        self._title_bar.mouseDoubleClickEvent = self._title_double_click
+        self._resize_start_geometry = None
+        self._resize_start_pos = None
+        self._resize_active = False
 
     def set_content_widget(self, widget):
         self._content_layout.addWidget(widget)
@@ -127,18 +180,17 @@ class BaseCard(QFrame):
         w = self.width()
         h = self.height()
         for grip in self._grips:
-            if grip.edge == Qt.Corner.TopLeftCorner:
+            if grip.edge == TOP_LEFT:
                 grip.move(0, 0)
-            elif grip.edge == Qt.Corner.TopRightCorner:
+            elif grip.edge == TOP_RIGHT:
                 grip.move(w - 8, 0)
-            elif grip.edge == Qt.Corner.BottomLeftCorner:
+            elif grip.edge == BOTTOM_LEFT:
                 grip.move(0, h - 8)
             else:
                 grip.move(w - 8, h - 8)
 
-    def _title_mouse_press(self, event):
+    def _on_title_press(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self._drag_start_pos = event.globalPosition().toPoint()
             self.drag_started.emit()
             drag = QDrag(self)
             mime = QMimeData()
@@ -146,29 +198,57 @@ class BaseCard(QFrame):
             drag.setMimeData(mime)
             drag.exec(Qt.DropAction.MoveAction)
 
-    def _title_mouse_move(self, event):
-        pass
-
-    def _title_double_click(self, event):
+    def _on_title_double_click(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.toggle_collapse()
 
-    def _grip_mouse_press(self, event):
-        self._resize_start_geometry = self.geometry()
-        self._resize_start_pos = event.globalPosition().toPoint()
-        self.resize_started.emit(event.widget().edge)
+    def _on_grip_press(self, event):
+        grip = self.sender()
+        if isinstance(grip, ResizeGrip) and event.button() == Qt.MouseButton.LeftButton:
+            self._resize_start_geometry = self.geometry()
+            self._resize_start_pos = event.globalPosition().toPoint()
+            self._resize_active = False
+            # Clear any fixed size so resizing works
+            self.setMinimumSize(240, 100)
+            self.setMaximumSize(16777215, 16777215)  # Qt's QWIDGETSIZE_MAX
+            self.resize_started.emit(grip.edge)
 
-    def _grip_mouse_move(self, event):
-        if hasattr(self, '_resize_start_pos'):
+    def _on_grip_move(self, event):
+        if self._resize_start_pos is not None:
             delta = event.globalPosition().toPoint() - self._resize_start_pos
-            edge = event.widget().edge
-            new_geo = self._resize_start_geometry
-            if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomLeftCorner):
-                new_geo.setLeft(new_geo.left() + delta.x())
-            if edge in (Qt.Corner.TopRightCorner, Qt.Corner.BottomRightCorner):
-                new_geo.setRight(new_geo.right() + delta.x())
-            if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.TopRightCorner):
-                new_geo.setTop(new_geo.top() + delta.y())
-            if edge in (Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner):
-                new_geo.setBottom(new_geo.bottom() + delta.y())
-            self.setGeometry(new_geo)
+            if not self._resize_active:
+                if abs(delta.x()) < RESIZE_THRESHOLD.width() and abs(delta.y()) < RESIZE_THRESHOLD.height():
+                    return
+                self._resize_active = True
+            grip = self.sender()
+            if isinstance(grip, ResizeGrip):
+                edge = grip.edge
+                new_geo = QRect(self._resize_start_geometry)
+                if edge in (TOP_LEFT, BOTTOM_LEFT):
+                    new_left = max(CARD_MIN_SIZE.width(), new_geo.left() + delta.x())
+                    new_geo.setLeft(new_left)
+                if edge in (TOP_RIGHT, BOTTOM_RIGHT):
+                    new_right = max(CARD_MIN_SIZE.width(), new_geo.right() + delta.x())
+                    new_geo.setRight(new_right)
+                if edge in (TOP_LEFT, TOP_RIGHT):
+                    new_top = max(CARD_MIN_SIZE.height(), new_geo.top() + delta.y())
+                    new_geo.setTop(new_top)
+                if edge in (BOTTOM_LEFT, BOTTOM_RIGHT):
+                    new_bottom = max(CARD_MIN_SIZE.height(), new_geo.bottom() + delta.y())
+                    new_geo.setBottom(new_bottom)
+                self.setGeometry(new_geo)
+                # Fix the size so layout doesn't override
+                new_size = new_geo.size()
+                if edge in (TOP_LEFT, BOTTOM_LEFT, TOP_RIGHT, BOTTOM_RIGHT):
+                    if edge in (TOP_LEFT, BOTTOM_LEFT, TOP_RIGHT, BOTTOM_RIGHT):
+                        # Determine which dimensions changed
+                        if edge in (TOP_LEFT, BOTTOM_LEFT, TOP_RIGHT, BOTTOM_RIGHT):
+                            if edge in (TOP_LEFT, BOTTOM_LEFT, TOP_RIGHT, BOTTOM_RIGHT):
+                                pass  # We'll set min/max for both dimensions for simplicity
+                self.setMinimumSize(new_size)
+                self.setMaximumSize(new_size)
+
+    def _on_grip_release(self, event):
+        self._resize_start_pos = None
+        self._resize_active = False
+        self._reposition_grips()
