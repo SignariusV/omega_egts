@@ -141,14 +141,6 @@ class BaseCard(QFrame):
             # Expanded: 4x4 in grid
             self.set_grid_size(4, 4)
 
-    def resizeEvent(self, event):
-        w = event.size().width()
-        if w < 320 and self._display_state != DisplayState.COMPACT:
-            self._set_display_state(DisplayState.COMPACT)
-        elif w >= 600 and self._display_state != DisplayState.EXPANDED:
-            self._set_display_state(DisplayState.EXPANDED)
-        super().resizeEvent(event)
-
     def _set_display_state(self, state):
         self._display_state = state
         self.update_content_visibility(state)
