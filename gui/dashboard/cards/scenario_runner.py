@@ -133,26 +133,11 @@ class ScenarioRunnerCard(BaseCard):
         scenarios_path = get_default_scenarios_path()
         if scenarios_path:
             self._scenarios = scan_scenarios(scenarios_path)
-        self._update_combos()
-
-    def _update_combos(self):
-        if self._combo_compact.currentIndexChanged is not None:
-            try:
-                self._combo_compact.currentIndexChanged.disconnect()
-            except (RuntimeError, TypeError):
-                pass
-        if self._combo_expanded.currentIndexChanged is not None:
-            try:
-                self._combo_expanded.currentIndexChanged.disconnect()
-            except (RuntimeError, TypeError):
-                pass
-
         self._combo_compact.clear()
         self._combo_expanded.clear()
         for s in self._scenarios:
             self._combo_compact.addItem(s.name, s.json_file)
             self._combo_expanded.addItem(s.name, s.json_file)
-
         self._combo_compact.currentIndexChanged.connect(self._combo_expanded.setCurrentIndex)
         self._combo_expanded.currentIndexChanged.connect(self._combo_compact.setCurrentIndex)
 
