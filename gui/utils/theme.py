@@ -23,7 +23,7 @@ THEME_VSCODE_DARK = {
     "grip_hover": "rgba(0, 120, 215, 80)",
     "title_color": "#FFD700",
     "title_size": 18,
-    "border_radius": "12px",
+    "border_radius": "36px",
 }
 
 
