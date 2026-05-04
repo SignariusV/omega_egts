@@ -111,7 +111,11 @@ class BaseCard(QFrame):
             compact_widget: QWidget to show in compact mode (index 0)
             expanded_widget: QWidget to show in expanded mode (index 1)
         """
-        self._stack.clear()
+        # Remove existing widgets from stack
+        while self._stack.count() > 0:
+            widget = self._stack.widget(0)
+            self._stack.removeWidget(widget)
+            widget.setParent(None)
         self._stack.insertWidget(0, compact_widget)
         self._stack.insertWidget(1, expanded_widget)
 
