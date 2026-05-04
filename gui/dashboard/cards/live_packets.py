@@ -3,9 +3,59 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableView,
     QHeaderView, QLabel, QLineEdit, QComboBox, QPushButton
 )
-from PySide6.QtCore import Signal, Slot, Qt, QSortFilterProxyModel
+from PySide6.QtCore import Signal, Slot, Qt, QSortFilterProxyModel, QModelIndex
 from gui.dashboard.card_base import BaseCard, DisplayState
 from gui.widgets.packet_table import PacketTableModel
+
+
+class PacketFilterProxy(QSortFilterProxyModel):
+    """Custom filter proxy that supports both text search and channel filtering."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._search_text = ""
+        self._channel = "All"
+        self._channel_index = -1
+
+    def set_search_text(self, text):
+        self._search_text = text
+
+    def set_channel(self, channel, channel_index):
+        self._channel = channel
+        self._channel_index = channel_index
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        model = self.sourceModel()
+        if not model:
+            return True
+
+        # Check text search (regex) across all columns
+        if self._search_text:
+            text_match = False
+            for col in range(model.columnCount()):
+                index = model.index(source_row, col, source_parent)
+                data = model.data(index, Qt.ItemDataRole.DisplayRole)
+                if data:
+                    try:
+                        import re
+                        if re.search(self._search_text, str(data), re.IGNORECASE):
+                            text_match = True
+                            break
+                    except re.error:
+                        if self._search_text.lower() in str(data).lower():
+                            text_match = True
+                            break
+            if not text_match:
+                return False
+
+        # Check exact channel match
+        if self._channel != "All" and self._channel_index >= 0:
+            channel_index = model.index(source_row, self._channel_index, source_parent)
+            channel_data = model.data(channel_index, Qt.ItemDataRole.DisplayRole)
+            if channel_data != self._channel:
+                return False
+
+        return True
 
 
 class LivePacketsCard(BaseCard):
@@ -53,13 +103,13 @@ class LivePacketsCard(BaseCard):
         self._filter_input = QLineEdit()
         self._filter_input.setPlaceholderText("Search packets...")
         self._filter_input.setToolTip("Filter packets by any field (regex supported)")
-        self._filter_input.textChanged.connect(self._on_filter_changed)
+        self._filter_input.textChanged.connect(self._on_search_text_changed)
         toolbar.addWidget(self._filter_input)
         toolbar.addWidget(QLabel("Channel:"))
         self._channel_combo = QComboBox()
         self._channel_combo.addItems(["All", "EGTS", "SRTC", "FRMR", "VEH"])
         self._channel_combo.setToolTip("Filter by packet channel type")
-        self._channel_combo.currentTextChanged.connect(self._on_filter_changed)
+        self._channel_combo.currentTextChanged.connect(self._on_channel_changed)
         toolbar.addWidget(self._channel_combo)
         self._clear_btn = QPushButton("Clear")
         self._clear_btn.setToolTip("Clear all packets from table")
@@ -69,9 +119,15 @@ class LivePacketsCard(BaseCard):
         layout.addLayout(toolbar)
 
         self._model = PacketTableModel()
-        self._proxy = QSortFilterProxyModel()
+        self._proxy = PacketFilterProxy()
         self._proxy.setSourceModel(self._model)
-        self._proxy.setFilterKeyColumn(-1)
+
+        # Find channel column index for filtering
+        self._channel_column_index = -1
+        for i, h in enumerate(PacketTableModel.HEADERS):
+            if h.lower() == "channel":
+                self._channel_column_index = i
+                break
 
         self._table = QTableView()
         self._table.setToolTip("All captured packets (double-click for details)")
@@ -86,17 +142,13 @@ class LivePacketsCard(BaseCard):
         self._stats_label.setToolTip("Total received/transmitted packet counts")
         layout.addWidget(self._stats_label)
 
-    def _on_filter_changed(self, text):
-        self._proxy.setFilterRegularExpression(text)
-        channel = self._channel_combo.currentText()
-        if channel == "All":
-            self._proxy.setFilterKeyColumn(-1)
-        else:
-            for i, h in enumerate(PacketTableModel.HEADERS):
-                if h.lower() == "channel":
-                    self._proxy.setFilterKeyColumn(i)
-                    self._proxy.setFilterFixedString(channel)
-                    break
+    def _on_search_text_changed(self, text):
+        self._proxy.set_search_text(text)
+        self._proxy.invalidateFilter()
+
+    def _on_channel_changed(self, channel):
+        self._proxy.set_channel(channel, self._channel_column_index)
+        self._proxy.invalidateFilter()
 
     def _on_clear(self):
         self._model.clear()
