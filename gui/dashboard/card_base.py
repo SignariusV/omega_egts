@@ -1,8 +1,14 @@
 # OMEGA_EGTS GUI
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu, QStackedWidget
-from PySide6.QtCore import Qt, Signal, QMimeData, QSize, QRect
+from PySide6.QtCore import Qt, Signal, QMimeData
 from PySide6.QtGui import QDrag
 from enum import Enum
+
+
+# Grid constants (must match container.py)
+GRID_COLS = 8
+GRID_ROWS = 8
+GRID_GAP = 6
 
 
 class DisplayState(Enum):
@@ -11,6 +17,8 @@ class DisplayState(Enum):
 
 
 class BaseCard(QFrame):
+    """Base class for dashboard cards with compact/expanded views."""
+    
     collapse_toggled = Signal(bool)
     drag_started = Signal()
     grid_size_changed = Signal(int, int)  # row_span, col_span
@@ -22,6 +30,7 @@ class BaseCard(QFrame):
         self._display_state = DisplayState.EXPANDED
         self._row_span = 4  # Default expanded size: 4x4
         self._col_span = 4
+        self._in_state_change = False
         self._stack = None
         self.setFrameStyle(QFrame.Box)
         self.setMinimumSize(240, 100)
@@ -81,6 +90,9 @@ class BaseCard(QFrame):
             grip.raise_()
             self._grips.append(grip)
 
+        # Initial positioning of grips
+        self._reposition_grips()
+
         # Drag support
         self._title_bar.mousePressEvent = self._title_mouse_press
         self._title_bar.mouseDoubleClickEvent = self._title_double_click
@@ -89,6 +101,17 @@ class BaseCard(QFrame):
         """Call after subclass has created all content widgets."""
         self.update_content_visibility(self._display_state)
 
+    def set_views(self, compact_widget, expanded_widget):
+        """Set both compact and expanded widgets.
+        
+        Args:
+            compact_widget: Widget to show in compact mode (index 0)
+            expanded_widget: Widget to show in expanded mode (index 1)
+        """
+        self._stack.clear()
+        self._stack.insertWidget(0, compact_widget)
+        self._stack.insertWidget(1, expanded_widget)
+
     def set_compact_widget(self, widget):
         """Add widget for compact view (index 0)."""
         self._stack.insertWidget(0, widget)
@@ -96,15 +119,6 @@ class BaseCard(QFrame):
     def set_expanded_widget(self, widget):
         """Add widget for expanded view (index 1)."""
         self._stack.insertWidget(1, widget)
-
-    def set_content_widget(self, widget):
-        """Backward compatibility: add widget to expanded view."""
-        if self._stack.count() == 0:
-            self._stack.insertWidget(0, widget)
-        elif self._stack.count() == 1:
-            self._stack.insertWidget(1, widget)
-        else:
-            self._stack.addWidget(widget)
 
     @property
     def title(self):
@@ -153,8 +167,6 @@ class BaseCard(QFrame):
 
     def update_content_visibility(self, state):
         """Switch stack index based on display state."""
-        if self._stack is None:
-            return
         if state == DisplayState.COMPACT:
             self._stack.setCurrentIndex(0)
         else:
@@ -174,12 +186,11 @@ class BaseCard(QFrame):
             self.toggle_collapse()
 
     def resizeEvent(self, event):
-        # Guard to prevent infinite loop during state changes
-        if hasattr(self, '_in_state_change') and self._in_state_change:
+        if self._in_state_change:
             super().resizeEvent(event)
             self._reposition_grips()
             return
-        
+
         w = event.size().width()
         if w < 320 and self._display_state != DisplayState.COMPACT:
             self._in_state_change = True
@@ -225,11 +236,8 @@ class BaseCard(QFrame):
         if not parent:
             return
 
-        GRID_COLS = 8
-        GRID_ROWS = 8
-        GRID_GAP = 6
-        cell_w = (parent.width() - (GRID_COLS - 1) * GRID_GAP) // GRID_COLS
-        cell_h = (parent.height() - (GRID_ROWS - 1) * GRID_GAP) // GRID_ROWS
+        cell_w = max(1, (parent.width() - (GRID_COLS - 1) * GRID_GAP) // GRID_COLS)
+        cell_h = max(1, (parent.height() - (GRID_ROWS - 1) * GRID_GAP) // GRID_ROWS)
 
         delta = event.globalPosition().toPoint() - self._resize_start_pos
         edge = self._resize_edge
@@ -238,19 +246,20 @@ class BaseCard(QFrame):
         new_row_span = self._resize_start_row_span
 
         if edge in (Qt.Corner.TopRightCorner, Qt.Corner.BottomRightCorner):
-            delta_cols = round(delta.x() / (cell_w + 6))
-            new_col_span = max(1, min(8, self._resize_start_col_span + delta_cols))
+            delta_cols = round(delta.x() / (cell_w + GRID_GAP))
+            new_col_span = max(1, min(GRID_COLS, self._resize_start_col_span + delta_cols))
         if edge in (Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner):
-            delta_rows = round(delta.y() / (cell_h + 6))
-            new_row_span = max(1, min(8, self._resize_start_row_span + delta_rows))
+            delta_rows = round(delta.y() / (cell_h + GRID_GAP))
+            new_row_span = max(1, min(GRID_ROWS, self._resize_start_row_span + delta_rows))
 
         if new_col_span != self._col_span or new_row_span != self._row_span:
             self.set_grid_size(new_row_span, new_col_span)
 
     def _grip_mouse_release(self, event, grip):
         """Handle mouse release on resize grip - clear state."""
+        grip.releaseMouse()
         attrs_to_clear = ['_resize_start_pos', '_resize_edge', '_resize_start_geometry',
-                         '_resize_start_row_span', '_resize_start_col_span']
+                        '_resize_start_row_span', '_resize_start_col_span']
         for attr in attrs_to_clear:
             if hasattr(self, attr):
                 delattr(self, attr)
