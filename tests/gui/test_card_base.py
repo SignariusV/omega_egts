@@ -30,12 +30,14 @@ class TestBaseCard:
         card = BaseCard("Test")
         qtbot.addWidget(card)
         card.show()
-        card.resize(300, 200)
-        qtbot.wait(10)
+        card.collapse()
+        qtbot.wait(100)
         assert card._display_state == DisplayState.COMPACT
 
     def test_expanded_state(self, qtbot):
         card = BaseCard("Test")
         qtbot.addWidget(card)
-        card.resize(600, 200)
+        card.collapse()
+        card.expand()
+        qtbot.wait(100)
         assert card._display_state == DisplayState.EXPANDED
