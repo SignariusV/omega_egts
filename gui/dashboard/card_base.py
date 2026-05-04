@@ -174,11 +174,21 @@ class BaseCard(QFrame):
             self.toggle_collapse()
 
     def resizeEvent(self, event):
+        # Guard to prevent infinite loop during state changes
+        if hasattr(self, '_in_state_change') and self._in_state_change:
+            super().resizeEvent(event)
+            self._reposition_grips()
+            return
+        
         w = event.size().width()
         if w < 320 and self._display_state != DisplayState.COMPACT:
+            self._in_state_change = True
             self._set_display_state(DisplayState.COMPACT)
+            self._in_state_change = False
         elif w >= 600 and self._display_state != DisplayState.EXPANDED:
+            self._in_state_change = True
             self._set_display_state(DisplayState.EXPANDED)
+            self._in_state_change = False
         super().resizeEvent(event)
         self._reposition_grips()
 
