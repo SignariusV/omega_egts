@@ -86,6 +86,7 @@ class DashboardContainer(QWidget):
         
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
+                card.set_grid_position(new_row, new_col)
                 self._update_card_geometry(card)
                 break
         
@@ -107,6 +108,7 @@ class DashboardContainer(QWidget):
         
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
+                card.set_grid_position(row, col)
                 self._update_card_geometry(card)
                 break
         
