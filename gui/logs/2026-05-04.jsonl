@@ -1,1 +1,2 @@
 {"log_type": "packet_sent", "timestamp": 25361.937, "connection_id": "packet_dispatcher_sms", "channel": "sms", "hex": "0100000B0021001B0001321A002A00400404331700500000000000000000000000020302696E7465726E65740D48", "step_name": "Настройка GPRS/APN", "pid": null, "rn": null}
+{"log_type": "packet_sent", "timestamp": 27284.39, "connection_id": "packet_dispatcher_sms", "channel": "sms", "hex": "0100000B0021001B0001321A002A00400404331700500000000000000000000000020302696E7465726E65740D48", "step_name": "Настройка GPRS/APN", "pid": null, "rn": null}
