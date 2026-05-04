@@ -2,9 +2,10 @@
 import asyncio
 import sys
 import logging
+from pathlib import Path
 
 import qasync
-from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox, QApplication
+from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 
@@ -13,6 +14,7 @@ from gui.dashboard.cards.system_status import SystemStatusCard
 from gui.dashboard.cards.scenario_runner import ScenarioRunnerCard
 from gui.dashboard.cards.live_packets import LivePacketsCard
 from gui.dashboard.cards.system_logs import SystemLogsCard
+from gui.dashboard.persistence import PersistenceManager
 
 from gui.bridge.engine_wrapper import EngineWrapper
 from gui.bridge.event_bridge import EventBridge
@@ -50,11 +52,15 @@ class MainWindow(QMainWindow):
         self._engine_wrapper = EngineWrapper(self._config, self._bus)
         self._event_bridge = EventBridge(self._bus)
 
+        # Persistence manager for layout/state
+        self._persistence = PersistenceManager(Path.cwd())
+
         self._dashboard = DashboardContainer()
         self.setCentralWidget(self._dashboard)
 
         self._create_cards()
         self._connect_signals()
+        self._load_layout()
 
         self._status_bar = QStatusBar()
         self.setStatusBar(self._status_bar)
@@ -62,33 +68,44 @@ class MainWindow(QMainWindow):
         self._setup_shortcuts()
 
         self._closing = False
-        self._shutdown_task = None
+
+    def _load_layout(self):
+        """Load saved layout from persistence."""
+        try:
+            snapshot = self._persistence.load_layout()
+            if snapshot:
+                self._dashboard.apply_layout_snapshot(snapshot)
+                logger.info("Loaded layout with %d cards", len(snapshot))
+        except Exception as e:
+            logger.warning("Could not load layout: %s", e)
+
+    def _save_layout(self):
+        """Save current layout to persistence."""
+        try:
+            snapshot = self._dashboard.get_layout_snapshot()
+            self._persistence.save_layout(snapshot)
+        except Exception as e:
+            logger.error("Could not save layout: %s", e)
 
     def _setup_shortcuts(self):
         """Setup keyboard shortcuts for the main window."""
-        # Ctrl+Q: Quit application
         quit_shortcut = QShortcut(QKeySequence("Ctrl+Q"), self)
         quit_shortcut.activated.connect(self.close)
 
-        # Ctrl+R: Toggle server start/stop
         toggle_shortcut = QShortcut(QKeySequence("Ctrl+R"), self)
         toggle_shortcut.activated.connect(self._on_toggle_server)
 
-        # F5: Run selected scenario
         run_shortcut = QShortcut(QKeySequence("F5"), self)
         run_shortcut.activated.connect(self._on_run_scenario_shortcut)
 
-        # Escape: Close any open overlay
         escape_shortcut = QShortcut(QKeySequence("Escape"), self)
         escape_shortcut.activated.connect(self._close_overlay_if_open)
 
-        # Ctrl+1-4: Focus specific cards
         for i, card_name in enumerate(["_status_card", "_scenario_card", "_packets_card", "_logs_card"], 1):
             if hasattr(self, card_name):
                 shortcut = QShortcut(QKeySequence(f"Ctrl+{i}"), self)
                 shortcut.activated.connect(lambda c=card_name: self._focus_card(c))
 
-        # Set focus policy for keyboard navigation
         self.setFocusPolicy(Qt.StrongFocus)
         for card in [self._status_card, self._scenario_card, self._packets_card, self._logs_card]:
             card.setFocusPolicy(Qt.StrongFocus)
@@ -106,7 +123,6 @@ class MainWindow(QMainWindow):
 
     def _close_overlay_if_open(self):
         """Close any open overlay dialog."""
-        # Placeholder for overlay support
         pass
 
     def _focus_card(self, card_attr: str):
@@ -122,11 +138,12 @@ class MainWindow(QMainWindow):
         self._packets_card = LivePacketsCard()
         self._logs_card = SystemLogsCard()
 
-        # Cards in 8x8 grid, expanded size 4x4
-        self._dashboard.add_card(self._status_card, row=0, col=0)  # Top-left
-        self._dashboard.add_card(self._scenario_card, row=0, col=4)  # Top-right
-        self._dashboard.add_card(self._packets_card, row=4, col=0)  # Bottom-left
-        self._dashboard.add_card(self._logs_card, row=4, col=4)  # Bottom-right
+        self._dashboard.add_card(self._status_card, row=0, col=0)
+        self._dashboard.add_card(self._scenario_card, row=0, col=4)
+        self._dashboard.add_card(self._packets_card, row=4, col=0)
+        self._dashboard.add_card(self._logs_card, row=4, col=4)
+
+        self._dashboard.cards_changed.connect(self._save_layout)
 
     def _connect_signals(self):
         eb = self._event_bridge
@@ -176,12 +193,11 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """Handle window close - stop engine gracefully."""
         if self._closing:
-            # Already closing, accept immediately
             event.accept()
             return
-        
+
         self._closing = True
-        event.ignore()  # Don't close yet
+        event.ignore()
 
         async def shutdown():
             try:
@@ -189,14 +205,14 @@ class MainWindow(QMainWindow):
             except Exception:
                 pass
             finally:
-                QApplication.quit()
+                self._closing = False
+                self.close()
 
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 asyncio.ensure_future(shutdown())
             else:
-                # Loop not running, just close
                 event.accept()
         except RuntimeError:
             event.accept()
