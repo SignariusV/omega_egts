@@ -65,10 +65,11 @@ class MainWindow(QMainWindow):
         self._packets_card = LivePacketsCard()
         self._logs_card = SystemLogsCard()
 
-        self._dashboard.add_card(self._status_card, 0, 0)
-        self._dashboard.add_card(self._scenario_card, 0, 1)
-        self._dashboard.add_card(self._packets_card, 1, 0)
-        self._dashboard.add_card(self._logs_card, 1, 1)
+        # Cards in 8x8 grid, expanded size 4x4
+        self._dashboard.add_card(self._status_card, row=0, col=0)  # Top-left
+        self._dashboard.add_card(self._scenario_card, row=0, col=4)  # Top-right
+        self._dashboard.add_card(self._packets_card, row=4, col=0)  # Bottom-left
+        self._dashboard.add_card(self._logs_card, row=4, col=4)  # Bottom-right
 
     def _connect_signals(self):
         eb = self._event_bridge

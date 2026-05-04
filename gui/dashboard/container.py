@@ -93,6 +93,33 @@ class DashboardContainer(QWidget):
             for c, r, col, rs, cs in self._cards
         ]
 
+    def load_layout(self, snapshot: list[dict]):
+        """Load a layout from a snapshot."""
+        # Clear current layout
+        for card, _, _, _, _ in self._cards:
+            card.setParent(None)
+        self._cards.clear()
+
+        # Load from snapshot
+        for item in snapshot:
+            card_id = item.get("id")
+            row = item.get("row", 0)
+            col = item.get("col", 0)
+            row_span = item.get("row_span", 1)
+            col_span = item.get("col_span", 1)
+
+            card = self.find_card_by_id(card_id)
+            if card:
+                card.setParent(self)
+                card.show()
+                self._cards.append((card, row, col, row_span, col_span))
+                card.destroyed.connect(lambda c=card: self._on_card_destroyed(c))
+                card.drag_started.connect(lambda c=card: self._on_drag_start(c))
+                card.grid_size_changed.connect(lambda rs, cs, c=card: self._on_grid_size_changed(c, rs, cs))
+                self._position_card(card, row, col, row_span, col_span)
+
+        self.cards_changed.emit()
+
     def find_card_by_id(self, card_id: int):
         """Find a card by its id."""
         for c, r, col, rs, cs in self._cards:
