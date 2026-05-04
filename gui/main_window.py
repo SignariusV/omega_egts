@@ -4,9 +4,9 @@ import sys
 import logging
 
 import qasync
-from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox, QShortcut
-from PySide6.QtCore import QTimer, QSize
-from PySide6.QtGui import QKeySequence
+from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox
+from PySide6.QtCore import Qt, QTimer, QSize
+from PySide6.QtGui import QKeySequence, QShortcut
 
 from gui.dashboard.container import DashboardContainer
 from gui.dashboard.cards.system_status import SystemStatusCard
@@ -182,4 +182,11 @@ class MainWindow(QMainWindow):
             finally:
                 event.accept()
 
-        asyncio.ensure_future(shutdown())
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.ensure_future(shutdown())
+            else:
+                event.accept()
+        except RuntimeError:
+            event.accept()

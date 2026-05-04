@@ -55,7 +55,8 @@ def test_move_card(qtbot):
     container = DashboardContainer()
     qtbot.addWidget(container)
     card = BaseCard("Test")
-    container.add_card(card, 0, 0)
+    container.add_card(card, 0, 0)  # Adds with default grid_size (4, 4)
     card_id = id(card)
     container.move_card(card_id, 1, 1)
-    assert container._cards[card_id] == (1, 1, 1, 1)
+    # Position changed, but grid_size (row_span, col_span) preserved
+    assert container._cards[card_id] == (1, 1, 4, 4)

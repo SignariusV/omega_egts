@@ -23,7 +23,7 @@ class BaseCard(QFrame):
         self._row_span = 4  # Default expanded size: 4x4
         self._col_span = 4
         self.setFrameStyle(QFrame.Box)
-        self.setMinimumSize(100, 60)
+        self.setMinimumSize(240, 100)
         self._init_ui()
         # Animation for collapse/expand
         self._anim = QPropertyAnimation(self._content, b"maximumHeight")

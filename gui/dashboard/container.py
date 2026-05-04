@@ -1,6 +1,6 @@
 # OMEGA_EGTS GUI
-from PySide6.QtWidgets import QWidget, QFrame
-from PySide6.QtCore import Signal, Qt, QRect, QPoint
+from PySide6.QtWidgets import QWidget, QGridLayout
+from PySide6.QtCore import Signal, Qt
 from gui.dashboard.card_base import BaseCard
 
 
@@ -14,10 +14,10 @@ class DashboardContainer(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._cards = []  # list of (card: BaseCard, row: int, col: int, row_span: int, col_span: int)
-        self._drag_card = None
-        self._drag_start_pos = None
-        self._drag_start_geometry = None
+        self._grid = QGridLayout(self)
+        self._grid.setContentsMargins(0, 0, 0, 0)
+        self._grid.setSpacing(GRID_GAP)
+        self._cards = {}  # id -> (row, col, row_span, col_span)
         self.setAcceptDrops(True)
 
     def add_card(self, card: BaseCard, row: int = 0, col: int = 0, row_span: int = None, col_span: int = None):
@@ -27,78 +27,67 @@ class DashboardContainer(QWidget):
         # Use card's grid size if not specified
         if row_span is None or col_span is None:
             row_span, col_span = card.grid_size
-        self._cards.append((card, row, col, row_span, col_span))
-        card.destroyed.connect(lambda: self._on_card_destroyed(card))
+        card_id = id(card)
+        self._grid.addWidget(card, row, col, row_span, col_span)
+        self._cards[card_id] = (row, col, row_span, col_span)
+        card.destroyed.connect(lambda: self.remove_card(card_id))
         card.drag_started.connect(lambda: self._on_drag_start(card))
         card.grid_size_changed.connect(lambda rs, cs: self._on_grid_size_changed(card, rs, cs))
-        self._position_card(card, row, col, row_span, col_span)
         self.cards_changed.emit()
 
-    def _on_card_destroyed(self, card):
-        self._cards = [(c, r, col, rs, cs) for c, r, col, rs, cs in self._cards if c != card]
+    def remove_card(self, card_id):
+        """Remove a card from the dashboard."""
+        if card_id not in self._cards:
+            return
+        # Find the card widget
+        for card in self.findChildren(BaseCard):
+            if id(card) == card_id:
+                self._grid.removeWidget(card)
+                card.setParent(None)
+                break
+        del self._cards[card_id]
         self.cards_changed.emit()
 
-    def _on_drag_start(self, card):
-        self._drag_card = card
-        self._drag_start_pos = card.pos()
-        self._drag_start_geometry = card.geometry()
+    def move_card(self, card_id, new_row, new_col):
+        """Move a card to a new grid position."""
+        if card_id not in self._cards:
+            return
+        # Find the card widget
+        for card in self.findChildren(BaseCard):
+            if id(card) == card_id:
+                row_span, col_span = self._cards[card_id][2], self._cards[card_id][3]
+                self._grid.removeWidget(card)
+                self._grid.addWidget(card, new_row, new_col, row_span, col_span)
+                self._cards[card_id] = (new_row, new_col, row_span, col_span)
+                self.cards_changed.emit()
+                break
 
     def _on_grid_size_changed(self, card, row_span, col_span):
-        for i, (c, r, col, rs, cs) in enumerate(self._cards):
-            if c == card:
-                self._cards[i] = (c, r, col, row_span, col_span)
-                self._position_card(c, r, col, row_span, col_span)
-                self.cards_changed.emit()
-                break
+        """Handle card grid size change."""
+        card_id = id(card)
+        if card_id in self._cards:
+            row, col = self._cards[card_id][0], self._cards[card_id][1]
+            self._grid.removeWidget(card)
+            self._grid.addWidget(card, row, col, row_span, col_span)
+            self._cards[card_id] = (row, col, row_span, col_span)
+            self.cards_changed.emit()
 
-    def _position_card(self, card, row, col, row_span, col_span):
-        """Position a card at the specified grid cell with given spans."""
-        cell_w = (self.width() - GRID_GAP * (GRID_COLS + 1)) // GRID_COLS
-        cell_h = (self.height() - GRID_GAP * (GRID_ROWS + 1)) // GRID_ROWS
-        x = GRID_GAP + col * (cell_w + GRID_GAP)
-        y = GRID_GAP + row * (cell_h + GRID_GAP)
-        w = col_span * cell_w + (col_span - 1) * GRID_GAP
-        h = row_span * cell_h + (row_span - 1) * GRID_GAP
-        card.setGeometry(QRect(x, y, w, h))
-
-    def _snap_to_grid(self, pos: QPoint) -> tuple:
-        """Snap a position to the nearest grid cell."""
-        cell_w = (self.width() - GRID_GAP * (GRID_COLS + 1)) // GRID_COLS
-        cell_h = (self.height() - GRID_GAP * (GRID_ROWS + 1)) // GRID_ROWS
-        col = max(0, min(GRID_COLS - 1, (pos.x() - GRID_GAP) // (cell_w + GRID_GAP)))
-        row = max(0, min(GRID_ROWS - 1, (pos.y() - GRID_GAP) // (cell_h + GRID_GAP)))
-        return (row, col)
-
-    def _grid_pos_to_point(self, row, col) -> QPoint:
-        """Convert grid position to widget point."""
-        cell_w = (self.width() - GRID_GAP * (GRID_COLS + 1)) // GRID_COLS
-        cell_h = (self.height() - GRID_GAP * (GRID_ROWS + 1)) // GRID_ROWS
-        x = GRID_GAP + col * (cell_w + GRID_GAP)
-        y = GRID_GAP + row * (cell_h + GRID_GAP)
-        return QPoint(x, y)
-
-    def move_card(self, card, new_row, new_col):
-        """Move a card to a new grid position."""
-        for i, (c, r, col, rs, cs) in enumerate(self._cards):
-            if c == card:
-                self._cards[i] = (c, new_row, new_col, rs, cs)
-                self._position_card(c, new_row, new_col, rs, cs)
-                self.cards_changed.emit()
-                break
+    def _on_drag_start(self, card):
+        """Handle drag start."""
+        pass  # Placeholder for drag-and-drop
 
     def get_layout_snapshot(self):
         """Return the current layout as a list of dicts."""
         return [
-            {"id": id(c), "row": r, "col": col, "row_span": rs, "col_span": cs}
-            for c, r, col, rs, cs in self._cards
+            {"id": cid, "row": r, "col": c, "row_span": rs, "col_span": cs}
+            for cid, (r, c, rs, cs) in self._cards.items()
         ]
 
     def load_layout(self, snapshot: list[dict]):
         """Load a layout from a snapshot."""
         # Clear current layout
-        for card, _, _, _, _ in self._cards:
-            card.setParent(None)
-        self._cards.clear()
+        for card_id in list(self._cards.keys()):
+            self.remove_card(card_id)
 
         # Load from snapshot
         for item in snapshot:
@@ -108,40 +97,36 @@ class DashboardContainer(QWidget):
             row_span = item.get("row_span", 1)
             col_span = item.get("col_span", 1)
 
-            card = self.find_card_by_id(card_id)
-            if card:
-                card.setParent(self)
-                card.show()
-                self._cards.append((card, row, col, row_span, col_span))
-                card.destroyed.connect(lambda c=card: self._on_card_destroyed(c))
-                card.drag_started.connect(lambda c=card: self._on_drag_start(c))
-                card.grid_size_changed.connect(lambda rs, cs, c=card: self._on_grid_size_changed(c, rs, cs))
-                self._position_card(card, row, col, row_span, col_span)
+            # Find the card by id
+            for card in self.findChildren(BaseCard):
+                if id(card) == card_id:
+                    card.setParent(self)
+                    card.show()
+                    self._grid.addWidget(card, row, col, row_span, col_span)
+                    self._cards[card_id] = (row, col, row_span, col_span)
+                    card.destroyed.connect(lambda cid=card_id: self.remove_card(cid))
+                    card.drag_started.connect(lambda: self._on_drag_start(card))
+                    card.grid_size_changed.connect(lambda rs, cs, c=card: self._on_grid_size_changed(c, rs, cs))
+                    break
 
         self.cards_changed.emit()
 
-    def find_card_by_id(self, card_id: int):
-        """Find a card by its id."""
-        for c, r, col, rs, cs in self._cards:
-            if id(c) == card_id:
-                return c
-        return None
-
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        # Reposition all cards
-        for card, row, col, row_span, col_span in self._cards:
-            self._position_card(card, row, col, row_span, col_span)
+        # Reposition all cards if needed
+        for card_id, (row, col, row_span, col_span) in self._cards.items():
+            for card in self.findChildren(BaseCard):
+                if id(card) == card_id:
+                    self._grid.removeWidget(card)
+                    self._grid.addWidget(card, row, col, row_span, col_span)
+                    break
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
             event.acceptProposedAction()
 
     def dragMoveEvent(self, event):
-        if event.mimeData().hasText() and self._drag_card:
-            pos = event.position().toPoint()
-            row, col = self._snap_to_grid(pos)
-            # Show preview position - could add visual feedback here
+        if event.mimeData().hasText():
             event.acceptProposedAction()
 
     def dropEvent(self, event):
@@ -151,10 +136,15 @@ class DashboardContainer(QWidget):
             card_id = int(event.mimeData().text())
         except ValueError:
             return
-        card = self.find_card_by_id(card_id)
-        if not card:
-            return
-        pos = event.position().toPoint()
-        row, col = self._snap_to_grid(pos)
-        self.move_card(card, row, col)
+        # Find the card and move it to the drop position
+        for card in self.findChildren(BaseCard):
+            if id(card) == card_id:
+                pos = event.position().toPoint()
+                # Calculate grid position from drop position
+                col_width = self.width() // GRID_COLS
+                row_height = self.height() // GRID_ROWS
+                new_col = max(0, min(GRID_COLS - 1, pos.x() // col_width))
+                new_row = max(0, min(GRID_ROWS - 1, pos.y() // row_height))
+                self.move_card(card_id, new_row, new_col)
+                break
         event.acceptProposedAction()
