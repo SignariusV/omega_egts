@@ -1,0 +1,7 @@
+2026-04-29 14:13:27.984 - core.python_logger - INFO - ============================================================
+2026-04-29 14:13:27.984 - core.python_logger - INFO - Python logging initialized
+2026-04-29 14:13:27.984 - core.python_logger - INFO - Session ID: 20260429-141327
+2026-04-29 14:13:27.984 - core.python_logger - INFO - Log file: logs\python-20260429-141327.log
+2026-04-29 14:13:27.984 - core.python_logger - INFO - Console level: ERROR, File level: DEBUG
+2026-04-29 14:13:27.984 - core.python_logger - INFO - Rotation: 10485760 bytes, 5 backups
+2026-04-29 14:13:27.984 - core.python_logger - INFO - ============================================================

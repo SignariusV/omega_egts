@@ -1,0 +1,2 @@
+{"log_type": "connection", "timestamp": 105610.156, "connection_id": null, "state": "CONNECTED", "prev_state": null}
+{"log_type": "connection", "timestamp": 105698.25, "connection_id": "test-conn-1", "state": "CONNECTED", "prev_state": "DISCONNECTED"}
