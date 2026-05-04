@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
 
         self._setup_shortcuts()
 
+        self._closing = False
         self._shutdown_task = None
 
     def _setup_shortcuts(self):
@@ -196,7 +197,6 @@ class MainWindow(QMainWindow):
                 asyncio.ensure_future(shutdown())
             else:
                 # Loop not running, just close
-                self._closing = False
                 event.accept()
         except RuntimeError:
             event.accept()
