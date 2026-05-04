@@ -55,8 +55,7 @@ def generate_qss(theme: dict) -> str:
     QFrame[class="TitleBar"] {{
         background-color: {theme['title_bg']};
         border-bottom: 1px solid {theme['border']};
-        border-top-left-radius: {border_radius};
-        border-top-right-radius: {border_radius};
+        border-radius: {border_radius};
     }}
 
     QLabel#titleLabel {{
