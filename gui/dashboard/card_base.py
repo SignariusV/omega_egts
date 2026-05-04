@@ -129,6 +129,10 @@ class BaseCard(QFrame):
         self._display_state = state
         self.update_content_visibility(state)
 
+    def _on_anim_finished(self):
+        """Called when collapse/expand animation finishes."""
+        pass
+
     def update_content_visibility(self, state):
         """Update content based on display state. Override in child classes."""
         pass
@@ -145,3 +149,16 @@ class BaseCard(QFrame):
     def _title_double_click(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.toggle_collapse()
+
+    def _show_context_menu(self, pos):
+        menu = QMenu(self)
+        if self._collapsed:
+            expand_action = menu.addAction("Expand")
+            expand_action.triggered.connect(self.expand)
+        else:
+            collapse_action = menu.addAction("Collapse")
+            collapse_action.triggered.connect(self.collapse)
+        menu.addSeparator()
+        close_action = menu.addAction("Close")
+        close_action.triggered.connect(self.hide)
+        menu.exec(self.mapToGlobal(pos))
