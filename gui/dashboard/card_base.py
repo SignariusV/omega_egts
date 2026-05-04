@@ -23,9 +23,10 @@ class BaseCard(QFrame):
     drag_started = Signal()
     grid_size_changed = Signal(int, int)  # row_span, col_span
 
-    def __init__(self, title: str, parent=None):
+    def __init__(self, title: str, card_id: str = None, parent=None):
         super().__init__(parent)
         self._title = title
+        self._card_id = card_id or title.lower().replace(" ", "_")
         self._collapsed = False
         self._display_state = DisplayState.EXPANDED
         self._row_span = 4  # Default expanded size: 4x4
@@ -149,6 +150,11 @@ class BaseCard(QFrame):
     def title(self, value):
         self._title = value
         self._title_label.setText(value)
+
+    @property
+    def card_id(self) -> str:
+        """Unique identifier for this card (used for layout persistence)."""
+        return self._card_id
 
     @property
     def grid_size(self):

@@ -13,7 +13,7 @@ class SystemStatusCard(BaseCard):
     stop_requested = Signal()
 
     def __init__(self, parent=None):
-        super().__init__("System Status", parent)
+        super().__init__("System Status", card_id="system_status", parent=parent)
         self._server_running = False
         self._cmw_connected = False
         self._server_port = 8090

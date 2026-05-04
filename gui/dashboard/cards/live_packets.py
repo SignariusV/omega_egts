@@ -70,7 +70,7 @@ class CompactProxyModel(QSortFilterProxyModel):
 
 class LivePacketsCard(BaseCard):
     def __init__(self, parent=None):
-        super().__init__("Live Packets", parent)
+        super().__init__("Live Packets", card_id="live_packets", parent=parent)
         self._build_widgets()
         self.finish_init()
 
