@@ -3,6 +3,7 @@ import asyncio
 import sys
 import logging
 
+import qasync
 from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox
 from PySide6.QtCore import QTimer
 
@@ -93,6 +94,7 @@ class MainWindow(QMainWindow):
         self._status_card.stop_requested.connect(self._on_stop_requested)
         self._scenario_card.run_requested.connect(self._on_run_scenario)
 
+    @qasync.asyncSlot()
     async def _on_start_requested(self):
         try:
             await self._engine_wrapper.start()
@@ -100,6 +102,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to start: {e}")
 
+    @qasync.asyncSlot()
     async def _on_stop_requested(self):
         try:
             await self._engine_wrapper.stop()
@@ -107,6 +110,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to stop: {e}")
 
+    @qasync.asyncSlot(str)
     async def _on_run_scenario(self, path):
         try:
             await self._engine_wrapper.run_scenario(path)
@@ -119,6 +123,7 @@ class MainWindow(QMainWindow):
                 await self._engine_wrapper.stop()
             except Exception:
                 pass
+            finally:
+                event.accept()
 
-        asyncio.get_event_loop().run_until_complete(shutdown())
-        event.accept()
+        asyncio.ensure_future(shutdown())
