@@ -25,9 +25,7 @@ class BaseCard(QFrame):
         self.setFrameStyle(QFrame.Box)
         self.setMinimumSize(100, 60)
         self._init_ui()
-        self._anim = QPropertyAnimation(self._content, b"maximumHeight")
-        self._anim.setDuration(150)
-        self._anim.setEasingCurve(QEasingCurve.InOutQuad)
+        # Animation removed - use grid size change for visual feedback
 
     def _init_ui(self):
         main_layout = QVBoxLayout(self)
@@ -63,6 +61,10 @@ class BaseCard(QFrame):
         self._title_bar.mousePressEvent = self._title_mouse_press
         self._title_bar.mouseDoubleClickEvent = self._title_double_click
 
+    def finish_init(self):
+        """Call after subclass has created all content widgets."""
+        self.update_content_visibility(self._display_state)
+
     def set_content_widget(self, widget):
         self._content_layout.addWidget(widget)
 
@@ -93,10 +95,8 @@ class BaseCard(QFrame):
 
     def collapse(self):
         if not self._collapsed:
-            self._anim.setStartValue(self._content.height())
-            self._anim.setEndValue(0)
-            self._anim.start()
             self._collapsed = True
+            self.update_content_visibility(DisplayState.COMPACT)
             self._collapse_btn.setText("\u25B2")
             self.collapse_toggled.emit(True)
             # Collapsed: 2x1 in grid
@@ -104,11 +104,8 @@ class BaseCard(QFrame):
 
     def expand(self):
         if self._collapsed:
-            hint = self._content.sizeHint().height()
-            self._anim.setStartValue(0)
-            self._anim.setEndValue(hint)
-            self._anim.start()
             self._collapsed = False
+            self.update_content_visibility(DisplayState.EXPANDED)
             self._collapse_btn.setText("\u25BC")
             self.collapse_toggled.emit(False)
             # Expanded: 4x4 in grid
@@ -127,6 +124,7 @@ class BaseCard(QFrame):
         self.update_content_visibility(state)
 
     def update_content_visibility(self, state):
+        """Update content based on display state. Override in child classes."""
         pass
 
     def _title_mouse_press(self, event):
