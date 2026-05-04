@@ -17,32 +17,63 @@ THEME_VSCODE_DARK = {
     "header_bg": "#333333",
     "input_bg": "#3C3C3C",
     "font_main": "Segoe UI",
-    "font_mono": "Consolas"
+    "font_mono": "Consolas",
+    "grip_bg": "rgba(0, 120, 215, 30)",
+    "grip_border": "rgba(0, 120, 215, 100)",
+    "grip_hover": "rgba(0, 120, 215, 80)",
 }
 
 
 def generate_qss(theme: dict) -> str:
     font_main = theme.get("font_main", "Segoe UI")
     font_mono = theme.get("font_mono", "Consolas")
+    
+    grip_bg = theme.get("grip_bg", "rgba(0, 120, 215, 30)")
+    grip_border = theme.get("grip_border", "rgba(0, 120, 215, 100)")
+    grip_hover = theme.get("grip_hover", "rgba(0, 120, 215, 80)")
+    
     return f"""
     QMainWindow {{
         background-color: {theme['bg']};
         color: {theme['text']};
         font-family: "{font_main}";
     }}
-    QFrame {{
-        border: 1px solid {theme['border']};
-        border-radius: 4px;
-    }}
+
     QFrame[class="CardWidget"] {{
         background-color: {theme['card_bg']};
         border: 1px solid {theme['border']};
         border-radius: 6px;
     }}
+
     QFrame[class="TitleBar"] {{
         background-color: {theme['title_bg']};
         border-bottom: 1px solid {theme['border']};
     }}
+
+    QLabel#titleLabel {{
+        color: {theme['text']};
+        font-family: "{font_main}";
+        font-weight: bold;
+    }}
+
+    QToolButton#collapseButton {{
+        background-color: transparent;
+        border: none;
+        color: {theme['text']};
+    }}
+    QToolButton#collapseButton:hover {{
+        color: {theme['accent']};
+    }}
+
+    QFrame#resizeGrip {{
+        background-color: {grip_bg};
+        border: 1px solid {grip_border};
+        border-radius: 2px;
+    }}
+    QFrame#resizeGrip:hover {{
+        background-color: {grip_hover};
+    }}
+
     QPushButton {{
         background-color: {theme['accent']};
         color: white;

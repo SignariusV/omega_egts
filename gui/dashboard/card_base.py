@@ -34,7 +34,7 @@ class BaseCard(QFrame):
         self._grid_col = 0
         self._in_state_change = False
         self._stack = None
-        self.setFrameStyle(QFrame.Box)
+        self.setProperty("class", "CardWidget")
         self.setMinimumSize(240, 100)
         self._init_ui()
 
@@ -47,15 +47,17 @@ class BaseCard(QFrame):
 
         # TitleBar
         self._title_bar = QFrame()
+        self._title_bar.setProperty("class", "TitleBar")
         self._title_bar.setFixedHeight(32)
         self._title_bar.setCursor(Qt.CursorShape.OpenHandCursor)
         title_layout = QHBoxLayout(self._title_bar)
         title_layout.setContentsMargins(8, 4, 8, 4)
         self._title_label = QLabel(self._title)
-        self._title_label.setStyleSheet("font-weight: bold;")
+        self._title_label.setObjectName("titleLabel")
         title_layout.addWidget(self._title_label)
         title_layout.addStretch()
         self._collapse_btn = QToolButton()
+        self._collapse_btn.setObjectName("collapseButton")
         self._collapse_btn.setText("\u25BC")
         self._collapse_btn.setFixedSize(20, 20)
         self._collapse_btn.clicked.connect(self.toggle_collapse)
@@ -72,17 +74,8 @@ class BaseCard(QFrame):
         self._grips = []
         for edge in [Qt.Corner.TopLeftCorner, Qt.Corner.TopRightCorner, Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner]:
             grip = QFrame(self)
+            grip.setObjectName("resizeGrip")
             grip.setFixedSize(10, 10)
-            grip.setStyleSheet("""
-                QFrame {
-                    background-color: rgba(0, 120, 215, 30);
-                    border: 1px solid rgba(0, 120, 215, 100);
-                    border-radius: 2px;
-                }
-                QFrame:hover {
-                    background-color: rgba(0, 120, 215, 80);
-                }
-            """)
             grip.setCursor(Qt.CursorShape.SizeFDiagCursor if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomRightCorner) else Qt.CursorShape.SizeBDiagCursor)
             grip.edge = edge
             grip.mousePressEvent = lambda event, g=grip: self._grip_mouse_press(event, g)
