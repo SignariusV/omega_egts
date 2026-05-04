@@ -50,6 +50,7 @@ def generate_qss(theme: dict) -> str:
         background-color: {theme['card_bg']};
         border: 1px solid {theme['border']};
         border-radius: {border_radius};
+        padding: 4px;
     }}
 
     QFrame[class="TitleBar"] {{
