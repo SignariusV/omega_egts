@@ -72,8 +72,7 @@ class ScenarioRunnerCard(BaseCard):
     def _build_widgets(self):
         self._build_compact_ui()
         self._build_expanded_ui()
-        self.set_compact_widget(self._compact_widget)
-        self.set_expanded_widget(self._expanded_widget)
+        self.set_views(self._compact_widget, self._expanded_widget)
 
     def _build_compact_ui(self):
         self._compact_widget = QWidget()
@@ -86,7 +85,7 @@ class ScenarioRunnerCard(BaseCard):
         self._run_btn_compact = QPushButton("Run")
         self._run_btn_compact.setFixedWidth(50)
         self._run_btn_compact.setToolTip("Run selected scenario (F5)")
-self._run_btn_compact.clicked.connect(self.on_run_clicked)
+        self._run_btn_compact.clicked.connect(self.on_run_clicked)
         layout.addWidget(self._run_btn_compact)
         layout.addStretch()
 

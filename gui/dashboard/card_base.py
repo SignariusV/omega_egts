@@ -1,5 +1,5 @@
 # OMEGA_EGTS GUI
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu, QStackedWidget
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu, QStackedWidget, QWidget
 from PySide6.QtCore import Qt, Signal, QMimeData
 from PySide6.QtGui import QDrag
 from enum import Enum
@@ -104,20 +104,37 @@ class BaseCard(QFrame):
     def set_views(self, compact_widget, expanded_widget):
         """Set both compact and expanded widgets.
         
+        Clears the stack and inserts widgets at indices 0 (compact) and 1 (expanded).
+        This is the preferred method for registering card views.
+        
         Args:
-            compact_widget: Widget to show in compact mode (index 0)
-            expanded_widget: Widget to show in expanded mode (index 1)
+            compact_widget: QWidget to show in compact mode (index 0)
+            expanded_widget: QWidget to show in expanded mode (index 1)
         """
         self._stack.clear()
         self._stack.insertWidget(0, compact_widget)
         self._stack.insertWidget(1, expanded_widget)
 
-    def set_compact_widget(self, widget):
-        """Add widget for compact view (index 0)."""
+    def set_compact_widget(self, widget: QWidget):
+        """Add widget for compact view (index 0).
+        
+        Note: Call set_expanded_widget after this to ensure proper index order.
+        For new code, prefer set_views() instead.
+        
+        Args:
+            widget: QWidget to display in compact mode
+        """
         self._stack.insertWidget(0, widget)
 
-    def set_expanded_widget(self, widget):
-        """Add widget for expanded view (index 1)."""
+    def set_expanded_widget(self, widget: QWidget):
+        """Add widget for expanded view (index 1).
+        
+        Note: Call after set_compact_widget to ensure proper index order.
+        For new code, prefer set_views() instead.
+        
+        Args:
+            widget: QWidget to display in expanded mode
+        """
         self._stack.insertWidget(1, widget)
 
     @property

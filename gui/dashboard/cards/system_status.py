@@ -24,8 +24,7 @@ class SystemStatusCard(BaseCard):
     def _build_widgets(self):
         self._compact_widget = CompactStatusWidget()
         self._build_expanded_ui()
-        self.set_compact_widget(self._compact_widget)
-        self.set_expanded_widget(self._expanded_widget)
+        self.set_views(self._compact_widget, self._expanded_widget)
 
     def _build_expanded_ui(self):
         self._expanded_widget = QWidget()

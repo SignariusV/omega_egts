@@ -79,8 +79,7 @@ class LivePacketsCard(BaseCard):
         self._build_expanded_ui()
         self._build_compact_ui()
 
-        self.set_compact_widget(self._compact_widget)
-        self.set_expanded_widget(self._expanded_widget)
+        self.set_views(self._compact_widget, self._expanded_widget)
 
     def _build_compact_ui(self):
         self._compact_widget = QWidget()
