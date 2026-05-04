@@ -86,8 +86,7 @@ class ScenarioRunnerCard(BaseCard):
         self._run_btn_compact = QPushButton("Run")
         self._run_btn_compact.setFixedWidth(50)
         self._run_btn_compact.setToolTip("Run selected scenario (F5)")
-        self._run_btn_compact.clicked.connect(self._on_run_clicked)
-        layout.addWidget(self._combo_compact)
+self._run_btn_compact.clicked.connect(self.on_run_clicked)
         layout.addWidget(self._run_btn_compact)
         layout.addStretch()
 
@@ -106,7 +105,7 @@ class ScenarioRunnerCard(BaseCard):
         toolbar.addStretch()
         self._run_btn = QPushButton("Run")
         self._run_btn.setToolTip("Run selected scenario (F5)")
-        self._run_btn.clicked.connect(self._on_run_clicked)
+        self._run_btn.clicked.connect(self.on_run_clicked)
         self._stop_btn = QPushButton("Stop")
         self._stop_btn.setToolTip("Stop running scenario")
         self._stop_btn.setEnabled(False)
@@ -141,7 +140,7 @@ class ScenarioRunnerCard(BaseCard):
         self._combo_compact.currentIndexChanged.connect(self._combo_expanded.setCurrentIndex)
         self._combo_expanded.currentIndexChanged.connect(self._combo_compact.setCurrentIndex)
 
-    def _on_run_clicked(self):
+    def on_run_clicked(self):
         combo = self._combo_expanded if self._display_state == DisplayState.EXPANDED else self._combo_compact
         idx = combo.currentIndex()
         if idx >= 0:

@@ -135,6 +135,9 @@ class SystemStatusCard(BaseCard):
             status = "Connected" if self._cmw_connected else "Disconnected"
             self._compact_widget.set_cmw_status(self._cmw_connected, status)
 
+    def is_server_running(self) -> bool:
+        return self._server_running
+
     def get_state(self) -> dict:
         return {
             "server_running": self._server_running,

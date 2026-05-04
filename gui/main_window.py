@@ -5,7 +5,7 @@ import logging
 
 import qasync
 from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox
-from PySide6.QtCore import Qt, QTimer, QSize
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 
 from gui.dashboard.container import DashboardContainer
@@ -94,15 +94,14 @@ class MainWindow(QMainWindow):
 
     def _on_toggle_server(self):
         """Toggle server start/stop via keyboard shortcut."""
-        if self._status_card._server_running:
+        if self._status_card.is_server_running():
             asyncio.ensure_future(self._on_stop_requested())
         else:
             asyncio.ensure_future(self._on_start_requested())
 
     def _on_run_scenario_shortcut(self):
         """Run scenario via F5 shortcut."""
-        if hasattr(self._scenario_card, 'on_run_clicked'):
-            self._scenario_card.on_run_clicked()
+        self._scenario_card.on_run_clicked()
 
     def _close_overlay_if_open(self):
         """Close any open overlay dialog."""
@@ -144,7 +143,7 @@ class MainWindow(QMainWindow):
         eb.command_error.connect(self._scenario_card.on_command_error)
 
         eb.cmw_error.connect(lambda msg: self._status_bar.showMessage(f"CMW Error: {msg}", 5000))
-        eb.command_error.connect(lambda data: self._status_bar.showMessage(f"Command Error: {data}", 5000))
+        eb.command_error.connect(lambda data: self._status_bar.showMessage(f"Command Error: {data.get('error', data)}", 5000))
 
         self._status_card.start_requested.connect(self._on_start_requested)
         self._status_card.stop_requested.connect(self._on_stop_requested)
@@ -174,14 +173,17 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Scenario Error", str(e))
 
     def closeEvent(self, event):
+        """Handle window close - stop engine gracefully."""
+        event.ignore()  # Don't close yet
+        
         async def shutdown():
             try:
                 await self._engine_wrapper.stop()
             except Exception:
                 pass
             finally:
-                event.accept()
-
+                self.close()  # Close after shutdown completes
+        
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
