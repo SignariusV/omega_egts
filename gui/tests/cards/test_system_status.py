@@ -23,7 +23,7 @@ class TestSystemStatusCard:
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.COMPACT)
         assert card._display_state == DisplayState.COMPACT
-        assert card._current_widget == card._compact_widget
+        assert card._stack.currentIndex() == 0
         assert card._compact_widget._server_indicator.get_color() == "#F44747"
         assert card._compact_widget._cmw_indicator.get_color() == "#F44747"
 
@@ -33,7 +33,7 @@ class TestSystemStatusCard:
         card.resize(600, 400)
         qtbot.wait(50)
         assert card._display_state == DisplayState.EXPANDED
-        assert card._current_widget == card._expanded_widget
+        assert card._stack.currentIndex() == 1
 
     def test_cmw_status_signal_updates(self, qtbot):
         card = SystemStatusCard()

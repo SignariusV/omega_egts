@@ -18,17 +18,17 @@ class SystemStatusCard(BaseCard):
         self._cmw_connected = False
         self._server_port = 8090
         self._cmw_data = {}
-        self._current_widget = None
         self._build_widgets()
-        self._show_expanded()
         self.finish_init()
 
     def _build_widgets(self):
         self._compact_widget = CompactStatusWidget()
-        self._expanded_widget = QWidget()
         self._build_expanded_ui()
+        self.set_compact_widget(self._compact_widget)
+        self.set_expanded_widget(self._expanded_widget)
 
     def _build_expanded_ui(self):
+        self._expanded_widget = QWidget()
         layout = QVBoxLayout(self._expanded_widget)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(8)
@@ -72,31 +72,10 @@ class SystemStatusCard(BaseCard):
         layout.addWidget(cmw_group)
         layout.addStretch()
 
-    def _show_compact(self):
-        if self._current_widget != self._compact_widget:
-            self._clear_content()
-            self.set_content_widget(self._compact_widget)
-            self._current_widget = self._compact_widget
-            self._update_compact_server()
-            self._update_compact_cmw()
-
-    def _show_expanded(self):
-        if self._current_widget != self._expanded_widget:
-            self._clear_content()
-            self.set_content_widget(self._expanded_widget)
-            self._current_widget = self._expanded_widget
-
-    def _clear_content(self):
-        while self._content_layout.count():
-            item = self._content_layout.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
-
     def update_content_visibility(self, state: DisplayState):
-        if state == DisplayState.COMPACT:
-            self._show_compact()
-        else:
-            self._show_expanded()
+        super().update_content_visibility(state)
+        self._update_compact_server()
+        self._update_compact_cmw()
 
     @Slot()
     def on_server_started(self, data: dict):

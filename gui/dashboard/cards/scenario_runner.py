@@ -65,20 +65,19 @@ class ScenarioRunnerCard(BaseCard):
         self._scenarios: list[ScenarioInfo] = []
         self._selected_path: str = ""
         self._running = False
-        self._current_widget = None
         self._build_widgets()
         self._load_scenarios()
-        self._show_expanded()
         self.finish_init()
 
     def _build_widgets(self):
-        self._compact_widget = self._create_compact_widget()
-        self._expanded_widget = QWidget()
+        self._build_compact_ui()
         self._build_expanded_ui()
+        self.set_compact_widget(self._compact_widget)
+        self.set_expanded_widget(self._expanded_widget)
 
-    def _create_compact_widget(self) -> QWidget:
-        widget = QWidget()
-        layout = QHBoxLayout(widget)
+    def _build_compact_ui(self):
+        self._compact_widget = QWidget()
+        layout = QHBoxLayout(self._compact_widget)
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
         self._combo_compact = QComboBox()
@@ -91,9 +90,9 @@ class ScenarioRunnerCard(BaseCard):
         layout.addWidget(self._combo_compact)
         layout.addWidget(self._run_btn_compact)
         layout.addStretch()
-        return widget
 
     def _build_expanded_ui(self):
+        self._expanded_widget = QWidget()
         layout = QVBoxLayout(self._expanded_widget)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(8)
@@ -137,16 +136,18 @@ class ScenarioRunnerCard(BaseCard):
         self._update_combos()
 
     def _update_combos(self):
-        self._combo_compact.currentIndexChanged.disconnect()
-        self._combo_expanded.currentIndexChanged.disconnect()
-        
+        try:
+            self._combo_compact.currentIndexChanged.disconnect()
+            self._combo_expanded.currentIndexChanged.disconnect()
+        except RuntimeError:
+            pass
+
         self._combo_compact.clear()
         self._combo_expanded.clear()
         for s in self._scenarios:
             self._combo_compact.addItem(s.name, s.json_file)
             self._combo_expanded.addItem(s.name, s.json_file)
-        
-        # Sync both combo boxes
+
         self._combo_compact.currentIndexChanged.connect(self._combo_expanded.setCurrentIndex)
         self._combo_expanded.currentIndexChanged.connect(self._combo_compact.setCurrentIndex)
 
@@ -163,29 +164,8 @@ class ScenarioRunnerCard(BaseCard):
                 self._stop_btn.setEnabled(True)
                 self.run_requested.emit(self._selected_path)
 
-    def _show_compact(self):
-        if self._current_widget != self._compact_widget:
-            self._clear_content()
-            self.set_content_widget(self._compact_widget)
-            self._current_widget = self._compact_widget
-
-    def _show_expanded(self):
-        if self._current_widget != self._expanded_widget:
-            self._clear_content()
-            self.set_content_widget(self._expanded_widget)
-            self._current_widget = self._expanded_widget
-
-    def _clear_content(self):
-        while self._content_layout.count():
-            item = self._content_layout.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
-
     def update_content_visibility(self, state: DisplayState):
-        if state == DisplayState.COMPACT:
-            self._show_compact()
-        else:
-            self._show_expanded()
+        super().update_content_visibility(state)
 
     @Slot()
     def on_scenario_step(self, data: dict):
@@ -195,8 +175,7 @@ class ScenarioRunnerCard(BaseCard):
         steps = data.get("steps", [])
         if steps and not self._step_model._steps:
             self._step_model.set_steps(steps)
-        
-        # Find step by name - warn if duplicates exist
+
         found = False
         for i, step in enumerate(self._step_model._steps):
             if step.get("name") == step_name:
@@ -205,7 +184,7 @@ class ScenarioRunnerCard(BaseCard):
                 self._step_model.update_step(i, status, duration)
                 found = True
                 break
-        
+
         progress = data.get("progress")
         if progress is not None:
             self._progress_bar.set_value(progress)

@@ -29,7 +29,6 @@ class PacketFilterProxy(QSortFilterProxyModel):
         if not model:
             return True
 
-        # Check text search (regex) across all columns
         if self._search_text:
             text_match = False
             for col in range(model.columnCount()):
@@ -48,7 +47,6 @@ class PacketFilterProxy(QSortFilterProxyModel):
             if not text_match:
                 return False
 
-        # Check exact channel match
         if self._channel != "All" and self._channel_index >= 0:
             channel_index = model.index(source_row, self._channel_index, source_parent)
             channel_data = model.data(channel_index, Qt.ItemDataRole.DisplayRole)
@@ -58,42 +56,57 @@ class PacketFilterProxy(QSortFilterProxyModel):
         return True
 
 
+class CompactProxyModel(QSortFilterProxyModel):
+    """Proxy that shows only last N rows."""
+
+    def __init__(self, max_rows=5, parent=None):
+        super().__init__(parent)
+        self._max_rows = max_rows
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        total = self.sourceModel().rowCount()
+        return source_row >= total - self._max_rows
+
+
 class LivePacketsCard(BaseCard):
     def __init__(self, parent=None):
         super().__init__("Live Packets", parent)
-        self._current_widget = None
         self._build_widgets()
-        self._show_expanded()
         self.finish_init()
 
     def _build_widgets(self):
-        self._compact_widget = self._create_compact_widget()
-        self._expanded_widget = QWidget()
+        self._packet_model = PacketTableModel()
         self._build_expanded_ui()
+        self._build_compact_ui()
 
-    def _create_compact_widget(self) -> QWidget:
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
+        self.set_compact_widget(self._compact_widget)
+        self.set_expanded_widget(self._expanded_widget)
+
+    def _build_compact_ui(self):
+        self._compact_widget = QWidget()
+        layout = QVBoxLayout(self._compact_widget)
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(2)
-        self._mini_table = QTableView()
-        self._mini_table.setToolTip("Last 5 packets received/transmitted")
-        self._mini_model = PacketTableModel()
-        self._mini_proxy = QSortFilterProxyModel()
-        self._mini_proxy.setSourceModel(self._mini_model)
-        self._mini_table.setModel(self._mini_proxy)
-        self._mini_table.setMaximumHeight(80)
-        header = self._mini_table.horizontalHeader()
+
+        self._compact_proxy = CompactProxyModel(max_rows=5)
+        self._compact_proxy.setSourceModel(self._packet_model)
+
+        self._compact_table = QTableView()
+        self._compact_table.setToolTip("Last 5 packets received/transmitted")
+        self._compact_table.setModel(self._compact_proxy)
+        self._compact_table.setMaximumHeight(80)
+        header = self._compact_table.horizontalHeader()
         for i in range(3):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
-        layout.addWidget(self._mini_table)
+        layout.addWidget(self._compact_table)
+
         self._counter_label = QLabel("Rx: 0 | Tx: 0")
         self._counter_label.setStyleSheet("font-size: 10px;")
         self._counter_label.setToolTip("Total packet counts")
         layout.addWidget(self._counter_label)
-        return widget
 
     def _build_expanded_ui(self):
+        self._expanded_widget = QWidget()
         layout = QVBoxLayout(self._expanded_widget)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(4)
@@ -118,11 +131,9 @@ class LivePacketsCard(BaseCard):
         toolbar.addStretch()
         layout.addLayout(toolbar)
 
-        self._model = PacketTableModel()
         self._proxy = PacketFilterProxy()
-        self._proxy.setSourceModel(self._model)
+        self._proxy.setSourceModel(self._packet_model)
 
-        # Find channel column index for filtering
         self._channel_column_index = -1
         for i, h in enumerate(PacketTableModel.HEADERS):
             if h.lower() == "channel":
@@ -133,7 +144,7 @@ class LivePacketsCard(BaseCard):
         self._table.setToolTip("All captured packets (double-click for details)")
         self._table.setModel(self._proxy)
         header = self._table.horizontalHeader()
-        for i in range(self._model.columnCount()):
+        for i in range(self._packet_model.columnCount()):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
         header.setStretchLastSection(True)
         layout.addWidget(self._table)
@@ -151,34 +162,12 @@ class LivePacketsCard(BaseCard):
         self._proxy.invalidateFilter()
 
     def _on_clear(self):
-        self._model.clear()
-        self._mini_model.clear()
+        self._packet_model.clear()
         self._stats_label.setText("Rx: 0 | Tx: 0")
         self._counter_label.setText("Rx: 0 | Tx: 0")
 
-    def _show_compact(self):
-        if self._current_widget != self._compact_widget:
-            self._clear_content()
-            self.set_content_widget(self._compact_widget)
-            self._current_widget = self._compact_widget
-
-    def _show_expanded(self):
-        if self._current_widget != self._expanded_widget:
-            self._clear_content()
-            self.set_content_widget(self._expanded_widget)
-            self._current_widget = self._expanded_widget
-
-    def _clear_content(self):
-        while self._content_layout.count():
-            item = self._content_layout.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
-
     def update_content_visibility(self, state: DisplayState):
-        if state == DisplayState.COMPACT:
-            self._show_compact()
-        else:
-            self._show_expanded()
+        super().update_content_visibility(state)
 
     @Slot()
     def on_packet_processed(self, data: dict):
@@ -192,8 +181,7 @@ class LivePacketsCard(BaseCard):
             "duplicate": data.get("duplicate", ""),
             "direction": "rx"
         }
-        self._model.add_packet(packet)
-        self._mini_model.add_packet(packet)
+        self._packet_model.add_packet(packet)
         self._update_stats()
 
     @Slot()
@@ -208,13 +196,12 @@ class LivePacketsCard(BaseCard):
             "duplicate": data.get("duplicate", ""),
             "direction": "tx"
         }
-        self._model.add_packet(packet)
-        self._mini_model.add_packet(packet)
+        self._packet_model.add_packet(packet)
         self._update_stats()
 
     def _update_stats(self):
-        rx = self._model.get_rx_count()
-        tx = self._model.get_tx_count()
+        rx = self._packet_model.get_rx_count()
+        tx = self._packet_model.get_tx_count()
         text = f"Rx: {rx} | Tx: {tx}"
         self._stats_label.setText(text)
         self._counter_label.setText(text)

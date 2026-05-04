@@ -75,7 +75,7 @@ class TestScenarioRunnerCard:
         card = ScenarioRunnerCard()
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.COMPACT)
-        assert card._current_widget == card._compact_widget
+        assert card._stack.currentIndex() == 0
         assert card._combo_compact is not None
         assert card._run_btn_compact is not None
 
@@ -83,7 +83,7 @@ class TestScenarioRunnerCard:
         card = ScenarioRunnerCard()
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.EXPANDED)
-        assert card._current_widget == card._expanded_widget
+        assert card._stack.currentIndex() == 1
         assert card._step_table is not None
         assert card._progress_bar is not None
 

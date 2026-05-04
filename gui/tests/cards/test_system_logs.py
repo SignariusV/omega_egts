@@ -68,14 +68,14 @@ class TestSystemLogsCard:
         card = SystemLogsCard()
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.COMPACT)
-        assert card._current_widget == card._compact_widget
+        assert card._stack.currentIndex() == 0
         assert card._compact_edit is not None
 
     def test_expanded_mode_shows_viewer(self, qtbot):
         card = SystemLogsCard()
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.EXPANDED)
-        assert card._current_widget == card._expanded_widget
+        assert card._stack.currentIndex() == 1
         assert card._log_viewer is not None
 
     def test_log_handler_updates_viewer(self, qtbot):

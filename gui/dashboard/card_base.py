@@ -1,6 +1,6 @@
 # OMEGA_EGTS GUI
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu
-from PySide6.QtCore import Qt, Signal, QPropertyAnimation, QEasingCurve, QMimeData, QObject, QSize, QRect
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu, QStackedWidget
+from PySide6.QtCore import Qt, Signal, QMimeData, QSize, QRect
 from PySide6.QtGui import QDrag
 from enum import Enum
 
@@ -22,14 +22,10 @@ class BaseCard(QFrame):
         self._display_state = DisplayState.EXPANDED
         self._row_span = 4  # Default expanded size: 4x4
         self._col_span = 4
+        self._stack = None
         self.setFrameStyle(QFrame.Box)
         self.setMinimumSize(240, 100)
         self._init_ui()
-        # Animation for collapse/expand
-        self._anim = QPropertyAnimation(self._content, b"maximumHeight")
-        self._anim.setDuration(150)
-        self._anim.setEasingCurve(QEasingCurve.InOutQuad)
-        self._anim.finished.connect(self._on_anim_finished)
 
     def _init_ui(self):
         main_layout = QVBoxLayout(self)
@@ -54,14 +50,12 @@ class BaseCard(QFrame):
         self._collapse_btn.clicked.connect(self.toggle_collapse)
         title_layout.addWidget(self._collapse_btn)
 
-        # Content area
-        self._content = QFrame()
-        self._content.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self._content_layout = QVBoxLayout(self._content)
-        self._content_layout.setContentsMargins(4, 4, 4, 4)
+        # Stacked widget for compact/expanded views
+        self._stack = QStackedWidget()
+        self._stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         main_layout.addWidget(self._title_bar)
-        main_layout.addWidget(self._content)
+        main_layout.addWidget(self._stack)
 
         # Resize handles (4 corners)
         self._grips = []
@@ -95,8 +89,22 @@ class BaseCard(QFrame):
         """Call after subclass has created all content widgets."""
         self.update_content_visibility(self._display_state)
 
+    def set_compact_widget(self, widget):
+        """Add widget for compact view (index 0)."""
+        self._stack.insertWidget(0, widget)
+
+    def set_expanded_widget(self, widget):
+        """Add widget for expanded view (index 1)."""
+        self._stack.insertWidget(1, widget)
+
     def set_content_widget(self, widget):
-        self._content_layout.addWidget(widget)
+        """Backward compatibility: add widget to expanded view."""
+        if self._stack.count() == 0:
+            self._stack.insertWidget(0, widget)
+        elif self._stack.count() == 1:
+            self._stack.insertWidget(1, widget)
+        else:
+            self._stack.addWidget(widget)
 
     @property
     def title(self):
@@ -129,7 +137,6 @@ class BaseCard(QFrame):
             self.update_content_visibility(DisplayState.COMPACT)
             self._collapse_btn.setText("\u25B2")
             self.collapse_toggled.emit(True)
-            # Collapsed: 2x1 in grid
             self.set_grid_size(2, 1)
 
     def expand(self):
@@ -138,20 +145,20 @@ class BaseCard(QFrame):
             self.update_content_visibility(DisplayState.EXPANDED)
             self._collapse_btn.setText("\u25BC")
             self.collapse_toggled.emit(False)
-            # Expanded: 4x4 in grid
             self.set_grid_size(4, 4)
 
     def _set_display_state(self, state):
         self._display_state = state
         self.update_content_visibility(state)
 
-    def _on_anim_finished(self):
-        """Called when collapse/expand animation finishes."""
-        pass
-
     def update_content_visibility(self, state):
-        """Update content based on display state. Override in child classes."""
-        pass
+        """Switch stack index based on display state."""
+        if self._stack is None:
+            return
+        if state == DisplayState.COMPACT:
+            self._stack.setCurrentIndex(0)
+        else:
+            self._stack.setCurrentIndex(1)
 
     def _title_mouse_press(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -195,49 +202,41 @@ class BaseCard(QFrame):
             self._resize_start_geometry = self.geometry()
             self._resize_start_pos = event.globalPosition().toPoint()
             self._resize_edge = grip.edge
-            # Store start spans
             self._resize_start_row_span = self._row_span
             self._resize_start_col_span = self._col_span
-            # Grab mouse for reliable drag
             grip.grabMouse()
 
     def _grip_mouse_move(self, event, grip):
         """Handle mouse move on resize grip - snap to grid cells."""
         if not hasattr(self, '_resize_start_pos') or not hasattr(self, '_resize_edge'):
             return
-        
-# Calculate grid cell size from parent container (correct formula)
+
         GRID_COLS = 8
         GRID_ROWS = 8
         GRID_GAP = 6
         cell_w = (parent.width() - (GRID_COLS - 1) * GRID_GAP) // GRID_COLS
         cell_h = (parent.height() - (GRID_ROWS - 1) * GRID_GAP) // GRID_ROWS
-        
+
         delta = event.globalPosition().toPoint() - self._resize_start_pos
         edge = self._resize_edge
-        
-        # Calculate new span based on delta from start (snap to grid)
+
         new_col_span = self._resize_start_col_span
         new_row_span = self._resize_start_row_span
-        
+
         if edge in (Qt.Corner.TopRightCorner, Qt.Corner.BottomRightCorner):
-            # Right edge - adjust column span
             delta_cols = round(delta.x() / (cell_w + 6))
             new_col_span = max(1, min(8, self._resize_start_col_span + delta_cols))
         if edge in (Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner):
-            # Bottom edge - adjust row span
             delta_rows = round(delta.y() / (cell_h + 6))
             new_row_span = max(1, min(8, self._resize_start_row_span + delta_rows))
-        
-        # Apply immediately for visual feedback (snap to grid steps)
+
         if new_col_span != self._col_span or new_row_span != self._row_span:
             self.set_grid_size(new_row_span, new_col_span)
 
     def _grip_mouse_release(self, event, grip):
         """Handle mouse release on resize grip - clear state."""
-        # Clear resize state
         attrs_to_clear = ['_resize_start_pos', '_resize_edge', '_resize_start_geometry',
-                        '_resize_start_row_span', '_resize_start_col_span']
+                         '_resize_start_row_span', '_resize_start_col_span']
         for attr in attrs_to_clear:
             if hasattr(self, attr):
                 delattr(self, attr)

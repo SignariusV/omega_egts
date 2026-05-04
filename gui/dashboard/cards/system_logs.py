@@ -16,19 +16,19 @@ class SystemLogsCard(BaseCard):
         self._log_handler = QLogHandler()
         self._log_handler.log_message.connect(self._on_log_message)
         logging.getLogger().addHandler(self._log_handler)
-        self._current_widget = None
+        self._log_buffer = []
         self._build_widgets()
-        self._show_expanded()
         self.finish_init()
 
     def _build_widgets(self):
-        self._compact_widget = self._create_compact_widget()
-        self._expanded_widget = QWidget()
+        self._build_compact_ui()
         self._build_expanded_ui()
+        self.set_compact_widget(self._compact_widget)
+        self.set_expanded_widget(self._expanded_widget)
 
-    def _create_compact_widget(self) -> QWidget:
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
+    def _build_compact_ui(self):
+        self._compact_widget = QWidget()
+        layout = QVBoxLayout(self._compact_widget)
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(2)
         self._compact_edit = QPlainTextEdit()
@@ -44,9 +44,9 @@ class SystemLogsCard(BaseCard):
             }
         """)
         layout.addWidget(self._compact_edit)
-        return widget
 
     def _build_expanded_ui(self):
+        self._expanded_widget = QWidget()
         layout = QVBoxLayout(self._expanded_widget)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(4)
@@ -75,6 +75,10 @@ class SystemLogsCard(BaseCard):
         message = data.get("message", "")
         timestamp = data.get("timestamp")
         selected = self._level_combo.currentText()
+        
+        entry = {"level": level, "message": message, "timestamp": timestamp}
+        self._log_buffer.append(entry)
+        
         if selected != "All" and level != selected:
             return
         self._log_viewer.append_log(level, message, timestamp)
@@ -95,32 +99,12 @@ class SystemLogsCard(BaseCard):
         self._compact_edit.clear()
 
     def _on_clear(self):
+        self._log_buffer.clear()
         self._log_viewer.clear()
         self._compact_edit.clear()
 
-    def _show_compact(self):
-        if self._current_widget != self._compact_widget:
-            self._clear_content()
-            self.set_content_widget(self._compact_widget)
-            self._current_widget = self._compact_widget
-
-    def _show_expanded(self):
-        if self._current_widget != self._expanded_widget:
-            self._clear_content()
-            self.set_content_widget(self._expanded_widget)
-            self._current_widget = self._expanded_widget
-
-    def _clear_content(self):
-        while self._content_layout.count():
-            item = self._content_layout.takeAt(0)
-            if item.widget():
-                item.widget().setParent(None)
-
     def update_content_visibility(self, state: DisplayState):
-        if state == DisplayState.COMPACT:
-            self._show_compact()
-        else:
-            self._show_expanded()
+        super().update_content_visibility(state)
 
     def get_state(self) -> dict:
         return {

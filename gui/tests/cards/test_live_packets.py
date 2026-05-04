@@ -65,38 +65,35 @@ class TestLivePacketsCard:
         card = LivePacketsCard()
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.COMPACT)
-        assert card._current_widget == card._compact_widget
-        assert card._mini_table is not None
+        assert card._stack.currentIndex() == 0
+        assert card._compact_table is not None
 
     def test_expanded_mode_shows_full_table(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.EXPANDED)
-        assert card._current_widget == card._expanded_widget
+        assert card._stack.currentIndex() == 1
         assert card._table is not None
 
     def test_packet_processed_updates_model(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
         card.on_packet_processed({"pid": "123", "service": "EGTS", "length": "100", "channel": "EGTS"})
         qtbot.wait(150)
-        assert card._model.rowCount() == 1
+        assert card._packet_model.rowCount() == 1
         assert card._stats_label.text() != "Rx: 0 | Tx: 0"
 
     def test_packet_sent_updates_model(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
         card.on_packet_sent({"pid": "456", "service": "SRVC", "length": "50", "channel": "SRTC"})
         qtbot.wait(150)
-        assert card._model.rowCount() == 1
+        assert card._packet_model.rowCount() == 1
         assert "Tx: 1" in card._stats_label.text()
 
     def test_filter(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
         card.on_packet_processed({"pid": "123", "service": "EGTS", "length": "100", "channel": "EGTS"})
         card.on_packet_processed({"pid": "456", "service": "SRVC", "length": "50", "channel": "SRTC"})
         qtbot.wait(150)
@@ -106,10 +103,9 @@ class TestLivePacketsCard:
     def test_clear_button(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
         card.on_packet_processed({"pid": "123"})
         card._clear_btn.click()
-        assert card._model.rowCount() == 0
+        assert card._packet_model.rowCount() == 0
         assert card._stats_label.text() == "Rx: 0 | Tx: 0"
 
     def test_get_set_state(self, qtbot):
