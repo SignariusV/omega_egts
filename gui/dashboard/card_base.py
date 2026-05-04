@@ -4,11 +4,9 @@ from PySide6.QtCore import Qt, Signal, QMimeData
 from PySide6.QtGui import QDrag
 from enum import Enum
 
+from gui.dashboard.layout_engine import GRID_COLS, GRID_ROWS, GRID_GAP, cell_size
 
-# Grid constants (must match container.py)
-GRID_COLS = 8
-GRID_ROWS = 8
-GRID_GAP = 6
+# Grid constants - now imported from layout_engine
 
 
 class DisplayState(Enum):
@@ -263,8 +261,7 @@ class BaseCard(QFrame):
         if not parent:
             return
 
-        cell_w = max(1, (parent.width() - (GRID_COLS - 1) * GRID_GAP) // GRID_COLS)
-        cell_h = max(1, (parent.height() - (GRID_ROWS - 1) * GRID_GAP) // GRID_ROWS)
+        cell_w, cell_h = cell_size(parent.width(), parent.height())
 
         delta = event.globalPosition().toPoint() - self._resize_start_pos
         edge = self._resize_edge

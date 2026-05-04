@@ -3,11 +3,7 @@ from typing import Optional
 from PySide6.QtWidgets import QWidget, QGridLayout
 from PySide6.QtCore import Signal, Qt
 from gui.dashboard.card_base import BaseCard
-
-
-GRID_ROWS = 8
-GRID_COLS = 8
-GRID_GAP = 6
+from gui.dashboard.layout_engine import GRID_ROWS, GRID_COLS, GRID_GAP, cell_size, grid_position
 
 
 class DashboardContainer(QWidget):
@@ -163,11 +159,7 @@ class DashboardContainer(QWidget):
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
                 pos = event.position().toPoint()
-                # Calculate grid position accounting for gaps
-                cell_width = (self.width() - (GRID_COLS - 1) * GRID_GAP) / GRID_COLS
-                cell_height = (self.height() - (GRID_ROWS - 1) * GRID_GAP) / GRID_ROWS
-                new_col = max(0, min(GRID_COLS - 1, int(pos.x() / cell_width)))
-                new_row = max(0, min(GRID_ROWS - 1, int(pos.y() / cell_height)))
-                self.move_card(card_id, new_row, new_col)
+                row, col = grid_position(pos.x(), pos.y(), self.width(), self.height())
+                self.move_card(card_id, row, col)
                 break
         event.acceptProposedAction()
