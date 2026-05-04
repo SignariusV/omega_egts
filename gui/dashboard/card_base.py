@@ -104,41 +104,17 @@ class BaseCard(QFrame):
         """Set both compact and expanded widgets.
         
         Clears the stack and inserts widgets at indices 0 (compact) and 1 (expanded).
-        This is the preferred method for registering card views.
         
         Args:
             compact_widget: QWidget to show in compact mode (index 0)
             expanded_widget: QWidget to show in expanded mode (index 1)
         """
-        # Remove existing widgets from stack
         while self._stack.count() > 0:
             widget = self._stack.widget(0)
             self._stack.removeWidget(widget)
             widget.setParent(None)
         self._stack.insertWidget(0, compact_widget)
         self._stack.insertWidget(1, expanded_widget)
-
-    def set_compact_widget(self, widget: QWidget):
-        """Add widget for compact view (index 0).
-        
-        Note: Call set_expanded_widget after this to ensure proper index order.
-        For new code, prefer set_views() instead.
-        
-        Args:
-            widget: QWidget to display in compact mode
-        """
-        self._stack.insertWidget(0, widget)
-
-    def set_expanded_widget(self, widget: QWidget):
-        """Add widget for expanded view (index 1).
-        
-        Note: Call after set_compact_widget to ensure proper index order.
-        For new code, prefer set_views() instead.
-        
-        Args:
-            widget: QWidget to display in expanded mode
-        """
-        self._stack.insertWidget(1, widget)
 
     @property
     def title(self):
