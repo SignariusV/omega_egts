@@ -208,6 +208,9 @@ class MainWindow(QMainWindow):
     @qasync.asyncSlot(str)
     async def _on_run_scenario(self, path):
         try:
+            status = await self._engine_wrapper.get_status()
+            if not status.get("running"):
+                await self._engine_wrapper.start()
             await self._engine_wrapper.run_scenario(path)
         except Exception as e:
             QMessageBox.critical(self, "Scenario Error", str(e))
@@ -231,10 +234,11 @@ class MainWindow(QMainWindow):
                 self.close()
 
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.ensure_future(shutdown())
-            else:
-                event.accept()
+            loop = asyncio.get_running_loop()
+            asyncio.ensure_future(shutdown())
         except RuntimeError:
-            event.accept()
+            import threading
+            if threading.current_thread() != threading.main_thread():
+                event.accept()
+            else:
+                self.close()
