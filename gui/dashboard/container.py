@@ -1,6 +1,6 @@
 # OMEGA_EGTS GUI
 from typing import Optional
-from PySide6.QtWidgets import QWidget, QGridLayout
+from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Signal, Qt
 from gui.dashboard.card_base import BaseCard
 from gui.dashboard.layout_engine import GRID_ROWS, GRID_COLS, GRID_GAP, cell_size, grid_position
@@ -11,9 +11,6 @@ class DashboardContainer(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._grid = QGridLayout(self)
-        self._grid.setContentsMargins(0, 0, 0, 0)
-        self._grid.setSpacing(GRID_GAP)
         self._cards = {}  # card_id -> (row, col, row_span, col_span)
         self.setAcceptDrops(True)
 
@@ -21,26 +18,23 @@ class DashboardContainer(QWidget):
         """Add a card to the dashboard at the specified grid position."""
         card_id = card.card_id
         
-        # Check if card already exists
         if card_id in self._cards:
-            # Just move to new position
             self.move_card(card_id, row, col, row_span, col_span)
             return
         
         card.setParent(self)
-        card.show()
         
-        # Use card's grid size if not specified
         if row_span is None or col_span is None:
             row_span, col_span = card.grid_size
         
-        self._grid.addWidget(card, row, col, row_span, col_span)
         self._cards[card_id] = (row, col, row_span, col_span)
         
         card.destroyed.connect(lambda: self._on_card_destroyed(card_id))
         card.drag_started.connect(lambda: self._on_drag_start(card))
         card.grid_size_changed.connect(lambda rs, cs: self._on_grid_size_changed(card, rs, cs))
         
+        self._update_card_geometry(card)
+        card.show()
         self.cards_changed.emit()
 
     def _on_card_destroyed(self, card_id: str):
@@ -53,10 +47,8 @@ class DashboardContainer(QWidget):
         """Remove a card from the dashboard."""
         if card_id not in self._cards:
             return
-        # Find the card widget
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
-                self._grid.removeWidget(card)
                 card.setParent(None)
                 break
         del self._cards[card_id]
@@ -66,45 +58,83 @@ class DashboardContainer(QWidget):
         """Move a card to a new grid position."""
         if card_id not in self._cards:
             return
-        # Find the card widget
+        
+        old_row, old_col, old_row_span, old_col_span = self._cards[card_id]
+        row_span = new_row_span if new_row_span is not None else old_row_span
+        col_span = new_col_span if new_col_span is not None else old_col_span
+        
+        if not self._is_area_free(new_row, new_col, row_span, col_span, card_id):
+            return
+        
+        self._cards[card_id] = (new_row, new_col, row_span, col_span)
+        
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
-                old_row_span, old_col_span = self._cards[card_id][2], self._cards[card_id][3]
-                row_span = new_row_span if new_row_span is not None else old_row_span
-                col_span = new_col_span if new_col_span is not None else old_col_span
-                self._grid.removeWidget(card)
-                self._grid.addWidget(card, new_row, new_col, row_span, col_span)
-                self._cards[card_id] = (new_row, new_col, row_span, col_span)
-                self.cards_changed.emit()
+                self._update_card_geometry(card)
                 break
+        
+        self.cards_changed.emit()
 
     def resize_card(self, card_id: str, row_span: int, col_span: int):
         """Resize a card in the grid."""
         if card_id not in self._cards:
             return
         row, col = self._cards[card_id][0], self._cards[card_id][1]
-        # Find the card widget
+        
+        if not self._is_area_free(row, col, row_span, col_span, card_id):
+            return
+        
+        self._cards[card_id] = (row, col, row_span, col_span)
+        
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
-                self._grid.removeWidget(card)
-                self._grid.addWidget(card, row, col, row_span, col_span)
-                self._cards[card_id] = (row, col, row_span, col_span)
-                self.cards_changed.emit()
+                self._update_card_geometry(card)
                 break
+        
+        self.cards_changed.emit()
 
     def _on_grid_size_changed(self, card: BaseCard, row_span: int, col_span: int):
         """Handle card grid size change."""
         card_id = card.card_id
         if card_id in self._cards:
             row, col = self._cards[card_id][0], self._cards[card_id][1]
-            self._grid.removeWidget(card)
-            self._grid.addWidget(card, row, col, row_span, col_span)
+            
+            if not self._is_area_free(row, col, row_span, col_span, card_id):
+                return
+            
             self._cards[card_id] = (row, col, row_span, col_span)
+            self._update_card_geometry(card)
             self.cards_changed.emit()
 
     def _on_drag_start(self, card: BaseCard):
         """Handle drag start."""
         pass
+
+    def _is_area_free(self, row: int, col: int, row_span: int, col_span: int, exclude_card_id: str = None) -> bool:
+        """Check if grid area is free (no overlap with other cards)."""
+        for cid, (r, c, rs, cs) in self._cards.items():
+            if cid == exclude_card_id:
+                continue
+            if not (col + col_span <= c or col >= c + cs or row + row_span <= r or row >= r + rs):
+                return False
+        return True
+
+    def _update_card_geometry(self, card: BaseCard):
+        """Update card geometry based on its grid position."""
+        card_id = card.card_id
+        if card_id not in self._cards:
+            return
+        
+        row, col, row_span, col_span = self._cards[card_id]
+        
+        cell_w, cell_h = cell_size(self.width(), self.height())
+        
+        x = col * (cell_w + GRID_GAP)
+        y = row * (cell_h + GRID_GAP)
+        width = col_span * cell_w + (col_span - 1) * GRID_GAP
+        height = row_span * cell_h + (row_span - 1) * GRID_GAP
+        
+        card.setGeometry(x, y, width, height)
 
     def get_layout_snapshot(self):
         """Return the current layout as a list of dicts with card_id."""
@@ -124,10 +154,8 @@ class DashboardContainer(QWidget):
             row_span = item.get("row_span", 1)
             col_span = item.get("col_span", 1)
             
-            # Find and update existing card
             if card_id in self._cards:
                 self.move_card(card_id, row, col, row_span, col_span)
-            # Otherwise card will be added at default position by caller
         
         self.cards_changed.emit()
 
@@ -137,6 +165,8 @@ class DashboardContainer(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        for card in self.findChildren(BaseCard):
+            self._update_card_geometry(card)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
@@ -155,7 +185,6 @@ class DashboardContainer(QWidget):
         except ValueError:
             return
         
-        # Find the card and move it to the drop position
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
                 pos = event.position().toPoint()

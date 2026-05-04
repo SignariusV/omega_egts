@@ -152,7 +152,7 @@ class BaseCard(QFrame):
             self.update_content_visibility(DisplayState.COMPACT)
             self._collapse_btn.setText("\u25B2")
             self.collapse_toggled.emit(True)
-            self.set_grid_size(2, 1)
+            self.set_grid_size(1, 2)
 
     def expand(self):
         if self._collapsed:

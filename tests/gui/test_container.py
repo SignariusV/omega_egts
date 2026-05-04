@@ -10,7 +10,6 @@ def test_add_card(qtbot):
     card = BaseCard("Test Card")
     container.add_card(card, 0, 0)
     assert len(container._cards) == 1
-    assert container._grid.count() == 1
 
 
 def test_add_card_with_spans(qtbot):
