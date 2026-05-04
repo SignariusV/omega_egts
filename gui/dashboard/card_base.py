@@ -52,7 +52,7 @@ class BaseCard(QFrame):
         title_layout = QHBoxLayout(self._title_bar)
         title_layout.setContentsMargins(8, 4, 8, 4)
         self._title_label = QLabel(self._title)
-        self._title_label.setObjectName("title")
+        self._title_label.setStyleSheet("font-weight: bold;")
         title_layout.addWidget(self._title_label)
         title_layout.addStretch()
         self._collapse_btn = QToolButton()

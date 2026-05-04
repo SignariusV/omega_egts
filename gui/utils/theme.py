@@ -17,17 +17,13 @@ THEME_VSCODE_DARK = {
     "header_bg": "#333333",
     "input_bg": "#3C3C3C",
     "font_main": "Segoe UI",
-    "font_mono": "Consolas",
-    "title_color": "#FFD700",
-    "title_size": 13,
+    "font_mono": "Consolas"
 }
 
 
 def generate_qss(theme: dict) -> str:
     font_main = theme.get("font_main", "Segoe UI")
     font_mono = theme.get("font_mono", "Consolas")
-    title_color = theme.get("title_color", "#FFD700")
-    title_size = theme.get("title_size", 13)
     return f"""
     QMainWindow {{
         background-color: {theme['bg']};
@@ -46,16 +42,6 @@ def generate_qss(theme: dict) -> str:
     QFrame[class="TitleBar"] {{
         background-color: {theme['title_bg']};
         border-bottom: 1px solid {theme['border']};
-    }}
-    QLabel {{
-        color: {theme['text']};
-        font-family: "{font_main}";
-    }}
-    QLabel[class="title"] {{
-        color: {title_color};
-        font-family: "{font_main}";
-        font-size: {title_size}px;
-        font-weight: bold;
     }}
     QPushButton {{
         background-color: {theme['accent']};
@@ -90,6 +76,10 @@ def generate_qss(theme: dict) -> str:
         subcontrol-origin: margin;
         left: 10px;
         padding: 0 5px 0 5px;
+    }}
+    QLabel {{
+        color: {theme['text']};
+        font-family: "{font_main}";
     }}
     QComboBox {{
         background-color: {theme['input_bg']};
