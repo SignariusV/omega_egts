@@ -1,1 +1,0 @@
-# OMEGA_EGTS GUI
