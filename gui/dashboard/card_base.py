@@ -206,13 +206,12 @@ class BaseCard(QFrame):
         if not hasattr(self, '_resize_start_pos') or not hasattr(self, '_resize_edge'):
             return
         
-        # Calculate grid cell size from parent container
-        parent = self.parent()
-        if not parent or not hasattr(parent, 'width'):
-            return
-            
-        cell_w = (parent.width() - 6 * 9) // 8  # GRID_COLS=8, GRID_GAP=6
-        cell_h = (parent.height() - 6 * 9) // 8  # GRID_ROWS=8
+# Calculate grid cell size from parent container (correct formula)
+        GRID_COLS = 8
+        GRID_ROWS = 8
+        GRID_GAP = 6
+        cell_w = (parent.width() - (GRID_COLS - 1) * GRID_GAP) // GRID_COLS
+        cell_h = (parent.height() - (GRID_ROWS - 1) * GRID_GAP) // GRID_ROWS
         
         delta = event.globalPosition().toPoint() - self._resize_start_pos
         edge = self._resize_edge
