@@ -174,11 +174,13 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Handle window close - stop engine gracefully."""
-        if getattr(self, '_closing', False):
+        if self._closing:
+            # Already closing, accept immediately
             event.accept()
             return
+        
         self._closing = True
-        event.ignore()
+        event.ignore()  # Don't close yet
 
         async def shutdown():
             try:
@@ -186,7 +188,6 @@ class MainWindow(QMainWindow):
             except Exception:
                 pass
             finally:
-                self._closing = False
                 QApplication.quit()
 
         try:
@@ -194,6 +195,8 @@ class MainWindow(QMainWindow):
             if loop.is_running():
                 asyncio.ensure_future(shutdown())
             else:
+                # Loop not running, just close
+                self._closing = False
                 event.accept()
         except RuntimeError:
             event.accept()
