@@ -136,11 +136,16 @@ class ScenarioRunnerCard(BaseCard):
         self._update_combos()
 
     def _update_combos(self):
-        try:
-            self._combo_compact.currentIndexChanged.disconnect()
-            self._combo_expanded.currentIndexChanged.disconnect()
-        except RuntimeError:
-            pass
+        if self._combo_compact.currentIndexChanged is not None:
+            try:
+                self._combo_compact.currentIndexChanged.disconnect()
+            except (RuntimeError, TypeError):
+                pass
+        if self._combo_expanded.currentIndexChanged is not None:
+            try:
+                self._combo_expanded.currentIndexChanged.disconnect()
+            except (RuntimeError, TypeError):
+                pass
 
         self._combo_compact.clear()
         self._combo_expanded.clear()

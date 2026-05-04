@@ -211,6 +211,10 @@ class BaseCard(QFrame):
         if not hasattr(self, '_resize_start_pos') or not hasattr(self, '_resize_edge'):
             return
 
+        parent = self.parent()
+        if not parent:
+            return
+
         GRID_COLS = 8
         GRID_ROWS = 8
         GRID_GAP = 6
