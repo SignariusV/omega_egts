@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 
 import qasync
-from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox, QWidget, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QApplication, QMainWindow, QStatusBar, QMessageBox, QWidget, QHBoxLayout, QPushButton
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
 
         # Restore button for sidebar (hidden initially, shown when sidebar hidden)
         self._restore_sidebar_btn = QPushButton("◀")
-        self._restore_sidebar_btn.setFixedSize(5, 5)
+        self._restore_sidebar_btn.setFixedSize(24, 24)
         self._restore_sidebar_btn.setFlat(True)
         self._restore_sidebar_btn.setToolTip("Show sidebar")
         self._restore_sidebar_btn.clicked.connect(self._sidebar.show)
@@ -227,6 +227,7 @@ class MainWindow(QMainWindow):
 
         self._status_card.toggle_server_requested.connect(self._on_toggle_server)
         self._scenario_card.run_requested.connect(self._on_run_scenario)
+        self._scenario_card.stop_requested.connect(self._on_stop_scenario)
 
     @qasync.asyncSlot(str)
     async def _on_run_scenario(self, path):
@@ -239,13 +240,24 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Scenario Error", str(e))
             self._scenario_card.on_scenario_stopped()
 
+    @qasync.asyncSlot()
+    async def _on_stop_scenario(self):
+        """Stop running scenario."""
+        try:
+            await self._engine_wrapper.stop_scenario()
+        except Exception as e:
+            logger.warning("Could not stop scenario: %s", e)
+        finally:
+            self._scenario_card.on_scenario_stopped()
+
     def closeEvent(self, event):
-        """Handle window close - stop engine gracefully."""
+        """Handle window close - save state and stop engine gracefully."""
         if self._closing:
             event.accept()
             return
         
         self._closing = True
+        self._save_layout()
         event.ignore()
         
         async def shutdown():
@@ -254,8 +266,6 @@ class MainWindow(QMainWindow):
             except Exception:
                 pass
             finally:
-                # Use QApplication.quit() to exit the app cleanly
-                from PySide6.QtWidgets import QApplication
                 QApplication.instance().quit()
         
         try:
