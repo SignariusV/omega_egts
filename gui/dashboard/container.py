@@ -62,12 +62,15 @@ class DashboardContainer(QWidget):
 
     def _on_card_destroyed(self, card_id: str):
         """Handle card destruction."""
-        if card_id in self._cards:
-            del self._cards[card_id]
-            self.cards_changed.emit()
-        elif card_id in self._hidden_cards:
-            del self._hidden_cards[card_id]
-            self.cards_changed.emit()
+        try:
+            if card_id in self._cards:
+                del self._cards[card_id]
+                self.cards_changed.emit()
+            elif card_id in self._hidden_cards:
+                del self._hidden_cards[card_id]
+                self.cards_changed.emit()
+        except (RuntimeError, TypeError):
+            pass
 
     def remove_card(self, card_id: str):
         """Remove a card from the dashboard."""
