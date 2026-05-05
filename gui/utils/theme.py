@@ -186,6 +186,13 @@ def generate_qss(theme: dict) -> str:
         border-radius: 3px;
         font-family: "{font_mono}";
     }}
+    QPlainTextEdit#compactLogEdit {{
+        background-color: {theme['card_bg']};
+        color: {theme['text']};
+        font-family: "{font_mono}";
+        font-size: 10px;
+        border: none;
+    }}
     """
 
 
