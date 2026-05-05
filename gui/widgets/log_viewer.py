@@ -45,7 +45,7 @@ class LogViewer(QWidget):
                 background-color: #1E1E1E;
                 color: #CCCCCC;
                 font-family: Consolas, monospace;
-                font-size: 11px;
+                font-size: 15px;
             }
         """)
         layout.addWidget(self._text_edit)
