@@ -42,6 +42,9 @@ class CardSidebar(QWidget):
         self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self._scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        self._scroll.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self._scroll.setStyleSheet("background-color: #1E1E1E; border: none;")
+        self._scroll.viewport().setStyleSheet("background-color: #1E1E1E;")
         
         self._button_widget = QWidget()
         self._layout = QVBoxLayout(self._button_widget)
