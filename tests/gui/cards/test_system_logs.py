@@ -107,17 +107,21 @@ class TestSystemLogsCard:
         card = SystemLogsCard()
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.EXPANDED)
-        card._filter_combo.setCurrentText("Python")
-        logging.info("Should appear - Python source")
-        logging.error("Should appear - Python source")
+        card._source_combo.setCurrentText("Python")
+        card._level_combo.setCurrentText("ERROR")
+        logging.info("Should not appear")
+        logging.error("Should appear")
         qtbot.wait(50)
         content = card._log_viewer.get_content()
         assert "Should appear" in content
+        assert "Should not appear" not in content
 
     def test_get_set_state(self, qtbot):
         card = SystemLogsCard()
         qtbot.addWidget(card)
         state = card.get_state()
-        assert "filter" in state
-        card.set_state({"filter": "Packets"})
-        assert card._filter_combo.currentText() == "Packets"
+        assert "source_filter" in state
+        assert "level_filter" in state
+        card.set_state({"source_filter": "Packets", "level_filter": "ERROR"})
+        assert card._source_combo.currentText() == "Packets"
+        assert card._level_combo.currentText() == "ERROR"

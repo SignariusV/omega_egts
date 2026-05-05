@@ -28,6 +28,9 @@ FILTER_OPTIONS = [
     FILTER_COMMANDS,
 ]
 
+LEVEL_ALL = "All"
+LEVEL_OPTIONS = [LEVEL_ALL, "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
 
 class SystemLogsCard(BaseCard):
     def __init__(self, card_id: str = "system_logs", event_bridge: EventBridge | None = None, parent=None):
@@ -94,12 +97,19 @@ class SystemLogsCard(BaseCard):
 
         toolbar = QHBoxLayout()
         toolbar.addWidget(QLabel("Source:"))
-        self._filter_combo = QComboBox()
-        self._filter_combo.addItems(FILTER_OPTIONS)
-        self._filter_combo.setCurrentText(FILTER_ALL)
-        self._filter_combo.setToolTip("Filter log messages by source")
-        self._filter_combo.currentTextChanged.connect(self._on_filter_changed)
-        toolbar.addWidget(self._filter_combo)
+        self._source_combo = QComboBox()
+        self._source_combo.addItems(FILTER_OPTIONS)
+        self._source_combo.setCurrentText(FILTER_ALL)
+        self._source_combo.setToolTip("Filter log messages by source")
+        self._source_combo.currentTextChanged.connect(self._on_filter_changed)
+        toolbar.addWidget(self._source_combo)
+        toolbar.addWidget(QLabel(" Level:"))
+        self._level_combo = QComboBox()
+        self._level_combo.addItems(LEVEL_OPTIONS)
+        self._level_combo.setCurrentText(LEVEL_ALL)
+        self._level_combo.setToolTip("Filter log messages by level")
+        self._level_combo.currentTextChanged.connect(self._on_filter_changed)
+        toolbar.addWidget(self._level_combo)
         self._clear_btn = QPushButton("Clear")
         self._clear_btn.setToolTip("Clear all log messages")
         self._clear_btn.clicked.connect(self._on_clear)
@@ -112,7 +122,7 @@ class SystemLogsCard(BaseCard):
         layout.addWidget(self._log_viewer)
 
     def _add_entry(self, source: str, level: str, message: str, timestamp: float | None = None):
-        if not hasattr(self, '_filter_combo'):
+        if not hasattr(self, '_source_combo'):
             return
         entry = {
             "source": source,
@@ -124,8 +134,12 @@ class SystemLogsCard(BaseCard):
         if len(self._log_buffer) > self._max_buffer_size:
             self._log_buffer = self._log_buffer[-self._max_buffer_size:]
 
-        selected = self._filter_combo.currentText()
-        if selected != FILTER_ALL and source != selected:
+        source_filter = self._source_combo.currentText()
+        level_filter = self._level_combo.currentText()
+
+        if source_filter != FILTER_ALL and source != source_filter:
+            return
+        if level_filter != LEVEL_ALL and level != level_filter:
             return
         self._log_viewer.append_log(level, message, timestamp)
         self._append_compact(level, message)
@@ -199,10 +213,15 @@ class SystemLogsCard(BaseCard):
     def _on_filter_changed(self, text: str):
         self._log_viewer.clear()
         self._compact_edit.clear()
+        source_filter = self._source_combo.currentText()
+        level_filter = self._level_combo.currentText()
         for entry in self._log_buffer:
-            if text == FILTER_ALL or entry["source"] == text:
-                self._log_viewer.append_log(entry["level"], entry["message"], entry["timestamp"])
-                self._append_compact(entry["level"], entry["message"])
+            if source_filter != FILTER_ALL and entry["source"] != source_filter:
+                continue
+            if level_filter != LEVEL_ALL and entry["level"] != level_filter:
+                continue
+            self._log_viewer.append_log(entry["level"], entry["message"], entry["timestamp"])
+            self._append_compact(entry["level"], entry["message"])
 
     def _on_clear(self):
         self._log_buffer.clear()
@@ -214,11 +233,16 @@ class SystemLogsCard(BaseCard):
 
     def get_state(self) -> dict:
         return {
-            "filter": self._filter_combo.currentText(),
+            "source_filter": self._source_combo.currentText(),
+            "level_filter": self._level_combo.currentText(),
         }
 
     def set_state(self, state: dict):
-        filter_text = state.get("filter", FILTER_ALL)
-        idx = self._filter_combo.findText(filter_text)
+        source_text = state.get("source_filter", FILTER_ALL)
+        idx = self._source_combo.findText(source_text)
         if idx >= 0:
-            self._filter_combo.setCurrentIndex(idx)
+            self._source_combo.setCurrentIndex(idx)
+        level_text = state.get("level_filter", LEVEL_ALL)
+        idx = self._level_combo.findText(level_text)
+        if idx >= 0:
+            self._level_combo.setCurrentIndex(idx)
