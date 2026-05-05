@@ -6,7 +6,7 @@ from gui.dashboard.persistence import PersistenceManager
 
 def test_save_load_roundtrip(tmp_path):
     pm = PersistenceManager(tmp_path)
-    snap = [{"id": 1, "row": 0, "col": 0, "row_span": 1, "col_span": 1}]
+    snap = [{"card_id": "card1", "row": 0, "col": 0, "row_span": 1, "col_span": 1}]
     pm.save_layout(snap)
     assert pm.load_layout() == snap
 
@@ -36,7 +36,7 @@ def test_state_corrupted_fallback(tmp_path):
 def test_missing_layout_returns_default(tmp_path):
     pm = PersistenceManager(tmp_path)
     pm.default_layout.parent.mkdir(parents=True, exist_ok=True)
-    pm.default_layout.write_text('[{"id": 0, "row": 0, "col": 0, "row_span": 1, "col_span": 1}]')
+    pm.default_layout.write_text('[{"card_id": "card1", "row": 0, "col": 0, "row_span": 1, "col_span": 1}]')
     data = pm.load_layout()
     assert isinstance(data, list)
     assert len(data) == 1
@@ -44,6 +44,6 @@ def test_missing_layout_returns_default(tmp_path):
 
 def test_layout_validation_missing_key(tmp_path):
     pm = PersistenceManager(tmp_path)
-    pm.save_layout([{"id": 1}])
+    pm.save_layout([{"card_id": "card1"}])
     data = pm.load_layout()
     assert isinstance(data, list)

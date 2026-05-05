@@ -70,15 +70,11 @@ class PersistenceManager:
         for item in data:
             if not isinstance(item, dict):
                 raise ValueError("Layout item must be a dict")
-            if 'card_id' in item and not isinstance(item['card_id'], str):
-                raise ValueError(f"Card id must be string, got {type(item['card_id']).__name__}")
-            if 'id' in item and not isinstance(item['id'], str):
-                raise ValueError(f"Card id must be string, got {type(item['id']).__name__}")
-            key = 'card_id' if 'card_id' in item else 'id'
-            if not key:
+            if 'card_id' not in item:
                 raise ValueError("Missing required key: card_id")
-            required = ['row', 'col', 'row_span', 'col_span']
-            for req in required:
+            if not isinstance(item['card_id'], str):
+                raise ValueError(f"card_id must be a string, got {type(item['card_id']).__name__}")
+            for req in ('row', 'col', 'row_span', 'col_span'):
                 if req not in item:
                     raise ValueError(f"Missing required key: {req}")
 
