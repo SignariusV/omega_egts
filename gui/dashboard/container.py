@@ -29,6 +29,12 @@ class DashboardContainer(QWidget):
         """Add a card to the dashboard at the specified grid position."""
         card_id = card.card_id
         
+        if card_id in self._hidden_cards:
+            # Card is hidden - show it first, then move
+            self._show_card(card_id)
+            self.move_card(card_id, row, col, row_span, col_span)
+            return
+        
         if card_id in self._cards:
             self.move_card(card_id, row, col, row_span, col_span)
             return
@@ -246,26 +252,31 @@ class DashboardContainer(QWidget):
                self._is_area_free(old_row, old_col, row_span, col_span):
                 row, col = old_row, old_col
             else:
-                row, col = self._find_free_spot(row_span, col_span)
+                free_spot = self._find_free_spot(row_span, col_span)
+                if free_spot is None:
+                    # No space - put back to hidden
+                    self._hidden_cards[card_id] = (old_row, old_col, row_span, col_span)
+                    self._updating_visibility = False
+                    return
+                row, col = free_spot
             self._cards[card_id] = (row, col, row_span, col_span)
             for card in self.findChildren(BaseCard):
                 if card.card_id == card_id:
                     card.set_grid_position(row, col)
                     card.set_grid_size(row_span, col_span)
-                    card.show()
-                    self._update_card_geometry(card)
+                    card.show()  # This triggers _update_card_geometry via signals
                     break
             self.cards_changed.emit()
         finally:
             self._updating_visibility = False
 
-    def _find_free_spot(self, row_span: int, col_span: int):
-        """Find first free rectangle in grid."""
+    def _find_free_spot(self, row_span: int, col_span: int) -> tuple[int, int] | None:
+        """Find first free rectangle in grid. Returns None if no space."""
         for r in range(GRID_ROWS - row_span + 1):
             for c in range(GRID_COLS - col_span + 1):
                 if self._is_area_free(r, c, row_span, col_span):
                     return r, c
-        return 0, 0  # fallback
+        return None
 
     def _on_card_visibility_changed(self, card_id: str, visible: bool):
         """Handle card visibility change from card's show/hide methods.
@@ -288,7 +299,7 @@ class DashboardContainer(QWidget):
 
     def is_card_visible(self, card_id: str) -> bool:
         """Check if a card is visible."""
-        return card_id not in self._hidden_cards
+        return card_id in self._cards
 
     def has_card(self, card_id: str) -> bool:
         """Check if a card exists in the container (visible or hidden)."""
