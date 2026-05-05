@@ -30,7 +30,7 @@ class DashboardContainer(QWidget):
         
         if card_id in self._hidden_cards:
             # Card is hidden - show it first, then move
-            self._show_card(card_id)
+            self.show_card(card_id)
             self.move_card(card_id, row, col, row_span, col_span)
             return
         
@@ -45,21 +45,19 @@ class DashboardContainer(QWidget):
         if not self._is_within_grid(row, col, row_span, col_span):
             row, col = 0, 0
         
-        card.setParent(self)
-        
+        card.setParent(self)        
         self._cards[card_id] = (row, col, row_span, col_span)
-        card.set_grid_position(row, col)
-        
+        card.set_grid_position(row, col)        
         card.destroyed.connect(lambda: self._on_card_destroyed(card_id))
         card.drag_started.connect(lambda: self._on_drag_start(card))
         card.grid_size_changed.connect(lambda rs, cs: self._on_grid_size_changed(card, rs, cs))
         card.grid_geometry_changed.connect(lambda r, c, rs, cs: self._on_grid_geometry_changed(card, r, c, rs, cs))
         card.card_visibility_changed.connect(
             lambda visible, cid=card_id: self._on_card_visibility_changed(cid, visible)
-        )
-        
+        )        
         self._update_card_geometry(card)
-        card.show()
+        card.setVisible(True)  # Don't trigger card.show/hide methods
+        self.card_visibility_changed.emit(card_id, True)
         self.cards_changed.emit()
 
     def _on_card_destroyed(self, card_id: str):
@@ -223,10 +221,10 @@ class DashboardContainer(QWidget):
         
         card.setGeometry(x, y, width, height)
 
-    def _hide_card(self, card_id: str):
+    def _hide_card(self, card_id: str) -> bool:
         """Hide card and free its grid space."""
         if card_id not in self._cards:
-            return
+            return False
         # Remember coordinates before removing
         self._hidden_cards[card_id] = self._cards.pop(card_id)
         for card in self.findChildren(BaseCard):
@@ -234,12 +232,12 @@ class DashboardContainer(QWidget):
                 card.setVisible(False)  # Don't trigger card.show/hide methods
                 break
         self.cards_changed.emit()
-        self.card_visibility_changed.emit(card_id, False)
+        return True
 
-    def _show_card(self, card_id: str):
+    def _show_card(self, card_id: str) -> bool:
         """Show card and restore to grid (old position or find free spot)."""
         if card_id not in self._hidden_cards:
-            return
+            return False
         old_row, old_col, row_span, col_span = self._hidden_cards.pop(card_id)
         # Check if old position is free
         if self._is_within_grid(old_row, old_col, row_span, col_span) and \
@@ -250,7 +248,7 @@ class DashboardContainer(QWidget):
             if free_spot is None:
                 # No space - put back to hidden
                 self._hidden_cards[card_id] = (old_row, old_col, row_span, col_span)
-                return
+                return False
             row, col = free_spot
         self._cards[card_id] = (row, col, row_span, col_span)
         for card in self.findChildren(BaseCard):
@@ -261,7 +259,7 @@ class DashboardContainer(QWidget):
                 self._update_card_geometry(card)
                 break
         self.cards_changed.emit()
-        self.card_visibility_changed.emit(card_id, True)
+        return True
 
     def _find_free_spot(self, row_span: int, col_span: int) -> tuple[int, int] | None:
         """Find first free rectangle in grid. Returns None if no space."""
@@ -277,13 +275,11 @@ class DashboardContainer(QWidget):
         if visible:
             # Card was shown by user (context menu) - move from hidden to visible
             if card_id in self._hidden_cards:
-                self._show_card(card_id)
+                self.show_card(card_id)
         else:
             # Card was hidden by user (context menu) - move from visible to hidden
             if card_id in self._cards:
-                self._hide_card(card_id)
-        # Notify sidebar and other listeners
-        self.card_visibility_changed.emit(card_id, visible)
+                self.hide_card(card_id)
 
     def is_card_visible(self, card_id: str) -> bool:
         """Check if a card is visible."""
@@ -295,18 +291,20 @@ class DashboardContainer(QWidget):
 
     def show_card(self, card_id: str):
         """Show a specific card by ID."""
-        self._show_card(card_id)
+        if self._show_card(card_id):
+            self.card_visibility_changed.emit(card_id, True)
 
     def hide_card(self, card_id: str):
         """Hide a specific card by ID."""
-        self._hide_card(card_id)
+        if self._hide_card(card_id):
+            self.card_visibility_changed.emit(card_id, False)
 
     def toggle_card_visibility(self, card_id: str):
         """Toggle visibility of a specific card by ID."""
         if card_id in self._hidden_cards:
-            self._show_card(card_id)
+            self.show_card(card_id)
         elif card_id in self._cards:
-            self._hide_card(card_id)
+            self.hide_card(card_id)
 
     def get_layout_snapshot(self):
         """Return the current layout as a list of dicts with card_id."""
