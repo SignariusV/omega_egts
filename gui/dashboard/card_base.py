@@ -19,6 +19,7 @@ class BaseCard(QFrame):
     drag_started = Signal()
     grid_size_changed = Signal(int, int)  # row_span, col_span
     grid_geometry_changed = Signal(int, int, int, int)  # row, col, row_span, col_span
+    card_visibility_changed = Signal(bool)   # True if visible
 
     def __init__(self, title: str, card_id: str = None, parent=None):
         super().__init__(parent)
@@ -324,3 +325,13 @@ class BaseCard(QFrame):
     def _on_reset_settings(self):
         """Reset card to default state. Override in subclasses."""
         self.expand()
+
+    def show(self):
+        """Show the card and emit visibility signal."""
+        super().show()
+        self.card_visibility_changed.emit(True)
+
+    def hide(self):
+        """Hide the card and emit visibility signal."""
+        super().hide()
+        self.card_visibility_changed.emit(False)

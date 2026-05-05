@@ -8,6 +8,7 @@ from gui.dashboard.layout_engine import GRID_ROWS, GRID_COLS, GRID_GAP, cell_siz
 
 class DashboardContainer(QWidget):
     cards_changed = Signal()
+    card_visibility_changed = Signal(str, bool)   # card_id, visible
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -46,6 +47,9 @@ class DashboardContainer(QWidget):
         card.drag_started.connect(lambda: self._on_drag_start(card))
         card.grid_size_changed.connect(lambda rs, cs: self._on_grid_size_changed(card, rs, cs))
         card.grid_geometry_changed.connect(lambda r, c, rs, cs: self._on_grid_geometry_changed(card, r, c, rs, cs))
+        card.card_visibility_changed.connect(
+            lambda visible, cid=card_id: self._on_card_visibility_changed(cid, visible)
+        )
         
         self._update_card_geometry(card)
         card.show()
@@ -233,6 +237,39 @@ class DashboardContainer(QWidget):
     def has_card(self, card_id: str) -> bool:
         """Check if a card exists in the container."""
         return card_id in self._cards
+
+    def _on_card_visibility_changed(self, card_id: str, visible: bool):
+        """Handle card visibility change and propagate signal."""
+        self.card_visibility_changed.emit(card_id, visible)
+
+    def is_card_visible(self, card_id: str) -> bool:
+        """Check if a card is visible."""
+        for card in self.findChildren(BaseCard):
+            if card.card_id == card_id:
+                return not card.isHidden()
+        return False
+
+    def show_card(self, card_id: str):
+        """Show a specific card by ID."""
+        for card in self.findChildren(BaseCard):
+            if card.card_id == card_id:
+                card.show()
+                card.setFocus()
+                break
+
+    def hide_card(self, card_id: str):
+        """Hide a specific card by ID."""
+        for card in self.findChildren(BaseCard):
+            if card.card_id == card_id:
+                card.hide()
+                break
+
+    def toggle_card_visibility(self, card_id: str):
+        """Toggle visibility of a specific card by ID."""
+        if self.is_card_visible(card_id):
+            self.hide_card(card_id)
+        else:
+            self.show_card(card_id)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

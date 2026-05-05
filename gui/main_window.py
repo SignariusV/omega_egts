@@ -5,11 +5,12 @@ import logging
 from pathlib import Path
 
 import qasync
-from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QStatusBar, QMessageBox, QWidget, QHBoxLayout, QPushButton
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 
 from gui.dashboard.container import DashboardContainer
+from gui.dashboard.sidebar import CardSidebar
 from gui.dashboard.cards.system_status import SystemStatusCard
 from gui.dashboard.cards.scenario_runner import ScenarioRunnerCard
 from gui.dashboard.cards.live_packets import LivePacketsCard
@@ -56,7 +57,17 @@ class MainWindow(QMainWindow):
         self._persistence = PersistenceManager(Path.cwd())
 
         self._dashboard = DashboardContainer()
-        self.setCentralWidget(self._dashboard)
+        self._sidebar = CardSidebar(self._dashboard)
+
+        # Use horizontal layout instead of splitter so hiding sidebar frees space
+        central_widget = QWidget()
+        central_layout = QHBoxLayout(central_widget)
+        central_layout.setContentsMargins(0, 0, 0, 0)
+        central_layout.setSpacing(0)
+        central_layout.addWidget(self._sidebar)
+        central_layout.addWidget(self._dashboard, 1)  # dashboard stretches
+
+        self.setCentralWidget(central_widget)
 
         self._create_cards()
         self._connect_signals()
@@ -64,6 +75,19 @@ class MainWindow(QMainWindow):
 
         self._status_bar = QStatusBar()
         self.setStatusBar(self._status_bar)
+
+        # Restore button for sidebar (hidden initially, shown when sidebar hidden)
+        self._restore_sidebar_btn = QPushButton("◀")
+        self._restore_sidebar_btn.setFixedSize(5, 5)
+        self._restore_sidebar_btn.setFlat(True)
+        self._restore_sidebar_btn.setToolTip("Show sidebar")
+        self._restore_sidebar_btn.clicked.connect(self._sidebar.show)
+        self._restore_sidebar_btn.hide()
+        self._status_bar.addWidget(self._restore_sidebar_btn)
+
+        # Connect sidebar visibility signals
+        self._sidebar.sidebar_hidden.connect(self._restore_sidebar_btn.show)
+        self._sidebar.sidebar_shown.connect(self._restore_sidebar_btn.hide)
 
         self._setup_shortcuts()
 
@@ -127,6 +151,12 @@ class MainWindow(QMainWindow):
             if hasattr(self, card_name):
                 shortcut = QShortcut(QKeySequence(f"Ctrl+{i}"), self)
                 shortcut.activated.connect(lambda c=card_name: self._focus_card(c))
+
+        # Shortcut to toggle sidebar
+        sidebar_shortcut = QShortcut(QKeySequence("Ctrl+B"), self)
+        sidebar_shortcut.activated.connect(
+            lambda: self._sidebar.hide() if self._sidebar.isVisible() else self._sidebar.show()
+        )
 
         self.setFocusPolicy(Qt.StrongFocus)
         for card in [self._status_card, self._scenario_card, self._packets_card, self._logs_card]:

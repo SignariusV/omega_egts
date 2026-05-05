@@ -23,7 +23,7 @@ THEME_VSCODE_DARK = {
     "grip_hover": "rgba(0, 120, 215, 80)",
     "title_color": "#FFD700",
     "title_size": 18,
-    "border_radius": "36px",
+        "border_radius": "12px",
 }
 
 
@@ -192,6 +192,40 @@ def generate_qss(theme: dict) -> str:
         font-family: "{font_mono}";
         font-size: 10px;
         border: none;
+    }}
+
+    QWidget#cardSidebar {{
+        background-color: {theme['bg']};
+        border-right: 1px solid {theme['border']};
+    }}
+
+    QToolButton[class="SidebarButton"] {{
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 4px;
+        background-color: {theme['card_bg']};
+        color: {theme['text']};
+        font-size: 16px;
+        font-weight: bold;
+    }}
+    QToolButton[class="SidebarButton"]:hover {{
+        background-color: {theme['title_bg']};
+        border-color: {theme['border']};
+    }}
+    QToolButton[class="SidebarButton"]:checked {{
+        background-color: {theme['accent']};
+        border-color: {theme['accent_hover']};
+        color: white;
+    }}
+
+    QToolButton#sidebarToggle {{
+        background-color: transparent;
+        border: none;
+        color: {theme['text']};
+        font-size: 12px;
+    }}
+    QToolButton#sidebarToggle:hover {{
+        color: {theme['accent']};
     }}
     """
 
