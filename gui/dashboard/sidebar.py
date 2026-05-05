@@ -24,14 +24,6 @@ class CardSidebar(QWidget):
         self._buttons: dict[str, QToolButton] = {}
         
         self.setObjectName("cardSidebar")
-        
-        # Set dark background - apply directly to widget without selector
-        # and also to all child widgets including scroll area viewport
-        dark_stylesheet = """
-            background-color: #1E1E1E;
-            color: #CCCCCC;
-        """
-        self.setStyleSheet(dark_stylesheet)
         self.setMaximumWidth(60)
         self.setMinimumWidth(40)
 
@@ -42,20 +34,16 @@ class CardSidebar(QWidget):
         self._toggle_btn.setObjectName("sidebarToggle")
         self._toggle_btn.clicked.connect(self.hide)
         self._toggle_btn.setFixedSize(24, 24)
-
+        
         # Scrollable area for buttons
         self._scroll = QScrollArea(self)
+        self._scroll.setObjectName("cardSidebarScroll")
         self._scroll.setWidgetResizable(True)
         self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self._scroll.setFrameShape(QScrollArea.Shape.NoFrame)
-        self._scroll.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self._scroll.setStyleSheet("background-color: #1E1E1E; border: none;")
-        # Style the viewport directly - this is often the culprit for white backgrounds
-        self._scroll.viewport().setStyleSheet("background-color: #1E1E1E;")
-
+        
         self._button_widget = QWidget()
-        self._button_widget.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._layout = QVBoxLayout(self._button_widget)
         self._layout.setContentsMargins(4, 8, 4, 8)
         self._layout.setSpacing(6)

@@ -199,6 +199,11 @@ def generate_qss(theme: dict) -> str:
         border-right: 1px solid {theme['border']};
     }}
 
+    QScrollArea#cardSidebarScroll {{
+        background-color: {theme['bg']};
+        border: none;
+    }}
+
     QToolButton[class="SidebarButton"] {{
         border: 1px solid transparent;
         border-radius: 4px;
