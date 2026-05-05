@@ -198,7 +198,7 @@ class MainWindow(QMainWindow):
         self._status_card = SystemStatusCard(card_id="system_status", cmw_ip=cmw_ip)
         self._scenario_card = ScenarioRunnerCard(card_id="scenario_runner")
         self._packets_card = LivePacketsCard(card_id="live_packets")
-        self._logs_card = SystemLogsCard(card_id="system_logs")
+        self._logs_card = SystemLogsCard(card_id="system_logs", event_bridge=self._event_bridge)
 
         self._dashboard.add_card(self._status_card, row=0, col=0)
         self._dashboard.add_card(self._scenario_card, row=0, col=4)

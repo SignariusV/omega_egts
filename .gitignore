@@ -12,4 +12,10 @@ env/
 .env
 .env.local
 .env.*
+
+# Logs
+logs/
+gui/logs/
+*.log
+*.jsonl
 ```

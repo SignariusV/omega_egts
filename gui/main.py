@@ -6,6 +6,14 @@ from PySide6.QtWidgets import QApplication
 from gui.main_window import MainWindow
 from gui.utils.theme import apply_theme
 
+from core.python_logger import setup_python_logging
+
+setup_python_logging(
+    log_dir="logs",
+    console_level="ERROR",
+    file_level="DEBUG",
+)
+
 
 def main():
     app = QApplication(sys.argv)

@@ -81,7 +81,7 @@ class TestSystemLogsCard:
     def test_log_handler_updates_viewer(self, qtbot):
         card = SystemLogsCard()
         qtbot.addWidget(card)
-        card._on_log_message({"level": "INFO", "message": "Test log message", "timestamp": 1700000000})
+        card._on_python_log({"level": "INFO", "message": "Test log message", "timestamp": 1700000000})
         content = card._log_viewer.get_content()
         assert "Test log message" in content
 
@@ -107,9 +107,9 @@ class TestSystemLogsCard:
         card = SystemLogsCard()
         qtbot.addWidget(card)
         card._set_display_state(DisplayState.EXPANDED)
-        card._level_combo.setCurrentText("ERROR")
-        logging.info("Should not appear")
-        logging.error("Should appear")
+        card._filter_combo.setCurrentText("Python")
+        logging.info("Should appear - Python source")
+        logging.error("Should appear - Python source")
         qtbot.wait(50)
         content = card._log_viewer.get_content()
         assert "Should appear" in content
@@ -118,6 +118,6 @@ class TestSystemLogsCard:
         card = SystemLogsCard()
         qtbot.addWidget(card)
         state = card.get_state()
-        assert "level" in state
-        card.set_state({"level": "WARNING"})
-        assert card._level_combo.currentText() == "WARNING"
+        assert "filter" in state
+        card.set_state({"filter": "Packets"})
+        assert card._filter_combo.currentText() == "Packets"
