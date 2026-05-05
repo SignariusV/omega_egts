@@ -14,11 +14,19 @@ LEVEL_COLORS = {
 
 SOURCE_COLORS = {
     "GUI": "#4FC1FF",
-    "Python": "#6A9955",
+    "CLI": "#B5CEA8",
+    "logger": "#6A9955",
+    "tcp_server": "#569CD6",
+    "dispatcher": "#DCDCAA",
+    "session": "#C586C0",
+    "engine": "#4EC9B0",
+    "cmw500": "#CE9178",
+    "scenario": "#9CDCFE",
     "Packets": "#569CD6",
     "Connections": "#DCDCAA",
     "Scenarios": "#C586C0",
     "Commands": "#4EC9B0",
+    "Python": "#808080",
 }
 
 

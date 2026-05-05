@@ -14,7 +14,7 @@ import logging
 
 FILTER_ALL = "All"
 FILTER_GUI = "GUI"
-FILTER_PYTHON = "Python"
+FILTER_CORE = "Core"
 FILTER_PACKETS = "Packets"
 FILTER_CONNECTIONS = "Connections"
 FILTER_SCENARIOS = "Scenarios"
@@ -23,12 +23,21 @@ FILTER_COMMANDS = "Commands"
 FILTER_OPTIONS = [
     FILTER_ALL,
     FILTER_GUI,
-    FILTER_PYTHON,
+    "logger",
+    "tcp_server",
+    "dispatcher",
+    "session",
+    "engine",
+    "cmw500",
+    "scenario",
+    FILTER_CORE,
     FILTER_PACKETS,
     FILTER_CONNECTIONS,
     FILTER_SCENARIOS,
     FILTER_COMMANDS,
 ]
+
+CORE_MODULES = {"logger", "tcp_server", "dispatcher", "session", "engine", "cmw500", "scenario"}
 
 LEVEL_ALL = "All"
 LEVEL_OPTIONS = [LEVEL_ALL, "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -139,7 +148,9 @@ class SystemLogsCard(BaseCard):
         source_filter = self._source_combo.currentText()
         level_filter = self._level_combo.currentText()
 
-        if source_filter != FILTER_ALL and source != source_filter:
+        if source_filter == FILTER_CORE and source not in CORE_MODULES:
+            return
+        if source_filter != FILTER_ALL and source_filter != FILTER_CORE and source != source_filter:
             return
         if level_filter != LEVEL_ALL and level != level_filter:
             return
@@ -152,7 +163,14 @@ class SystemLogsCard(BaseCard):
         message = data.get("message", "")
         timestamp = data.get("timestamp")
         logger = data.get("logger", "")
-        source = "GUI" if logger.startswith("gui.") else "Python"
+        if logger.startswith("gui."):
+            source = "GUI"
+        elif logger.startswith("core."):
+            source = logger.replace("core.", "").split(".")[0]
+        elif logger.startswith("cli."):
+            source = "CLI"
+        else:
+            source = logger.split(".")[0] if logger else "Python"
         self._add_entry(source, level, message, timestamp)
 
     @Slot(dict)
@@ -220,7 +238,10 @@ class SystemLogsCard(BaseCard):
         source_filter = self._source_combo.currentText()
         level_filter = self._level_combo.currentText()
         for entry in self._log_buffer:
-            if source_filter != FILTER_ALL and entry["source"] != source_filter:
+            source = entry["source"]
+            if source_filter == FILTER_CORE and source not in CORE_MODULES:
+                continue
+            if source_filter != FILTER_ALL and source_filter != FILTER_CORE and source != source_filter:
                 continue
             if level_filter != LEVEL_ALL and entry["level"] != level_filter:
                 continue
