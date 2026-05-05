@@ -77,8 +77,8 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self._status_bar)
 
         # Restore button for sidebar (hidden initially, shown when sidebar hidden)
-        self._restore_sidebar_btn = QPushButton("◀")
-        self._restore_sidebar_btn.setFixedSize(24, 24)
+        self._restore_sidebar_btn = QPushButton(">")
+        self._restore_sidebar_btn.setFixedSize(15, 15)
         self._restore_sidebar_btn.setFlat(True)
         self._restore_sidebar_btn.setToolTip("Show sidebar")
         self._restore_sidebar_btn.clicked.connect(self._sidebar.show)
