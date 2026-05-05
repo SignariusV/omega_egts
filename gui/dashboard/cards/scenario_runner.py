@@ -82,6 +82,7 @@ class ScenarioRunnerCard(BaseCard):
         self._combo_compact = QComboBox()
         self._combo_compact.setMinimumWidth(150)
         self._combo_compact.setToolTip("Select scenario to run")
+        layout.addWidget(self._combo_compact)
         self._run_btn_compact = QPushButton("Run")
         self._run_btn_compact.setFixedWidth(50)
         self._run_btn_compact.setToolTip("Run selected scenario (F5)")
@@ -142,7 +143,7 @@ class ScenarioRunnerCard(BaseCard):
     def on_run_clicked(self):
         combo = self._combo_expanded if self._display_state == DisplayState.EXPANDED else self._combo_compact
         idx = combo.currentIndex()
-        if idx >= 0:
+        if idx >=0:
             path = combo.itemData(idx)
             if path:
                 self._selected_path = str(path)
@@ -150,6 +151,8 @@ class ScenarioRunnerCard(BaseCard):
                 self._run_btn.setEnabled(False)
                 self._run_btn_compact.setEnabled(False)
                 self._stop_btn.setEnabled(True)
+                self._step_model.set_steps([])
+                self._progress_bar.set_value(0)
                 self.run_requested.emit(self._selected_path)
 
     def update_content_visibility(self, state: DisplayState):
@@ -161,9 +164,9 @@ class ScenarioRunnerCard(BaseCard):
         status = data.get("status", "")
         duration = data.get("duration", "")
         steps = data.get("steps", [])
-        if steps and not self._step_model._steps:
+        if steps:
             self._step_model.set_steps(steps)
-
+        
         found = False
         for i, step in enumerate(self._step_model._steps):
             if step.get("name") == step_name:
@@ -172,7 +175,7 @@ class ScenarioRunnerCard(BaseCard):
                 self._step_model.update_step(i, status, duration)
                 found = True
                 break
-
+        
         progress = data.get("progress")
         if progress is not None:
             self._progress_bar.set_value(progress)
@@ -188,6 +191,14 @@ class ScenarioRunnerCard(BaseCard):
         self._run_btn.setEnabled(True)
         self._run_btn_compact.setEnabled(True)
         self._stop_btn.setEnabled(False)
+
+    def on_scenario_stopped(self):
+        """Call when scenario execution is stopped."""
+        self._running = False
+        self._run_btn.setEnabled(True)
+        self._run_btn_compact.setEnabled(True)
+        self._stop_btn.setEnabled(False)
+        self._progress_bar.set_value(0)
 
     def get_state(self) -> dict:
         return {

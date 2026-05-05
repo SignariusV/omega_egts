@@ -207,6 +207,7 @@ class MainWindow(QMainWindow):
             await self._engine_wrapper.run_scenario(path)
         except Exception as e:
             QMessageBox.critical(self, "Scenario Error", str(e))
+            self._scenario_card.on_scenario_stopped()
 
     def closeEvent(self, event):
         """Handle window close - stop engine gracefully."""
