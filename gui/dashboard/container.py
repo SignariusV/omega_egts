@@ -30,13 +30,14 @@ class DashboardContainer(QWidget):
             self.move_card(card_id, row, col, row_span, col_span)
             return
         
-        if not self._is_within_grid(row, col, row_span or 1, col_span or 1):
+        # First determine real sizes, then check bounds
+        if row_span is None or col_span is None:
+            row_span, col_span = card.grid_size
+        
+        if not self._is_within_grid(row, col, row_span, col_span):
             row, col = 0, 0
         
         card.setParent(self)
-        
-        if row_span is None or col_span is None:
-            row_span, col_span = card.grid_size
         
         self._cards[card_id] = (row, col, row_span, col_span)
         card.set_grid_position(row, col)
