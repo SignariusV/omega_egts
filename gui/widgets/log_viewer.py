@@ -13,6 +13,7 @@ LEVEL_COLORS = {
 }
 
 SOURCE_COLORS = {
+    "GUI": "#4FC1FF",
     "Python": "#6A9955",
     "Packets": "#569CD6",
     "Connections": "#DCDCAA",

@@ -16,6 +16,7 @@ class QLogHandler(QObject, logging.Handler):
                 "level": record.levelname,
                 "message": self.format(record),
                 "timestamp": record.created,
+                "logger": record.name,
             }
             self.log_message.emit(msg)
         except Exception:

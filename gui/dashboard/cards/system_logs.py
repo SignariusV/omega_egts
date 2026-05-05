@@ -13,6 +13,7 @@ import logging
 
 
 FILTER_ALL = "All"
+FILTER_GUI = "GUI"
 FILTER_PYTHON = "Python"
 FILTER_PACKETS = "Packets"
 FILTER_CONNECTIONS = "Connections"
@@ -21,6 +22,7 @@ FILTER_COMMANDS = "Commands"
 
 FILTER_OPTIONS = [
     FILTER_ALL,
+    FILTER_GUI,
     FILTER_PYTHON,
     FILTER_PACKETS,
     FILTER_CONNECTIONS,
@@ -149,7 +151,9 @@ class SystemLogsCard(BaseCard):
         level = data.get("level", "INFO")
         message = data.get("message", "")
         timestamp = data.get("timestamp")
-        self._add_entry(FILTER_PYTHON, level, message, timestamp)
+        logger = data.get("logger", "")
+        source = "GUI" if logger.startswith("gui.") else "Python"
+        self._add_entry(source, level, message, timestamp)
 
     @Slot(dict)
     def _on_packet_processed(self, data: dict):
