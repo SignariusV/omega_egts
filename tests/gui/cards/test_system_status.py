@@ -62,13 +62,7 @@ class TestSystemStatusCard:
     def test_signals_emitted(self, qtbot, app):
         card = SystemStatusCard()
         qtbot.addWidget(card)
-        started = []
-        stopped = []
-        card.start_requested.connect(lambda: started.append(True))
-        card.stop_requested.connect(lambda: stopped.append(True))
-        card._start_btn.click()
-        assert len(started) == 1
-        card.on_server_started({"port": 8090})
-        card._stop_btn.setEnabled(True)
-        card._stop_btn.click()
-        assert len(stopped) == 1
+        toggled = []
+        card.toggle_server_requested.connect(lambda: toggled.append(True))
+        card._toggle_server_btn.click()
+        assert len(toggled) == 1

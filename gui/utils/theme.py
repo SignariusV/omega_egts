@@ -93,10 +93,27 @@ def generate_qss(theme: dict) -> str:
     QPushButton:hover {{
         background-color: {theme['accent_hover']};
     }}
+    QPushButton#toggleServerButton[serverState="running"] {{
+        background-color: {theme['error']};
+        color: white;
+    }}
+    QPushButton#toggleServerButton[serverState="stopped"] {{
+        background-color: {theme['success']};
+        color: white;
+    }}
     QTableWidget, QTableView {{
         background-color: {theme['card_bg']};
         gridline-color: {theme['border']};
         font-family: "{font_mono}";
+        font-size: 11px;
+        color: {theme['text']};
+    }}
+    QTableView::item {{
+        padding: 2px;
+    }}
+    QTableView::item:selected {{
+        background-color: {theme['accent']};
+        color: white;
     }}
     QHeaderView::section {{
         background-color: {theme['header_bg']};
@@ -122,11 +139,45 @@ def generate_qss(theme: dict) -> str:
     }}
     QComboBox {{
         background-color: {theme['input_bg']};
-        color: {theme['text']};
+        color: {theme['success']};
         border: 1px solid {theme['border']};
         padding: 2px 8px;
         border-radius: 3px;
         font-family: "{font_main}";
+        font-size: 11px;
+    }}
+    QComboBox QAbstractItemView {{
+        background-color: {theme['input_bg']};
+        color: {theme['success']};
+        selection-background-color: {theme['accent']};
+        selection-color: white;
+        border: 1px solid {theme['border']};
+        padding: 4px;
+    }}
+    QComboBox::item {{
+        color: {theme['success']};
+    }}
+    QComboBox::item:selected {{
+        background-color: {theme['accent']};
+        color: white;
+    }}
+    QCheckBox {{
+        color: {theme['success']};
+        spacing: 5px;
+    }}
+    QCheckBox::indicator {{
+        width: 13px;
+        height: 13px;
+    }}
+    QCheckBox::indicator:unchecked {{
+        background-color: {theme['input_bg']};
+        border: 1px solid {theme['border']};
+        border-radius: 3px;
+    }}
+    QCheckBox::indicator:checked {{
+        background-color: {theme['accent']};
+        border: 1px solid {theme['accent']};
+        border-radius: 3px;
     }}
     QPlainTextEdit, QTextEdit {{
         background-color: {theme['input_bg']};
@@ -150,7 +201,7 @@ def apply_theme(app, theme_name: str = "vscode_dark"):
 
 def _setup_fonts(app, theme):
     """Setup application fonts."""
-    font_main = QFont(theme.get("font_main", "Segoe UI"), 10)
+    font_main = QFont(theme.get("font_main", "Segoe UI"), 11)
     app.setFont(font_main)
 
 

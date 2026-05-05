@@ -1,12 +1,10 @@
 # OMEGA_EGTS GUI
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu, QStackedWidget, QWidget
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu, QStackedWidget
 from PySide6.QtCore import Qt, Signal, QMimeData
 from PySide6.QtGui import QDrag
 from enum import Enum
 
 from gui.dashboard.layout_engine import GRID_COLS, GRID_ROWS, GRID_GAP, cell_size
-
-# Grid constants - now imported from layout_engine
 
 
 class DisplayState(Enum):
@@ -33,6 +31,7 @@ class BaseCard(QFrame):
         self._grid_row = 0
         self._grid_col = 0
         self._in_state_change = False
+        self._resizing = False
         self._stack = None
         self.setProperty("class", "CardWidget")
         self.setMinimumSize(240, 100)
@@ -217,11 +216,11 @@ class BaseCard(QFrame):
             if grip.edge == Qt.Corner.TopLeftCorner:
                 grip.move(0, 0)
             elif grip.edge == Qt.Corner.TopRightCorner:
-                grip.move(w - 8, 0)
+                grip.move(w - grip.width(), 0)
             elif grip.edge == Qt.Corner.BottomLeftCorner:
-                grip.move(0, h - 8)
+                grip.move(0, h - grip.height())
             else:  # BottomRightCorner
-                grip.move(w - 8, h - 8)
+                grip.move(w - grip.width(), h - grip.height())
 
     def _grip_mouse_press(self, event, grip):
         """Handle mouse press on resize grip."""
@@ -233,11 +232,12 @@ class BaseCard(QFrame):
             self._resize_start_col_span = self._col_span
             self._resize_start_row = self._grid_row
             self._resize_start_col = self._grid_col
+            self._resizing = True
             grip.grabMouse()
 
     def _grip_mouse_move(self, event, grip):
         """Handle mouse move on resize grip - snap to grid cells."""
-        if not hasattr(self, '_resize_start_pos') or not hasattr(self, '_resize_edge'):
+        if not self._resizing:
             return
 
         parent = self.parent()
@@ -293,6 +293,7 @@ class BaseCard(QFrame):
     def _grip_mouse_release(self, event, grip):
         """Handle mouse release on resize grip - clear state."""
         grip.releaseMouse()
+        self._resizing = False
         attrs_to_clear = ['_resize_start_pos', '_resize_edge', '_resize_start_geometry',
                          '_resize_start_row_span', '_resize_start_col_span',
                          '_resize_start_row', '_resize_start_col']
@@ -323,4 +324,3 @@ class BaseCard(QFrame):
     def _on_reset_settings(self):
         """Reset card to default state. Override in subclasses."""
         self.expand()
-        self.set_grid_size(4, 4)

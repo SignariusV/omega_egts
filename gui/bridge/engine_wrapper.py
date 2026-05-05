@@ -1,11 +1,19 @@
 # OMEGA_EGTS GUI
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
 from core.engine import CoreEngine
 from core.config import Config
 from core.event_bus import EventBus
+from core.scenario_parser import (
+    ScenarioParserFactory,
+    ScenarioParserRegistry,
+    ScenarioParserV1,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class EngineWrapper:
@@ -35,17 +43,18 @@ class EngineWrapper:
         return await self.engine.export(data_type, fmt, output_path)
 
     async def load_scenario_info(self, path: str) -> dict[str, Any]:
-        from core.scenario_parser import (
-            ScenarioParserFactory,
-            ScenarioParserRegistry,
-            ScenarioParserV1,
-        )
-
+        """Load and validate scenario metadata. Used for preview before running."""
         registry = ScenarioParserRegistry()
         registry.register("1", ScenarioParserV1)
         factory = ScenarioParserFactory(registry=registry)
 
-        data = json.loads(Path(path).read_text())
+        try:
+            data = json.loads(Path(path).read_text())
+        except FileNotFoundError:
+            raise ValueError(f"Scenario file not found: {path}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in scenario {path}: {e}")
+
         parser = factory.detect_and_create(data)
         errors, warnings = parser.validate(data)
         if errors:

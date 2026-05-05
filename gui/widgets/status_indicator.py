@@ -74,7 +74,10 @@ class CompactStatusWidget(QWidget):
         self._server_indicator.set_color(color)
         self._server_label.setText(f":{port}" if running else "Stopped")
 
-    def set_cmw_status(self, connected: bool, status_text: str = ""):
+    def set_cmw_status(self, connected: bool, status_text: str = "", mode: str = ""):
         color = StatusColor.GREEN if connected else StatusColor.RED
         self._cmw_indicator.set_color(color)
-        self._cmw_label.setText(status_text if status_text else ("Connected" if connected else "Disconnected"))
+        if connected and mode:
+            self._cmw_label.setText(f"{status_text} ({mode})")
+        else:
+            self._cmw_label.setText(status_text if status_text else ("Connected" if connected else "Disconnected"))

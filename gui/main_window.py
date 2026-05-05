@@ -132,12 +132,21 @@ class MainWindow(QMainWindow):
         for card in [self._status_card, self._scenario_card, self._packets_card, self._logs_card]:
             card.setFocusPolicy(Qt.StrongFocus)
 
-    def _on_toggle_server(self):
-        """Toggle server start/stop via keyboard shortcut."""
+    @qasync.asyncSlot()
+    async def _on_toggle_server(self):
+        """Toggle server start/stop."""
         if self._status_card.is_server_running():
-            asyncio.ensure_future(self._on_stop_requested())
+            try:
+                await self._engine_wrapper.stop()
+                self._status_bar.showMessage("Server stopped", 3000)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to stop: {e}")
         else:
-            asyncio.ensure_future(self._on_start_requested())
+            try:
+                await self._engine_wrapper.start()
+                self._status_bar.showMessage("Server started", 3000)
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to start: {e}")
 
     def _on_run_scenario_shortcut(self):
         """Run scenario via F5 shortcut."""
@@ -155,7 +164,8 @@ class MainWindow(QMainWindow):
             card.show()
 
     def _create_cards(self):
-        self._status_card = SystemStatusCard(card_id="system_status")
+        cmw_ip = self._config.cmw500.ip or ""
+        self._status_card = SystemStatusCard(card_id="system_status", cmw_ip=cmw_ip)
         self._scenario_card = ScenarioRunnerCard(card_id="scenario_runner")
         self._packets_card = LivePacketsCard(card_id="live_packets")
         self._logs_card = SystemLogsCard(card_id="system_logs")
@@ -185,25 +195,8 @@ class MainWindow(QMainWindow):
         eb.cmw_error.connect(lambda msg: self._status_bar.showMessage(f"CMW Error: {msg}", 5000))
         eb.command_error.connect(lambda data: self._status_bar.showMessage(f"Command Error: {data.get('error', data)}", 5000))
 
-        self._status_card.start_requested.connect(self._on_start_requested)
-        self._status_card.stop_requested.connect(self._on_stop_requested)
+        self._status_card.toggle_server_requested.connect(self._on_toggle_server)
         self._scenario_card.run_requested.connect(self._on_run_scenario)
-
-    @qasync.asyncSlot()
-    async def _on_start_requested(self):
-        try:
-            await self._engine_wrapper.start()
-            self._status_bar.showMessage("Server started", 3000)
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to start: {e}")
-
-    @qasync.asyncSlot()
-    async def _on_stop_requested(self):
-        try:
-            await self._engine_wrapper.stop()
-            self._status_bar.showMessage("Server stopped", 3000)
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to stop: {e}")
 
     @qasync.asyncSlot(str)
     async def _on_run_scenario(self, path):
@@ -220,25 +213,23 @@ class MainWindow(QMainWindow):
         if self._closing:
             event.accept()
             return
-
+        
         self._closing = True
         event.ignore()
-
+        
         async def shutdown():
             try:
                 await self._engine_wrapper.stop()
             except Exception:
                 pass
             finally:
-                self._closing = False
-                self.close()
-
+                # Use QApplication.quit() to exit the app cleanly
+                from PySide6.QtWidgets import QApplication
+                QApplication.instance().quit()
+        
         try:
             loop = asyncio.get_running_loop()
             asyncio.ensure_future(shutdown())
         except RuntimeError:
-            import threading
-            if threading.current_thread() != threading.main_thread():
-                event.accept()
-            else:
-                self.close()
+            # No event loop running, just quit
+            event.accept()

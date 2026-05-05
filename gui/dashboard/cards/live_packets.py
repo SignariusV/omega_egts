@@ -1,7 +1,10 @@
 # OMEGA_EGTS GUI
+import re
+
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableView,
-    QHeaderView, QLabel, QLineEdit, QComboBox, QPushButton
+    QHeaderView, QLabel, QLineEdit, QComboBox, QPushButton,
+    QMessageBox
 )
 from PySide6.QtCore import Signal, Slot, Qt, QSortFilterProxyModel, QModelIndex
 from gui.dashboard.card_base import BaseCard, DisplayState
@@ -36,7 +39,6 @@ class PacketFilterProxy(QSortFilterProxyModel):
                 data = model.data(index, Qt.ItemDataRole.DisplayRole)
                 if data:
                     try:
-                        import re
                         if re.search(self._search_text, str(data), re.IGNORECASE):
                             text_match = True
                             break
@@ -47,7 +49,9 @@ class PacketFilterProxy(QSortFilterProxyModel):
             if not text_match:
                 return False
 
-        if self._channel != "All" and self._channel_index >= 0:
+        if self._channel != "All":
+            if self._channel_index < 0:
+                return True
             channel_index = model.index(source_row, self._channel_index, source_parent)
             channel_data = model.data(channel_index, Qt.ItemDataRole.DisplayRole)
             if channel_data != self._channel:
@@ -119,8 +123,8 @@ class LivePacketsCard(BaseCard):
         toolbar.addWidget(self._filter_input)
         toolbar.addWidget(QLabel("Channel:"))
         self._channel_combo = QComboBox()
-        self._channel_combo.addItems(["All", "EGTS", "SRTC", "FRMR", "VEH"])
-        self._channel_combo.setToolTip("Filter by packet channel type")
+        self._channel_combo.addItems(["All", "tcp", "sms"])
+        self._channel_combo.setToolTip("Filter by packet channel type (tcp or sms)")
         self._channel_combo.currentTextChanged.connect(self._on_channel_changed)
         toolbar.addWidget(self._channel_combo)
         self._clear_btn = QPushButton("Clear")
@@ -138,10 +142,14 @@ class LivePacketsCard(BaseCard):
             if h.lower() == "channel":
                 self._channel_column_index = i
                 break
+        if self._channel_column_index < 0:
+            logger = __import__("logging").getLogger(__name__)
+            logger.warning("Channel column not found in PacketTableModel.HEADERS")
 
         self._table = QTableView()
         self._table.setToolTip("All captured packets (double-click for details)")
         self._table.setModel(self._proxy)
+        self._table.doubleClicked.connect(self._on_table_double_clicked)
         header = self._table.horizontalHeader()
         for i in range(self._packet_model.columnCount()):
             header.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
@@ -164,6 +172,22 @@ class LivePacketsCard(BaseCard):
         self._packet_model.clear()
         self._stats_label.setText("Rx: 0 | Tx: 0")
         self._counter_label.setText("Rx: 0 | Tx: 0")
+
+    @Slot(QModelIndex)
+    def _on_table_double_clicked(self, index):
+        proxy = self._table.model()
+        source_index = proxy.mapToSource(index)
+        if not source_index.isValid():
+            return
+        model = self._packet_model
+        row = source_index.row()
+        headers = PacketTableModel.HEADERS
+        parts = []
+        for col in range(model.columnCount()):
+            header = headers[col]
+            data = model.data(model.index(row, col), Qt.ItemDataRole.DisplayRole)
+            parts.append(f"{header}: {data}")
+        QMessageBox.information(self, "Packet Details", "\n".join(parts))
 
     def update_content_visibility(self, state: DisplayState):
         super().update_content_visibility(state)
@@ -212,8 +236,10 @@ class LivePacketsCard(BaseCard):
         }
 
     def set_state(self, state: dict):
-        self._filter_input.setText(state.get("filter_text", ""))
-        channel = state.get("channel", "All")
-        idx = self._channel_combo.findText(channel)
-        if idx >= 0:
-            self._channel_combo.setCurrentIndex(idx)
+        if hasattr(self, '_filter_input'):
+            self._filter_input.setText(state.get("filter_text", ""))
+        if hasattr(self, '_channel_combo'):
+            channel = state.get("channel", "All")
+            idx = self._channel_combo.findText(channel)
+            if idx >= 0:
+                self._channel_combo.setCurrentIndex(idx)

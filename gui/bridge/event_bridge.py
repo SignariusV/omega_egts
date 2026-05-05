@@ -10,10 +10,10 @@ class EventBridge(QObject):
     packet_sent = Signal(dict)
     cmw_status = Signal(dict)
     cmw_connected = Signal(dict)
-    cmw_disconnected = Signal()
+    cmw_disconnected = Signal(dict)
     cmw_error = Signal(str)
     server_started = Signal(dict)
-    server_stopped = Signal()
+    server_stopped = Signal(dict)
     connection_changed = Signal(dict)
     scenario_step = Signal(dict)
     command_sent = Signal(dict)
@@ -52,7 +52,7 @@ class EventBridge(QObject):
         self.cmw_connected.emit(data)
 
     def _on_cmw_disconnected(self, data):
-        self.cmw_disconnected.emit()
+        self.cmw_disconnected.emit(data)
 
     def _on_cmw_error(self, data):
         error_msg = data.get("error", "") if isinstance(data, dict) else str(data)
@@ -62,7 +62,7 @@ class EventBridge(QObject):
         self.server_started.emit(data)
 
     def _on_server_stopped(self, data):
-        self.server_stopped.emit()
+        self.server_stopped.emit(data)
 
     def _on_connection_changed(self, data):
         self.connection_changed.emit(data)
