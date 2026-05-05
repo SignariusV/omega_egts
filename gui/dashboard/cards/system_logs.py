@@ -141,7 +141,7 @@ class SystemLogsCard(BaseCard):
             return
         if level_filter != LEVEL_ALL and level != level_filter:
             return
-        self._log_viewer.append_log(level, message, timestamp)
+        self._log_viewer.append_log(level, message, timestamp, source)
         self._append_compact(level, message)
 
     @Slot(dict)
@@ -220,7 +220,7 @@ class SystemLogsCard(BaseCard):
                 continue
             if level_filter != LEVEL_ALL and entry["level"] != level_filter:
                 continue
-            self._log_viewer.append_log(entry["level"], entry["message"], entry["timestamp"])
+            self._log_viewer.append_log(entry["level"], entry["message"], entry["timestamp"], entry["source"])
             self._append_compact(entry["level"], entry["message"])
 
     def _on_clear(self):

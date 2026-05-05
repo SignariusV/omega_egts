@@ -12,6 +12,14 @@ LEVEL_COLORS = {
     "CRITICAL": "#F44747",
 }
 
+SOURCE_COLORS = {
+    "Python": "#6A9955",
+    "Packets": "#569CD6",
+    "Connections": "#DCDCAA",
+    "Scenarios": "#C586C0",
+    "Commands": "#4EC9B0",
+}
+
 
 class LogViewer(QWidget):
     def __init__(self, parent=None):
@@ -33,11 +41,13 @@ class LogViewer(QWidget):
         """)
         layout.addWidget(self._text_edit)
 
-    def append_log(self, level: str, message: str, timestamp: float = None):
+    def append_log(self, level: str, message: str, timestamp: float = None, source: str = None):
         ts = datetime.fromtimestamp(timestamp).strftime("%H:%M:%S.%f")[:-3] if timestamp else ""
-        color = LEVEL_COLORS.get(level, "#CCCCCC")
-        formatted = f"[{ts}] {level}: {message}"
-        self._text_edit.appendHtml(f'<span style="color: {color};">{formatted}</span>')
+        level_color = LEVEL_COLORS.get(level, "#CCCCCC")
+        source_color = SOURCE_COLORS.get(source, "") if source else ""
+        source_tag = f'<span style="color: {source_color};">[{source}]</span> ' if source else ""
+        formatted = f"[{ts}] {level}: {source_tag}{message}"
+        self._text_edit.appendHtml(f'<span style="color: {level_color};">{formatted}</span>')
 
     def clear(self):
         self._text_edit.clear()
