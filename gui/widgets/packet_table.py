@@ -65,6 +65,11 @@ class PacketTableModel(QAbstractTableModel):
     def get_tx_count(self) -> int:
         return self._tx_count
 
+    def get_packet(self, row: int) -> dict:
+        if 0 <= row < len(self._buffer):
+            return dict(list(self._buffer)[row])
+        return {}
+
     def clear(self):
         self.beginResetModel()
         self._buffer.clear()

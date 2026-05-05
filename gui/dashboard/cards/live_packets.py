@@ -179,29 +179,71 @@ class LivePacketsCard(BaseCard):
         source_index = proxy.mapToSource(index)
         if not source_index.isValid():
             return
-        model = self._packet_model
         row = source_index.row()
-        headers = PacketTableModel.HEADERS
-        parts = []
-        for col in range(model.columnCount()):
-            header = headers[col]
-            data = model.data(model.index(row, col), Qt.ItemDataRole.DisplayRole)
-            parts.append(f"{header}: {data}")
+        packet = self._packet_model.get_packet(row)
+        direction = "RECEIVED" if packet.get("direction") == "rx" else "SENT"
+        parts = [
+            f"=== {direction} PACKET ===",
+            f"Timestamp: {packet.get('timestamp', '')}",
+            f"Channel: {packet.get('channel', '')}",
+            f"Length: {packet.get('length', 0)} bytes",
+            "",
+            "--- Basic Info ---",
+            f"PID: {packet.get('pid', '')}",
+            f"Service: {packet.get('service', '')}",
+            f"CRC: {packet.get('crc', '')}",
+            f"Duplicate: {packet.get('duplicate', '')}",
+        ]
+        hex_data = packet.get("hex", "")
+        if hex_data:
+            parts.extend([
+                "",
+                "--- Hex Dump ---",
+                self._format_hex_dump(hex_data),
+            ])
+        parsed = packet.get("parsed", {})
+        if parsed:
+            parts.extend([
+                "",
+                "--- Parsed Data ---",
+            ])
+            for key, value in parsed.items():
+                if key != "timestamp":
+                    parts.append(f"  {key}: {value}")
         QMessageBox.information(self, "Packet Details", "\n".join(parts))
+
+    def _format_hex_dump(self, hex_str: str, bytes_per_line: int = 16) -> str:
+        if not hex_str:
+            return "(empty)"
+        lines = []
+        for i in range(0, len(hex_str), bytes_per_line * 2):
+            chunk = hex_str[i:i + bytes_per_line * 2]
+            ascii_repr = "".join(
+                chr(int(chunk[j:j+2], 16)) if 32 <= int(chunk[j:j+2], 16) < 127 else "."
+                for j in range(0, len(chunk), 2)
+            )
+            lines.append(f"  {chunk}  {ascii_repr}")
+        return "\n".join(lines)
 
     def update_content_visibility(self, state: DisplayState):
         super().update_content_visibility(state)
 
     @Slot()
     def on_packet_processed(self, data: dict):
+        ctx = data.get("ctx", {})
+        hex_data = ctx.get("hex", "") if ctx else ""
+        parsed = ctx.get("parsed", {}) if ctx else {}
+        service = parsed.get("service", "?") if parsed else "?"
         packet = {
             "timestamp": data.get("timestamp", ""),
             "pid": data.get("pid", ""),
-            "service": data.get("service", ""),
-            "length": data.get("length", ""),
+            "service": service,
+            "length": len(hex_data) // 2 if hex_data else 0,
             "channel": data.get("channel", ""),
-            "crc": data.get("crc", ""),
-            "duplicate": data.get("duplicate", ""),
+            "crc": "OK" if ctx.get("crc_valid", False) else "FAIL" if ctx else "",
+            "duplicate": "Yes" if ctx.get("is_duplicate", False) else "No" if ctx else "",
+            "hex": hex_data,
+            "parsed": parsed,
             "direction": "rx"
         }
         self._packet_model.add_packet(packet)
@@ -209,14 +251,17 @@ class LivePacketsCard(BaseCard):
 
     @Slot()
     def on_packet_sent(self, data: dict):
+        hex_data = data.get("hex", "")
         packet = {
             "timestamp": data.get("timestamp", ""),
             "pid": data.get("pid", ""),
-            "service": data.get("service", ""),
-            "length": data.get("length", ""),
+            "service": "?",
+            "length": len(hex_data) // 2 if hex_data else 0,
             "channel": data.get("channel", ""),
-            "crc": data.get("crc", ""),
-            "duplicate": data.get("duplicate", ""),
+            "crc": "OK",
+            "duplicate": "No",
+            "hex": hex_data,
+            "parsed": {},
             "direction": "tx"
         }
         self._packet_model.add_packet(packet)
