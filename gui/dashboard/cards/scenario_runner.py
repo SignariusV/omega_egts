@@ -88,9 +88,11 @@ class ScenarioRunnerCard(BaseCard):
         self._combo_compact.setToolTip("Select scenario to run")
         layout.addWidget(self._combo_compact)
         self._run_btn_compact = QPushButton("Run")
+        self._run_btn_compact.setObjectName("scenarioToggleButton")
+        self._run_btn_compact.setProperty("scenarioState", "stopped")
         self._run_btn_compact.setFixedWidth(50)
         self._run_btn_compact.setToolTip("Run selected scenario (F5)")
-        self._run_btn_compact.clicked.connect(self.on_run_clicked)
+        self._run_btn_compact.clicked.connect(self._on_toggle_clicked)
         layout.addWidget(self._run_btn_compact)
         layout.addStretch()
 
@@ -108,14 +110,11 @@ class ScenarioRunnerCard(BaseCard):
         toolbar.addWidget(self._combo_expanded)
         toolbar.addStretch()
         self._run_btn = QPushButton("Run")
+        self._run_btn.setObjectName("scenarioToggleButton")
+        self._run_btn.setProperty("scenarioState", "stopped")
         self._run_btn.setToolTip("Run selected scenario (F5)")
-        self._run_btn.clicked.connect(self.on_run_clicked)
-        self._stop_btn = QPushButton("Stop")
-        self._stop_btn.setToolTip("Stop running scenario")
-        self._stop_btn.setEnabled(False)
-        self._stop_btn.clicked.connect(self.stop_requested.emit)
+        self._run_btn.clicked.connect(self._on_toggle_clicked)
         toolbar.addWidget(self._run_btn)
-        toolbar.addWidget(self._stop_btn)
         layout.addLayout(toolbar)
 
         self._progress_bar = ProgressBarWidget()
@@ -144,20 +143,40 @@ class ScenarioRunnerCard(BaseCard):
         self._combo_compact.currentIndexChanged.connect(self._combo_expanded.setCurrentIndex)
         self._combo_expanded.currentIndexChanged.connect(self._combo_compact.setCurrentIndex)
 
-    def on_run_clicked(self):
-        combo = self._combo_expanded if self._display_state == DisplayState.EXPANDED else self._combo_compact
-        idx = combo.currentIndex()
-        if idx >=0:
-            path = combo.itemData(idx)
-            if path:
-                self._selected_path = str(path)
-                self._running = True
-                self._run_btn.setEnabled(False)
-                self._run_btn_compact.setEnabled(False)
-                self._stop_btn.setEnabled(True)
-                self._step_model.set_steps([])
-                self._progress_bar.set_value(0)
-                self.run_requested.emit(self._selected_path)
+    def _on_toggle_clicked(self):
+        if self._running:
+            self.stop_requested.emit()
+        else:
+            combo = self._combo_expanded if self._display_state == DisplayState.EXPANDED else self._combo_compact
+            idx = combo.currentIndex()
+            if idx >= 0:
+                path = combo.itemData(idx)
+                if path:
+                    self._selected_path = str(path)
+                    self._running = True
+                    self._update_button_state(True)
+                    self._step_model.set_steps([])
+                    self._progress_bar.set_value(0)
+                    self.run_requested.emit(self._selected_path)
+
+    def _update_button_state(self, running: bool):
+        state = "running" if running else "stopped"
+        text = "Stop" if running else "Run"
+        tooltip = "Stop running scenario" if running else "Run selected scenario (F5)"
+
+        self._run_btn.setText(text)
+        self._run_btn.setProperty("scenarioState", state)
+        self._run_btn.setToolTip(tooltip)
+        self._run_btn.setEnabled(True)
+        self._run_btn.style().unpolish(self._run_btn)
+        self._run_btn.style().polish(self._run_btn)
+
+        self._run_btn_compact.setText(text)
+        self._run_btn_compact.setProperty("scenarioState", state)
+        self._run_btn_compact.setToolTip(tooltip)
+        self._run_btn_compact.setEnabled(True)
+        self._run_btn_compact.style().unpolish(self._run_btn_compact)
+        self._run_btn_compact.style().polish(self._run_btn_compact)
 
     def update_content_visibility(self, state: DisplayState):
         super().update_content_visibility(state)
@@ -185,23 +204,17 @@ class ScenarioRunnerCard(BaseCard):
             self._progress_bar.set_value(progress)
         if status in ("PASS", "FAIL"):
             self._running = False
-            self._run_btn.setEnabled(True)
-            self._run_btn_compact.setEnabled(True)
-            self._stop_btn.setEnabled(False)
+            self._update_button_state(False)
 
     @Slot()
     def on_command_error(self, data: dict):
         self._running = False
-        self._run_btn.setEnabled(True)
-        self._run_btn_compact.setEnabled(True)
-        self._stop_btn.setEnabled(False)
+        self._update_button_state(False)
 
     def on_scenario_stopped(self):
         """Call when scenario execution is stopped."""
         self._running = False
-        self._run_btn.setEnabled(True)
-        self._run_btn_compact.setEnabled(True)
-        self._stop_btn.setEnabled(False)
+        self._update_button_state(False)
         self._progress_bar.set_value(0)
 
     def get_state(self) -> dict:

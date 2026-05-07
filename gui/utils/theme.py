@@ -115,6 +115,23 @@ def generate_qss(theme: dict) -> str:
         padding: 6px 16px;
         font-weight: bold;
     }}
+
+    QPushButton#scenarioToggleButton[scenarioState="running"] {{
+        background-color: #F44747;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 6px 16px;
+        font-weight: bold;
+    }}
+    QPushButton#scenarioToggleButton[scenarioState="stopped"] {{
+        background-color: #007ACC;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 6px 16px;
+        font-weight: bold;
+    }}
     QTableWidget, QTableView {{
         background-color: {theme['card_bg']};
         gridline-color: {theme['border']};
