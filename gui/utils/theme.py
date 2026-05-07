@@ -23,7 +23,13 @@ THEME_VSCODE_DARK = {
     "grip_hover": "rgba(0, 120, 215, 80)",
     "title_color": "#FFD700",
     "title_size": 18,
-        "border_radius": "12px",
+    "border_radius": "12px",
+    "section_title": "#4EC9B0",
+    "toggle_color": "#4EC9B0",
+    "group_header": "#2D2D30",
+    "group_border": "#454545",
+    "button_bg": "#0E639C",
+    "button_hover": "#1177BB",
 }
 
 
@@ -241,7 +247,7 @@ def generate_qss(theme: dict) -> str:
         background-color: {theme['card_bg']};
     }}
 
-    QSpinBox, QDoubleSpinBox {{
+QSpinBox, QDoubleSpinBox {{
         background-color: {theme['input_bg']};
         color: {theme['text']};
         border: 1px solid {theme['border']};
@@ -249,6 +255,9 @@ def generate_qss(theme: dict) -> str:
         padding: 2px 4px;
         font-family: "{font_main}";
         font-size: 11px;
+    }}
+    QSpinBox:focus, QDoubleSpinBox:focus {{
+        border: 1px solid {theme['accent']};
     }}
     QSpinBox::up-button, QDoubleSpinBox::up-button {{
         border-left: 1px solid {theme['border']};
@@ -294,14 +303,40 @@ def generate_qss(theme: dict) -> str:
 
     QWidget[class="CollapsibleGroupBox"] {{
         background-color: {theme['card_bg']};
+        border: 1px solid {theme.get('group_border', theme['border'])};
+        border-radius: 6px;
+        margin-top: 8px;
     }}
     QWidget[class="CollapsibleGroupHeader"] {{
-        background-color: {theme['header_bg']};
+        background-color: {theme.get('group_header', theme['title_bg'])};
+        border-bottom: 1px solid {theme['border']};
+        border-radius: 6px 6px 0 0;
+        padding: 4px;
     }}
     QPushButton[class="CollapsibleToggle"] {{
         background-color: transparent;
-        color: {theme['text']};
+        color: {theme.get('toggle_color', theme['success'])};
         border: none;
+        font-size: 14px;
+        font-weight: bold;
+    }}
+    QPushButton[class="CollapsibleToggle"]:hover {{
+        color: {theme['accent']};
+    }}
+    QLabel {{
+        color: {theme.get('section_title', theme['success'])};
+        font-weight: bold;
+    }}
+    QPushButton#saveSettingsButton {{
+        background-color: {theme.get('button_bg', theme['accent'])};
+        color: white;
+        border: 1px solid {theme['accent']};
+        border-radius: 4px;
+        padding: 8px 24px;
+        font-weight: bold;
+    }}
+    QPushButton#saveSettingsButton:hover {{
+        background-color: {theme.get('button_hover', theme['accent_hover'])};
     }}
     """
 

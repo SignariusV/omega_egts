@@ -34,12 +34,14 @@ class CollapsibleGroupBox(QWidget):
         self._toggle_btn.setFixedSize(20, 20)
         self._toggle_btn.setFlat(True)
         self._toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._toggle_btn.setStyleSheet("color: #FFD700;")
         self._toggle_btn.clicked.connect(self._on_toggle)
 
         self._title_label = QLabel(self._title)
         font = self._title_label.font()
         font.setBold(True)
         self._title_label.setFont(font)
+        self._title_label.setStyleSheet("color: #FFD700; font-weight: bold;")
 
         header_layout.addWidget(self._toggle_btn)
         header_layout.addWidget(self._title_label)
