@@ -1,4 +1,5 @@
 # OMEGA_EGTS GUI
+from pathlib import Path
 from typing import Any
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPlainTextEdit,
@@ -10,6 +11,8 @@ from gui.widgets.log_viewer import LogViewer
 from gui.utils.qt_log_handler import QLogHandler
 from gui.bridge.event_bridge import EventBridge
 import logging
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
 FILTER_ALL = "All"
@@ -46,6 +49,7 @@ LEVEL_OPTIONS = [LEVEL_ALL, "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 class SystemLogsCard(BaseCard):
     def __init__(self, card_id: str = "system_logs", event_bridge: EventBridge | None = None, parent=None):
         super().__init__("System Logs", card_id=card_id, parent=parent)
+        self.icon_path = str(PROJECT_ROOT / "gui" / "resources" / "icons" / "logs.svg")
         self._event_bridge = event_bridge
         self._log_handler = QLogHandler()
         self._log_handler.log_message.connect(self._on_python_log)

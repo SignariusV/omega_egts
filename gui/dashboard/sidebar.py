@@ -1,7 +1,8 @@
 # OMEGA_EGTS GUI
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QToolButton, QScrollArea
-from PySide6.QtCore import Qt, Signal
+from pathlib import Path
+from PySide6.QtCore import Qt, QSize, Signal
 from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QToolButton, QScrollArea
 
 from gui.dashboard.card_base import BaseCard
 
@@ -59,6 +60,16 @@ class CardSidebar(QWidget):
         main_layout.addWidget(self._toggle_btn)
         main_layout.addWidget(self._scroll)
 
+        self.setStyleSheet("""
+            QToolTip {
+                background-color: #2D2D30;
+                color: #CCCCCC;
+                border: 1px solid #3E3E42;
+                padding: 4px 8px;
+                border-radius: 3px;
+            }
+        """)
+
         # Subscribe to container changes
         container.cards_changed.connect(self._refresh_buttons)
         container.card_visibility_changed.connect(self._on_visibility_changed)
@@ -94,13 +105,64 @@ class CardSidebar(QWidget):
         
         # Use icon if available, otherwise use first letter of title
         icon_path = getattr(card, 'icon_path', None)
-        if icon_path and callable(icon_path):
-            btn.setIcon(QIcon(icon_path()))
-        elif icon_path:
-            btn.setIcon(QIcon(icon_path))
-        else:
-            btn.setText(card.title[:1].upper())
+        icon_loaded = False
+        
+        if icon_path:
+            # Преобразуем в абсолютный путь
+            path_obj = Path(icon_path)
+            if not path_obj.is_absolute():
+                # sidebar.py: gui/dashboard/ -> 2 уровня вверх = gui/ -> ещё раз = OMEGA_EGTS/
+                project_root = Path(__file__).resolve().parent.parent.parent
+                abs_path_str = str(project_root / icon_path)
+            else:
+                abs_path_str = str(path_obj)
             
+            abs_path = Path(abs_path_str)
+            if abs_path.exists():
+                icon = QIcon(str(abs_path))
+                btn.setIcon(icon)
+                btn.setIconSize(QSize(20, 20))
+                icon_loaded = True
+        
+        # Если иконка не загружена — используем текст (первая буква заголовка)
+        if not icon_loaded:
+            btn.setText(card.title[:1].upper())
+        
+        # Стилизация: делаем фон светлым, чтобы чёрная SVG-иконка была видна
+        if icon_loaded:
+            btn.setStyleSheet("""
+                QToolButton {
+                    background-color: rgba(255,255,255, 50);
+                    border: 1px solid rgba(255,255,255, 160);
+                    border-radius: 4px;
+                    padding: 2px;
+                }
+                QToolButton:checked {
+                    background-color: rgba(255,255,255, 70);
+                    border: 1px solid rgba(255,255,255, 230);
+                }
+                QToolButton:hover {
+                    background-color: rgba(255,255,255, 90);
+                    border: 1px solid rgba(255,255,255, 255);
+                }
+            """)
+        else:
+            btn.setStyleSheet("""
+                QToolButton {
+                    color: white;
+                    background-color: rgba(255,255,255, 50);
+                    border: 1px solid rgba(255,255,255, 160);
+                    border-radius: 4px;
+                }
+                QToolButton:checked {
+                    background-color: rgba(255,255,255, 70);
+                    border: 1px solid rgba(255,255,255, 230);
+                }
+                QToolButton:hover {
+                    background-color: rgba(255,255,255, 90);
+                }
+            """)
+        
         btn.setToolTip(card.title)
         btn.setCheckable(True)
         btn.setChecked(not card.isHidden())

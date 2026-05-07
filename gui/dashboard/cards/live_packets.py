@@ -1,5 +1,6 @@
 # OMEGA_EGTS GUI
 import re
+from pathlib import Path
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTableView,
@@ -9,6 +10,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal, Slot, Qt, QSortFilterProxyModel, QModelIndex
 from gui.dashboard.card_base import BaseCard, DisplayState
 from gui.widgets.packet_table import PacketTableModel
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
 class PacketFilterProxy(QSortFilterProxyModel):
@@ -75,6 +78,7 @@ class CompactProxyModel(QSortFilterProxyModel):
 class LivePacketsCard(BaseCard):
     def __init__(self, card_id: str = "live_packets", parent=None):
         super().__init__("Live Packets", card_id=card_id, parent=parent)
+        self.icon_path = str(PROJECT_ROOT / "gui" / "resources" / "icons" / "packets.svg")
         self._build_widgets()
         self.finish_init()
 

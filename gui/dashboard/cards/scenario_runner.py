@@ -1,5 +1,6 @@
 # OMEGA_EGTS GUI
 import logging
+from pathlib import Path
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
     QPushButton, QTableView, QHeaderView, QLabel
@@ -8,6 +9,8 @@ from PySide6.QtCore import Signal, Slot, Qt, QAbstractTableModel, QModelIndex
 from gui.dashboard.card_base import BaseCard, DisplayState
 from gui.utils.scenario_scanner import scan_scenarios, get_default_scenarios_path, ScenarioInfo
 from gui.widgets.progress_bar import ProgressBarWidget
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
 logger = logging.getLogger(__name__)
@@ -62,6 +65,7 @@ class ScenarioRunnerCard(BaseCard):
 
     def __init__(self, card_id: str = "scenario_runner", parent=None):
         super().__init__("Scenario Runner", card_id=card_id, parent=parent)
+        self.icon_path = str(PROJECT_ROOT / "gui" / "resources" / "icons" / "scenario.svg")
         self._scenarios: list[ScenarioInfo] = []
         self._selected_path: str = ""
         self._running = False

@@ -1,4 +1,5 @@
 # OMEGA_EGTS GUI
+from pathlib import Path
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
     QFormLayout, QLabel, QPushButton
@@ -7,12 +8,15 @@ from PySide6.QtCore import Signal, Slot
 from gui.dashboard.card_base import BaseCard, DisplayState
 from gui.widgets.status_indicator import CompactStatusWidget
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+
 
 class SystemStatusCard(BaseCard):
     toggle_server_requested = Signal()
 
     def __init__(self, card_id: str = "system_status", cmw_ip: str = "", parent=None):
         super().__init__("System Status", card_id=card_id, parent=parent)
+        self.icon_path = str(PROJECT_ROOT / "gui" / "resources" / "icons" / "server.svg")
         self._server_running = False
         self._cmw_connected = False
         self._server_port = 8090
