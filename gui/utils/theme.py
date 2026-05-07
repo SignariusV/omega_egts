@@ -100,12 +100,20 @@ def generate_qss(theme: dict) -> str:
         background-color: {theme['accent_hover']};
     }}
     QPushButton#toggleServerButton[serverState="running"] {{
-        background-color: {theme['error']};
+        background-color: #F44747;
         color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 6px 16px;
+        font-weight: bold;
     }}
     QPushButton#toggleServerButton[serverState="stopped"] {{
-        background-color: {theme['success']};
+        background-color: #007ACC;
         color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 6px 16px;
+        font-weight: bold;
     }}
     QTableWidget, QTableView {{
         background-color: {theme['card_bg']};
