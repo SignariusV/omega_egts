@@ -232,6 +232,77 @@ def generate_qss(theme: dict) -> str:
     QToolButton#sidebarToggle:hover {{
         color: {theme['accent']};
     }}
+
+    QScrollArea {{
+        background-color: {theme['card_bg']};
+        border: none;
+    }}
+    QScrollArea > QWidget > QWidget {{
+        background-color: {theme['card_bg']};
+    }}
+
+    QSpinBox, QDoubleSpinBox {{
+        background-color: {theme['input_bg']};
+        color: {theme['text']};
+        border: 1px solid {theme['border']};
+        border-radius: 3px;
+        padding: 2px 4px;
+        font-family: "{font_main}";
+        font-size: 11px;
+    }}
+    QSpinBox::up-button, QDoubleSpinBox::up-button {{
+        border-left: 1px solid {theme['border']};
+        background-color: {theme['header_bg']};
+        width: 14px;
+    }}
+    QSpinBox::down-button, QDoubleSpinBox::down-button {{
+        border-left: 1px solid {theme['border']};
+        background-color: {theme['header_bg']};
+        width: 14px;
+    }}
+    QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {{
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-bottom: 5px solid {theme['text']};
+    }}
+    QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-top: 5px solid {theme['text']};
+    }}
+
+    QLineEdit {{
+        background-color: {theme['input_bg']};
+        color: {theme['text']};
+        border: 1px solid {theme['border']};
+        border-radius: 3px;
+        padding: 3px 6px;
+        font-family: "{font_main}";
+        font-size: 11px;
+    }}
+    QLineEdit:focus {{
+        border: 1px solid {theme['accent']};
+    }}
+
+    QFormLayout {{
+        background-color: {theme['card_bg']};
+    }}
+    QFormLayout::label {{
+        color: {theme['text']};
+        font-family: "{font_main}";
+    }}
+
+    QWidget[class="CollapsibleGroupBox"] {{
+        background-color: {theme['card_bg']};
+    }}
+    QWidget[class="CollapsibleGroupHeader"] {{
+        background-color: {theme['header_bg']};
+    }}
+    QPushButton[class="CollapsibleToggle"] {{
+        background-color: transparent;
+        color: {theme['text']};
+        border: none;
+    }}
     """
 
 
