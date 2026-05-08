@@ -1,24 +1,29 @@
 {
   "gost_version": "2015",
-  "tcp_port": 3001,
   "tcp_host": "0.0.0.0",
+  "tcp_port": 8054,
   "cmw500": {
-    "ip": "192.168.1.100",
-    "timeout": 5,
+    "ip": "192.168.2.2",
+    "simulate": true,
+    "timeout": 5.0,
     "retries": 3,
-    "sms_send_timeout":30,
-    "status_poll_interval": 2
+    "sms_send_timeout": 10.0,
+    "status_poll_interval": 2.0,
+    "mcc": 250,
+    "mnc": 60,
+    "rf_level_tch": -40.0,
+    "sms_dcoding": "BIT8",
+    "sms_pidentifier": 1
   },
   "timeouts": {
-    "TL_RESPONSE_TO": 5,
-    "TL_RESEND_ATTEMPTS": 3,
-    "TL_RECONNECT_TO": 30,
-    "EGTS_SL_NOT_AUTH_TO": 6
+    "tl_response_to": 5.0,
+    "tl_resend_attempts": 3,
+    "tl_reconnect_to": 30.0,
+    "egts_sl_not_auth_to": 6.0
   },
   "logging": {
     "level": "INFO",
-    "dir": "./logs",
-    "rotation": "daily",
+    "dir": "logs",
     "max_size_mb": 100,
     "retention_days": 30
   }

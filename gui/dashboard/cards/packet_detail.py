@@ -155,6 +155,10 @@ class PacketDetailCard(BaseCard):
         if not hex_str:
             return "(empty)"
 
+        # Convert bytes to hex string if necessary
+        if isinstance(hex_str, bytes):
+            hex_str = hex_str.hex()
+
         lines = []
         for i in range(0, len(hex_str), bytes_per_line * 2):
             chunk = hex_str[i:i + bytes_per_line * 2]

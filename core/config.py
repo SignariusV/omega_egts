@@ -142,6 +142,11 @@ class Config:
         timeouts_data = data.get("timeouts", {})
         logging_data = data.get("logging", {})
 
+        # Вспомогательная функция: ищет ключ в обоих регистрах
+        def get_key(data_dict, key, default):
+            # Пробуем строчный (новый) и верхний (старый) регистры
+            return data_dict.get(key, data_dict.get(key.upper(), default))
+
         return cls(
             gost_version=data.get("gost_version", cls.gost_version),
             tcp_host=data.get("tcp_host", cls.tcp_host),
@@ -149,13 +154,13 @@ class Config:
             cmw500=CmwConfig(
                 ip=cmw_data.get("ip", CmwConfig.ip),
                 simulate=cmw_data.get("simulate", CmwConfig.simulate),
-                timeout=float(cmw_data.get("timeout", CmwConfig.timeout)),
+                timeout=float(get_key(cmw_data, "timeout", CmwConfig.timeout)),
                 retries=cmw_data.get("retries", CmwConfig.retries),
-                sms_send_timeout=float(cmw_data.get("sms_send_timeout", CmwConfig.sms_send_timeout)),
-                status_poll_interval=float(cmw_data.get("status_poll_interval", CmwConfig.status_poll_interval)),
+                sms_send_timeout=float(get_key(cmw_data, "sms_send_timeout", CmwConfig.sms_send_timeout)),
+                status_poll_interval=float(get_key(cmw_data, "status_poll_interval", CmwConfig.status_poll_interval)),
                 mcc=cmw_data.get("mcc", CmwConfig.mcc),
                 mnc=cmw_data.get("mnc", CmwConfig.mnc),
-                rf_level_tch=float(cmw_data.get("rf_level_tch", CmwConfig.rf_level_tch)),
+                rf_level_tch=float(get_key(cmw_data, "rf_level_tch", CmwConfig.rf_level_tch)),
                 ps_service=cmw_data.get("ps_service", CmwConfig.ps_service),
                 ps_tlevel=cmw_data.get("ps_tlevel", CmwConfig.ps_tlevel),
                 ps_cscheme_ul=cmw_data.get("ps_cscheme_ul", CmwConfig.ps_cscheme_ul),
@@ -177,17 +182,17 @@ class Config:
                 sms_pidentifier=cmw_data.get("sms_pidentifier", CmwConfig.sms_pidentifier),
             ),
             timeouts=TimeoutsConfig(
-                tl_response_to=float(timeouts_data.get("tl_response_to", TimeoutsConfig.tl_response_to)),
-                tl_resend_attempts=timeouts_data.get("tl_resend_attempts", TimeoutsConfig.tl_resend_attempts),
-                tl_reconnect_to=float(timeouts_data.get("tl_reconnect_to", TimeoutsConfig.tl_reconnect_to)),
-                egts_sl_not_auth_to=float(timeouts_data.get("egts_sl_not_auth_to", TimeoutsConfig.egts_sl_not_auth_to)),
+                tl_response_to=float(get_key(timeouts_data, "tl_response_to", TimeoutsConfig.tl_response_to)),
+                tl_resend_attempts=get_key(timeouts_data, "tl_resend_attempts", TimeoutsConfig.tl_resend_attempts),
+                tl_reconnect_to=float(get_key(timeouts_data, "tl_reconnect_to", TimeoutsConfig.tl_reconnect_to)),
+                egts_sl_not_auth_to=float(get_key(timeouts_data, "egts_sl_not_auth_to", TimeoutsConfig.egts_sl_not_auth_to)),
             ),
             logging=LogConfig(
-                level=logging_data.get("level", LogConfig.level),
-                dir=logging_data.get("dir", LogConfig.dir),
-                rotation=logging_data.get("rotation", LogConfig.rotation),
-                max_size_mb=logging_data.get("max_size_mb", LogConfig.max_size_mb),
-                retention_days=logging_data.get("retention_days", LogConfig.retention_days),
+                level=get_key(logging_data, "level", LogConfig.level),
+                dir=get_key(logging_data, "dir", LogConfig.dir),
+                rotation=get_key(logging_data, "rotation", LogConfig.rotation),
+                max_size_mb=get_key(logging_data, "max_size_mb", LogConfig.max_size_mb),
+                retention_days=get_key(logging_data, "retention_days", LogConfig.retention_days),
             ),
             credentials_path=data.get("credentials_path", cls.credentials_path),
         )

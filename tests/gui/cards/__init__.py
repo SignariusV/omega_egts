@@ -1,1 +1,1 @@
-# OMEGA_EGTS GUI
+# OMEGA_EGTS GUI Cards Tests
