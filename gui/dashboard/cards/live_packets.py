@@ -192,9 +192,17 @@ class LivePacketsCard(BaseCard):
         row = source_index.row()
         packet = self._packet_model.get_packet(row)
 
-        # Generate unique ID for this packet
-        timestamp = packet.get('timestamp', '0').replace(':', '-').replace('.', '-')
-        pid = packet.get('pid', '0')
+        # Generate unique ID for this packet - handle None values
+        timestamp = packet.get('timestamp')
+        if timestamp is None:
+            timestamp = '0'
+        timestamp = str(timestamp).replace(':', '-').replace('.', '-')
+        
+        pid = packet.get('pid')
+        if pid is None:
+            pid = '0'
+        pid = str(pid)
+        
         packet_id = f"pkt_{timestamp}_{pid}"
 
         # If already open - raise it
@@ -298,9 +306,15 @@ class LivePacketsCard(BaseCard):
         hex_data = ctx.get("hex", "") if ctx else ""
         parsed = ctx.get("parsed", {}) if ctx else {}
         service = parsed.get("service", "?") if parsed else "?"
+        
+        # Handle None values for pid
+        pid = data.get("pid")
+        if pid is None:
+            pid = ""
+        
         packet = {
             "timestamp": data.get("timestamp", ""),
-            "pid": data.get("pid", ""),
+            "pid": str(pid),
             "service": service,
             "length": len(hex_data) // 2 if hex_data else 0,
             "channel": data.get("channel", ""),
@@ -316,16 +330,33 @@ class LivePacketsCard(BaseCard):
     @Slot()
     def on_packet_sent(self, data: dict):
         hex_data = data.get("hex", "")
+        # Try to parse outgoing packet if hex data exists
+        parsed = {}
+        if hex_data:
+            try:
+                from core.egts.protocol import get_protocol
+                protocol = get_protocol("2015")  # Default GOST version
+                result = protocol.parse(bytes.fromhex(hex_data))
+                if result:
+                    parsed = {
+                        "packet_id": result.packet_id,
+                        "packet_type": result.packet_type,
+                        "service": result.service,
+                        "records_count": len(result.records) if result.records else 0,
+                    }
+            except:
+                pass  # Ignore parse errors for outgoing packets
+        
         packet = {
             "timestamp": data.get("timestamp", ""),
-            "pid": data.get("pid", ""),
-            "service": "?",
+            "pid": str(data.get("pid") or "0"),  # Handle None
+            "service": str(parsed.get("service", "?")),
             "length": len(hex_data) // 2 if hex_data else 0,
             "channel": data.get("channel", ""),
             "crc": "OK",
             "duplicate": "No",
             "hex": hex_data,
-            "parsed": {},
+            "parsed": parsed,
             "direction": "tx"
         }
         self._packet_model.add_packet(packet)

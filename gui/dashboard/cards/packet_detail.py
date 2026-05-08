@@ -310,20 +310,25 @@ class PacketDetailCard(BaseCard):
             self._attach_to_grid()
         else:
             self._detach_to_floating()
-        # Update pin button state
+        # Update pin button state and resize handles visibility
         self._pin_btn.setChecked(self._floating)
+        # Show/hide resize handles based on mode
+        for grip in self._grips:
+            grip.setVisible(not self._floating)
 
     def _detach_to_floating(self):
         """Detach card to floating window mode."""
         self._floating = True
         self.setParent(None)
+        # Use Qt.Window to allow resizing, remove FramelessWindowHint to enable resize handles
         self.setWindowFlags(
-            Qt.WindowType.Dialog |
-            Qt.WindowType.FramelessWindowHint |
+            Qt.WindowType.Window |
             Qt.WindowType.WindowStaysOnTopHint
         )
         self.setWindowModality(Qt.WindowModality.NonModal)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        # Set minimum size for floating window
+        self.setMinimumSize(400, 300)
         self.show()
 
     def _attach_to_grid(self):
