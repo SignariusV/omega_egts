@@ -32,6 +32,47 @@
 
 ---
 
+### Детализация пакетов: PacketDetailCard (завершена)
+
+**Дата:** 08.05.2026  
+**Ветка:** `feature/packet-detail-card` | **Коммиты:** `fc7bafd`, `5697b3e`, `b90ae4a`, `c0eaede`, `287b05f`
+
+#### Added
+- **PacketDetailCard** — новая карточка для детального просмотра пакетов EGTS:
+  - Compact view: статус OK/ERROR с краткой сводкой (PID, Service, Direction)
+  - Expanded view: 4 вкладки (Raw Data с HEX+ASCII, Transport Layer, Service Layer, Metadata)
+  - Floating mode с кнопкой 📌 Pin для открепления/закрепления
+  - Максимум 6 одновременно открытых карточек (LRU при превышении)
+  - Автоматическое закрытие всех детальных карточек при скрытии LivePackets
+
+- **Порт 8054 уже занят** — улучшенная обработка ошибок:
+  - `gui/utils/port_checker.py` — новый модуль проверки доступности порта
+  - `is_port_available()` с использованием `SO_REUSEADDR` для избежания `TIME_WAIT`
+  - `get_error_message()` — генерация понятных сообщений для пользователя с вариантами решения
+  - Интеграция в `EngineWrapper.start()` — проверка до попытки запуска сервера
+
+#### Fixed
+- **KeyError при закрытии карточек** — правильное отключение сигналов и очистка словаря `_open_detail_cards`
+- **Повторное открытие карточки** — `closeEvent` в `PacketDetailCard` корректно испускает сигнал `closed`
+- **None значения в packet_id** — обработка `None` для `pid` и `timestamp` при генерации уникального `card_id` (использование MD5 hash)
+- **Данных исходящих SMS нет** — поиск ключа `packet_bytes` в событии `packet.sent`, парсинг HEX-данных исходящих пакетов
+- **Floating mode resize** — замена `Qt.Dialog | FramelessWindowHint` на `Qt.Window` для возможности системного изменения размера, скрытие resize handles в floating режиме
+
+#### Tests
+- **test_packet_detail.py** — 13 модульных тестов для `PacketDetailCard`
+- **test_live_packets.py** — 18 тестов (обновлены: `TestLivePacketsDetailCards`)
+- **test_integration.py** — 9 интеграционных тестов (`TestLivePacketsToDetailIntegration`, `TestPacketDetailCardWorkflow`)
+- **test_port_checker.py** — 3 теста для проверки порта
+- **Итого:** 171 GUI тест проходит успешно ✅
+
+#### Technical Details
+- Генерация `card_id` основана на MD5 hash от `(timestamp, pid, direction, hex[:30])` для надежности
+- `_close_all_detail_cards()` очищает словарь ДО отключения сигналов для избежания double-delete
+- `SO_REUSEADDR` решает проблему `TIME_WAIT` состояния порта
+- Обработка обоих ключей для HEX-данных: `packet_bytes` (от `command.sent`) и `hex` (от `packet.processed`)
+
+---
+
 ### Поддержка packet_hex в SendStep (завершена)
 
 **Дата:** 25.04.2026
