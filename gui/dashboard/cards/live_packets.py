@@ -249,15 +249,27 @@ class LivePacketsCard(BaseCard):
 
     def _close_all_detail_cards(self):
         """Close all detail cards."""
-        for card_id in list(self._open_detail_cards.keys()):
-            self._close_detail_card(card_id)
+        # Get all cards before clearing dict
+        cards_to_close = list(self._open_detail_cards.values())
+        # Clear tracking dict to prevent double-delete from signals
+        self._open_detail_cards.clear()
+        # Close all cards (disconnect signals first)
+        for card in cards_to_close:
+            try:
+                card.closed.disconnect()
+            except:
+                pass
+            card.close()
 
     def _close_detail_card(self, card_id: str):
         """Close a specific detail card."""
         if card_id in self._open_detail_cards:
-            card = self._open_detail_cards[card_id]
+            card = self._open_detail_cards.pop(card_id)
+            try:
+                card.closed.disconnect()
+            except:
+                pass
             card.close()
-            del self._open_detail_cards[card_id]
 
     def hideEvent(self, event):
         """Close all detail cards when LivePacketsCard is hidden."""
