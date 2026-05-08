@@ -15,6 +15,7 @@ from gui.dashboard.cards.system_status import SystemStatusCard
 from gui.dashboard.cards.scenario_runner import ScenarioRunnerCard
 from gui.dashboard.cards.live_packets import LivePacketsCard
 from gui.dashboard.cards.system_logs import SystemLogsCard
+from gui.dashboard.cards.settings import SettingsCard
 from gui.dashboard.persistence import PersistenceManager
 
 from gui.bridge.engine_wrapper import EngineWrapper
@@ -42,13 +43,20 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("OMEGA_EGTS Tester")
         self.resize(1024, 768)
 
-        self._config = Config(
-            tcp_host="0.0.0.0",
-            tcp_port=8090,
-            cmw500=CmwConfig(ip="192.168.2.2", simulate=True),
-            timeouts=TimeoutsConfig(),
-            logging=LogConfig(),
-        )
+        # Загружаем конфигурацию из settings.json, если файл существует
+        from pathlib import Path
+        # main_window.py: gui/main_window.py -> 2 уровня вверх = OMEGA_EGTS/
+        config_path = Path(__file__).resolve().parent.parent / "config" / "settings.json"
+        if config_path.exists():
+            try:
+                self._config = Config.from_file(str(config_path))
+                logger.info("Loaded config from %s", config_path)
+            except Exception as e:
+                logger.warning("Could not load config from %s: %s", config_path, e)
+                self._config = Config()  # Fallback to defaults
+        else:
+            self._config = Config()  # Default config
+
         self._bus = EventBus()
         self._engine_wrapper = EngineWrapper(self._config, self._bus)
         self._event_bridge = EventBridge(self._bus)
@@ -170,13 +178,18 @@ class MainWindow(QMainWindow):
                 await self._engine_wrapper.stop()
                 self._status_bar.showMessage("Server stopped", 3000)
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to stop: {e}")
+                error_msg = str(e)
+                self._status_bar.showMessage(f"Stop failed: {error_msg}", 5000)
+                QMessageBox.warning(self, "Server Stop", error_msg)
         else:
             try:
                 await self._engine_wrapper.start()
                 self._status_bar.showMessage("Server started", 3000)
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to start: {e}")
+                error_msg = str(e)
+                self._status_bar.showMessage(f"Start failed: {error_msg}", 5000)
+                # Show detailed error in a message box
+                QMessageBox.warning(self, "Server Start", error_msg)
 
     def _on_run_scenario_shortcut(self):
         """Run scenario via F5 shortcut."""
@@ -199,11 +212,15 @@ class MainWindow(QMainWindow):
         self._scenario_card = ScenarioRunnerCard(card_id="scenario_runner")
         self._packets_card = LivePacketsCard(card_id="live_packets")
         self._logs_card = SystemLogsCard(card_id="system_logs", event_bridge=self._event_bridge)
+        self._settings_card = SettingsCard(card_id="settings", config=self._config)
 
         self._dashboard.add_card(self._status_card, row=0, col=0)
         self._dashboard.add_card(self._scenario_card, row=0, col=4)
         self._dashboard.add_card(self._packets_card, row=4, col=0)
         self._dashboard.add_card(self._logs_card, row=4, col=4)
+        self._dashboard.add_card(self._settings_card, row=0, col=8)  # Временно, переместится в (0,0) автоматически, так как col=8 вне сетки (GRID_COLS=8, cols 0-7)
+        # Скрываем карточку настроек (по умолчанию)
+        self._settings_card.hide()
 
         self._dashboard.cards_changed.connect(self._save_layout)
 
@@ -229,6 +246,9 @@ class MainWindow(QMainWindow):
         self._scenario_card.run_requested.connect(self._on_run_scenario)
         self._scenario_card.stop_requested.connect(self._on_stop_scenario)
 
+        # Settings card
+        self._settings_card.settings_changed.connect(self._on_settings_changed)
+
     @qasync.asyncSlot(str)
     async def _on_run_scenario(self, path):
         try:
@@ -237,7 +257,10 @@ class MainWindow(QMainWindow):
                 await self._engine_wrapper.start()
             await self._engine_wrapper.run_scenario(path)
         except Exception as e:
-            QMessageBox.critical(self, "Scenario Error", str(e))
+            error_msg = str(e)
+            self._status_bar.showMessage(f"Scenario failed: {error_msg}", 5000)
+            # Show detailed error in message box
+            QMessageBox.warning(self, "Scenario Error", error_msg)
             self._scenario_card.on_scenario_stopped()
 
     @qasync.asyncSlot()
@@ -249,6 +272,17 @@ class MainWindow(QMainWindow):
             logger.warning("Could not stop scenario: %s", e)
         finally:
             self._scenario_card.on_scenario_stopped()
+
+    def _on_settings_changed(self, data: dict):
+        """Handle settings save. Notify user that restart is required."""
+        logger.info("Settings saved. New config: %s", data.get("gost_version"))
+        self._status_bar.showMessage(
+            "Настройки сохранены. Перезапустите программу для применения.", 5000
+        )
+        # Опционально: обновляем self._config, если сервер не запущен,
+        # чтобы при следующем старте использовались новые настройки без перезапуска программы.
+        # Но так как EngineWrapper уже создан со старым конфигом, это сложнее.
+        # Пока просто уведомляем.
 
     def closeEvent(self, event):
         """Handle window close - save state and stop engine gracefully."""

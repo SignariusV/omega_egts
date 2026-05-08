@@ -12,6 +12,7 @@ from core.scenario_parser import (
     ScenarioParserRegistry,
     ScenarioParserV1,
 )
+from gui.utils.port_checker import is_port_available, get_error_message
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,18 @@ class EngineWrapper:
         self.bus = bus
 
     async def start(self):
+        """Start engine with port availability check."""
+        config = self.engine.config
+        host = config.tcp_host
+        port = config.tcp_port
+        
+        # Check if port is available
+        is_available, pid = is_port_available(host, port)
+        if not is_available:
+            error_msg = get_error_message(host, port, pid)
+            logger.error(f"Port check failed: {error_msg}")
+            raise RuntimeError(error_msg)
+        
         await self.engine.start()
 
     async def stop(self):
@@ -35,6 +48,9 @@ class EngineWrapper:
 
     async def run_scenario(self, scenario_path: str, connection_id: str | None = None) -> dict[str, Any]:
         return await self.engine.run_scenario(scenario_path, connection_id)
+
+    async def stop_scenario(self) -> dict[str, Any]:
+        return await self.engine.stop_scenario()
 
     async def replay(self, log_path: str, scenario_path: str | None = None) -> dict[str, Any]:
         return await self.engine.replay(log_path, scenario_path)
