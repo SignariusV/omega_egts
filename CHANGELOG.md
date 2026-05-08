@@ -34,8 +34,8 @@
 
 ### Детализация пакетов: PacketDetailCard (завершена)
 
-**Дата:** 08.05.2026  
-**Ветка:** `feature/packet-detail-card` | **Коммиты:** `fc7bafd`, `5697b3e`, `b90ae4a`, `c0eaede`, `287b05f`
+**Дата:** 08.05.2026
+**Ветка:** `feature/packet-detail-card` | **Коммиты:** `fc7bafd`, `5697b3e`, `b90ae4a`, `c0eaede`, `287b05f`, `aa5a4ac`
 
 #### Added
 - **PacketDetailCard** — новая карточка для детального просмотра пакетов EGTS:
@@ -57,6 +57,7 @@
 - **None значения в packet_id** — обработка `None` для `pid` и `timestamp` при генерации уникального `card_id` (использование MD5 hash)
 - **Данных исходящих SMS нет** — поиск ключа `packet_bytes` в событии `packet.sent`, парсинг HEX-данных исходящих пакетов
 - **Floating mode resize** — замена `Qt.Dialog | FramelessWindowHint` на `Qt.Window` для возможности системного изменения размера, скрытие resize handles в floating режиме
+- **TypeError в `_format_hex_dump`** — добавлена проверка `isinstance(hex_str, bytes)` с конвертацией через `.hex()` перед обработкой
 
 #### Tests
 - **test_packet_detail.py** — 13 модульных тестов для `PacketDetailCard`
