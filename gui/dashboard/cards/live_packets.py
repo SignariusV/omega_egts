@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Signal, Slot, Qt, QSortFilterProxyModel, QModelIndex
 from gui.dashboard.card_base import BaseCard, DisplayState
+from gui.dashboard.cards.packet_detail import PacketDetailCard
 from gui.widgets.packet_table import PacketTableModel
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
@@ -76,9 +77,12 @@ class CompactProxyModel(QSortFilterProxyModel):
 
 
 class LivePacketsCard(BaseCard):
+    MAX_DETAIL_CARDS = 6
+
     def __init__(self, card_id: str = "live_packets", parent=None):
         super().__init__("Live Packets", card_id=card_id, parent=parent)
         self.icon_path = str(PROJECT_ROOT / "gui" / "resources" / "icons" / "packets.svg")
+        self._open_detail_cards: dict[str, PacketDetailCard] = {}
         self._build_widgets()
         self.finish_init()
 
@@ -179,42 +183,86 @@ class LivePacketsCard(BaseCard):
 
     @Slot(QModelIndex)
     def _on_table_double_clicked(self, index):
+        """Handle double-click on packet table - open detail card."""
         proxy = self._table.model()
         source_index = proxy.mapToSource(index)
         if not source_index.isValid():
             return
+
         row = source_index.row()
         packet = self._packet_model.get_packet(row)
-        direction = "RECEIVED" if packet.get("direction") == "rx" else "SENT"
-        parts = [
-            f"=== {direction} PACKET ===",
-            f"Timestamp: {packet.get('timestamp', '')}",
-            f"Channel: {packet.get('channel', '')}",
-            f"Length: {packet.get('length', 0)} bytes",
-            "",
-            "--- Basic Info ---",
-            f"PID: {packet.get('pid', '')}",
-            f"Service: {packet.get('service', '')}",
-            f"CRC: {packet.get('crc', '')}",
-            f"Duplicate: {packet.get('duplicate', '')}",
-        ]
-        hex_data = packet.get("hex", "")
-        if hex_data:
-            parts.extend([
-                "",
-                "--- Hex Dump ---",
-                self._format_hex_dump(hex_data),
-            ])
-        parsed = packet.get("parsed", {})
-        if parsed:
-            parts.extend([
-                "",
-                "--- Parsed Data ---",
-            ])
-            for key, value in parsed.items():
-                if key != "timestamp":
-                    parts.append(f"  {key}: {value}")
-        QMessageBox.information(self, "Packet Details", "\n".join(parts))
+
+        # Generate unique ID for this packet
+        timestamp = packet.get('timestamp', '0').replace(':', '-').replace('.', '-')
+        pid = packet.get('pid', '0')
+        packet_id = f"pkt_{timestamp}_{pid}"
+
+        # If already open - raise it
+        if packet_id in self._open_detail_cards:
+            self._open_detail_cards[packet_id].raise_()
+            return
+
+        # Check limit
+        if len(self._open_detail_cards) >= self.MAX_DETAIL_CARDS:
+            # Close oldest
+            oldest_id = next(iter(self._open_detail_cards))
+            self._close_detail_card(oldest_id)
+
+        # Create new card
+        card = PacketDetailCard(packet, card_id=packet_id)
+        card.closed.connect(lambda cid=packet_id: self._on_detail_card_closed(cid))
+
+        # Store reference
+        self._open_detail_cards[packet_id] = card
+
+        # Show as floating window
+        self._position_floating_card(card)
+        card.show()
+        card.toggle_floating()  # Switch to floating mode
+
+    def _position_floating_card(self, card: PacketDetailCard):
+        """Position floating card with cascade offset."""
+        main_window = self.window()
+        if not main_window:
+            return
+
+        main_geo = main_window.geometry()
+        base_x = main_geo.x() + main_geo.width() // 4
+        base_y = main_geo.y() + main_geo.height() // 4
+
+        # Cascade: 30px offset per existing card
+        offset = len(self._open_detail_cards) * 30
+        x = base_x + offset
+        y = base_y + offset
+
+        # Bounds check - don't go beyond main window
+        if x + 500 > main_geo.right():
+            x = base_x
+            y = base_y  # Reset cascade
+
+        card.set_floating_position(x, y)
+
+    def _on_detail_card_closed(self, card_id: str):
+        """Remove closed detail card from tracking dict."""
+        if card_id in self._open_detail_cards:
+            del self._open_detail_cards[card_id]
+
+    def _close_all_detail_cards(self):
+        """Close all detail cards."""
+        for card_id in list(self._open_detail_cards.keys()):
+            self._close_detail_card(card_id)
+
+    def _close_detail_card(self, card_id: str):
+        """Close a specific detail card."""
+        if card_id in self._open_detail_cards:
+            card = self._open_detail_cards[card_id]
+            card.close()
+            del self._open_detail_cards[card_id]
+
+    def hideEvent(self, event):
+        """Close all detail cards when LivePacketsCard is hidden."""
+        self._close_all_detail_cards()
+        super().hideEvent(event)
 
     def _format_hex_dump(self, hex_str: str, bytes_per_line: int = 16) -> str:
         if not hex_str:

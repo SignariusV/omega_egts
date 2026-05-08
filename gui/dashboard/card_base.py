@@ -169,6 +169,10 @@ class BaseCard(QFrame):
 
     def _set_display_state(self, state):
         self._display_state = state
+        if state == DisplayState.COMPACT:
+            self._collapsed = True
+        else:
+            self._collapsed = False
         self.update_content_visibility(state)
 
     def update_content_visibility(self, state):

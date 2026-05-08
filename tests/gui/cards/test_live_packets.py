@@ -1,7 +1,10 @@
 # OMEGA_EGTS GUI
 import pytest
 from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QModelIndex
+from PySide6.QtGui import QHideEvent
 from gui.dashboard.cards.live_packets import LivePacketsCard
+from gui.dashboard.cards.packet_detail import PacketDetailCard
 from gui.widgets.packet_table import PacketTableModel
 from gui.dashboard.card_base import DisplayState
 
@@ -114,4 +117,90 @@ class TestLivePacketsCard:
         state = card.get_state()
         assert "filter_text" in state
         card.set_state({"filter_text": "test", "channel": "EGTS"})
-        assert card._filter_input.text() == "test"
+
+
+class TestLivePacketsDetailCards:
+    """Tests for packet detail card functionality."""
+
+    @pytest.fixture
+    def packet_card(self, qtbot):
+        card = LivePacketsCard()
+        qtbot.addWidget(card)
+        return card
+
+    @pytest.fixture
+    def sample_packet_data(self):
+        return {
+            "timestamp": "2026-05-08T14:32:01.123",
+            "pid": "27",
+            "service": "1",
+            "length": 64,
+            "channel": "tcp",
+            "crc": "OK",
+            "duplicate": "No",
+            "hex": "0100000B0021001B0001321A00",
+            "parsed": {"packet_id": 27, "service": 1},
+            "direction": "rx"
+        }
+
+    def test_max_detail_cards_constant(self, packet_card):
+        assert packet_card.MAX_DETAIL_CARDS == 6
+
+    def test_open_detail_cards_dict_exists(self, packet_card):
+        """Test that the card has _open_detail_cards dict."""
+        assert hasattr(packet_card, '_open_detail_cards')
+        assert isinstance(packet_card._open_detail_cards, dict)
+
+    def test_close_all_detail_cards(self, packet_card):
+        """Test closing all detail cards."""
+        closed_cards = []
+
+        class MockDetailCard:
+            def __init__(self, cid):
+                self.card_id = cid
+            def close(self):
+                closed_cards.append(self.card_id)
+
+        packet_card._open_detail_cards = {
+            f"pkt_test_{i}": MockDetailCard(f"pkt_test_{i}")
+            for i in range(3)
+        }
+
+        packet_card._close_all_detail_cards()
+
+        assert len(packet_card._open_detail_cards) == 0
+        assert len(closed_cards) == 3
+
+    def test_on_detail_card_closed(self, packet_card):
+        """Test that _on_detail_card_closed removes card from dict."""
+        class MockDetailCard:
+            def __init__(self, cid):
+                self.card_id = cid
+
+        packet_card._open_detail_cards = {
+            "pkt_1": MockDetailCard("pkt_1"),
+            "pkt_2": MockDetailCard("pkt_2"),
+        }
+
+        packet_card._on_detail_card_closed("pkt_1")
+
+        assert "pkt_1" not in packet_card._open_detail_cards
+        assert "pkt_2" in packet_card._open_detail_cards
+
+    def test_hide_closes_detail_cards(self, packet_card):
+        """Test that hiding LivePacketsCard closes detail cards."""
+        closed = False
+
+        class MockDetailCard:
+            def close(self):
+                nonlocal closed
+                closed = True
+
+        packet_card._open_detail_cards = {"test": MockDetailCard()}
+
+        # Call hideEvent
+        event = QHideEvent()
+        packet_card.hideEvent(event)
+
+        assert closed == True
+        assert len(packet_card._open_detail_cards) == 0

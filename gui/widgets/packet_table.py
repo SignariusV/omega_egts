@@ -1,6 +1,6 @@
 # OMEGA_EGTS GUI
 import collections
-from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex, QTimer
+from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex, QTimer, Slot
 from datetime import datetime
 
 
@@ -27,8 +27,9 @@ class PacketTableModel(QAbstractTableModel):
         elif direction == "tx":
             self._tx_count += 1
 
+    @Slot()
     def flush(self):
-        if not self._pending:
+        if not hasattr(self, '_pending') or not self._pending:
             return
         rows_to_insert = min(len(self._pending), self.MAX_ROWS - len(self._buffer))
         if rows_to_insert <= 0:
@@ -77,3 +78,7 @@ class PacketTableModel(QAbstractTableModel):
         self._rx_count = 0
         self._tx_count = 0
         self.endResetModel()
+
+    def deleteLater(self):
+        self._flush_timer.stop()
+        super().deleteLater()
