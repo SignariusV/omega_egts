@@ -191,19 +191,30 @@ class LivePacketsCard(BaseCard):
 
         row = source_index.row()
         packet = self._packet_model.get_packet(row)
+        if not packet:
+            return
 
-        # Generate unique ID for this packet - handle None values
-        timestamp = packet.get('timestamp')
-        if timestamp is None:
-            timestamp = '0'
-        timestamp = str(timestamp).replace(':', '-').replace('.', '-')
-        
-        pid = packet.get('pid')
-        if pid is None:
-            pid = '0'
-        pid = str(pid)
-        
-        packet_id = f"pkt_{timestamp}_{pid}"
+        # Generate unique ID for this packet using robust method
+        import hashlib
+        sig_parts = [
+            str(packet.get('timestamp', '0')),
+            str(packet.get('pid', '0')),
+            str(packet.get('direction', 'unknown')),
+            str(packet.get('hex', '')[:30])
+        ]
+        content = "_".join(sig_parts)
+        packet_id = "pkt_" + hashlib.md5(content.encode()).hexdigest()[:16]
+
+        # If already open - raise it and return
+        if packet_id in self._open_detail_cards:
+            try:
+                card = self._open_detail_cards[packet_id]
+                if card and not card.isHidden():
+                    card.raise_()
+                    return
+            except:
+                if packet_id in self._open_detail_cards:
+                    del self._open_detail_cards[packet_id]
 
         # If already open - raise it
         if packet_id in self._open_detail_cards:
@@ -329,7 +340,10 @@ class LivePacketsCard(BaseCard):
 
     @Slot()
     def on_packet_sent(self, data: dict):
-        hex_data = data.get("hex", "")
+        """Handle outgoing packet - try to parse if hex data exists."""
+        # Try both possible keys for hex data
+        hex_data = data.get("packet_bytes") or data.get("hex", "")
+        
         # Try to parse outgoing packet if hex data exists
         parsed = {}
         if hex_data:
@@ -347,9 +361,14 @@ class LivePacketsCard(BaseCard):
             except:
                 pass  # Ignore parse errors for outgoing packets
         
+        # Generate packet_id - handle None values
+        pid = data.get("pid")
+        if pid is None:
+            pid = ""
+        
         packet = {
             "timestamp": data.get("timestamp", ""),
-            "pid": str(data.get("pid") or "0"),  # Handle None
+            "pid": str(pid),
             "service": str(parsed.get("service", "?")),
             "length": len(hex_data) // 2 if hex_data else 0,
             "channel": data.get("channel", ""),
