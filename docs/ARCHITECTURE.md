@@ -1160,6 +1160,48 @@ libs/egts/
     └── subrecords.py      #/subrecord types
 ```
 
+### Подзаписи уровня услуг (subrecords)
+
+Все подзаписи реализованы в `libs/egts/_gost2015/subrecords.py` с декоратором `@register_subrecord`.
+Каждый парсер имеет `srt` (SubRecord Type) и методы `parse()` / `serialize()`.
+
+| SRT | Класс | Описание | ГОСТ |
+|-----|-------|----------|------|
+| 0 | `RecordResponseParser` | Подтверждение записи | 6.7.2.1 |
+| 1 | `TermIdentityParser` | Идентификация терминала | 6.7.2.2 |
+| 2 | `ModuleDataParser` | Данные модуля | 6.7.2.3 |
+| 3 | `VehicleDataParser` | Данные ТС (VIN, категория, топливо) | 6.7.2.4 |
+| 6 | `AuthParamsParser` | Параметры авторизации | 6.7.2.5 |
+| 7 | `AuthInfoParser` | Информация авторизации | 6.7.2.6 |
+| 8 | `ServiceInfoParser` | Информация о сервисах (ST=10 ECALL) | 6.7.2.7 |
+| 9 | `ResultCodeParser` | Код результата | 6.7.2.8 |
+| 20 | `AccelDataParser` | Профиль ускорения (250×1мс + 350×10мс) | 7.3.2 |
+| 33 | `ServicePartDataParser` | Частичная передача ПО | 6.7.4 |
+| 34 | `ServiceFullDataParser` | Полная передача ПО | 6.7.4 |
+| 51 | `CommandDataParser` | Команда/подтверждение (CT_COM, CT_COMCONF) | 6.7.3 |
+| 62 | `RawMsdDataParser` | МНД в бинарном виде | 7.3.3 |
+| 63 | `TrackDataParser` | Траектория движения (70 точек) | 7.3.4 |
+
+### Коды команд (COMMAND_CODES)
+
+Словарь `COMMAND_CODES` в `libs/egts/types.py` содержит все коды команд (CCD) из таблиц 32, 34, 46, 47 ГОСТ 33465-2015:
+
+| Код | Имя | Описание |
+|-----|-----|----------|
+| 0x0101 | EGTS_GPRS_APN | APN для GPRS |
+| 0x0102 | EGTS_SERVER_ADDRESS | Адрес сервера |
+| 0x0114 | EGTS_ACCEL_DATA | Команда передачи профиля ускорения |
+| 0x0115 | EGTS_TRACK_DATA | Команда передачи траектории |
+| 0x0404 | EGTS_UNIT_ID | Идентификатор УСВ |
+| 0x0405 | EGTS_UNIT_IMEI | IMEI УСВ |
+| 0x0501 | EGTS_UNIT_MIC_LEVEL | Уровень микрофона (BYTE, default=8) |
+| 0x0502 | EGTS_UNIT_SPK_LEVEL | Уровень динамика (BYTE, default=6) |
+| 0x0230 | EGTS_VEHICLE_VIN | VIN ТС |
+| 0x0231 | EGTS_VEHICLE_TYPE | Тип ТС |
+| 0x0232 | EGTS_VEHICLE_PROPULSION_STORAGE_TYPE | Тип энергоносителя |
+
+Полный список: ~50 кодов из таблиц 32, 34, 46, 47.
+
 ### egts_adapter
 
 Модуль `core/egts_adapter.py` обеспечивает связь между `libs/egts` и `core/`:
