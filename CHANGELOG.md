@@ -4,7 +4,127 @@
 
 ---
 
-## [Unreleased]
+### Интеграция статуса CMW-500 в EventBus (завершена)
+
+**Дата:** 29.04.2026  
+**Ветка:** `debug-session` | **Коммит:** `0c54bf7`
+
+#### Added
+- **Событие `cmw.status`** — периодический emit полного статуса CMW-500 через EventBus
+  - Публикуется каждые `_poll_interval` секунд (по умолчанию 2.0)
+  - Содержит: `cs_state`, `ps_state`, `rssi`, `rssi_range`, `cell_status`, `ber`, `rx_level`, `imei`, `imsi`, `serial`, `simulate`, `ip`, `timestamp`
+- **Расширение `get_full_status()`** — добавлены поля `imei`, `imsi`, `timestamp`
+  - В `Cmw500Controller.get_full_status()` — с обработкой ошибок (возврат `None` при сбое)
+  - В `Cmw500Emulator.get_full_status()` — моковые данные
+- **Тесты для нового функционала:**
+  - `TestGetFullStatusWithImeiImsi` — проверка включения IMEI/IMSI и корректности timestamp
+  - `TestPollLoopEmitsStatus` — проверка emit `cmw.status` в `_poll_loop()`
+
+#### Changed
+- **`Cmw500Controller._poll_loop()`** — добавлен emit `cmw.status` с полным статусом после опроса SMS
+- **`docs/ARCHITECTURE.md`** — добавлено событие `cmw.status` в таблицу событий
+
+#### Technical Details
+- Используется существующий метод `get_full_status()` (минимизация изменений)
+- Сохранено кеширование статуса (TTL 5 секунд)
+- Обработка ошибок IMEI/IMSI — возврат `None` без блокировки emit
+- Событие не логируется в LogManager (слишком частые обновления, только для GUI)
+
+---
+
+### Детализация пакетов: PacketDetailCard (завершена)
+
+**Дата:** 08.05.2026
+**Ветка:** `feature/packet-detail-card` | **Коммиты:** `fc7bafd`, `5697b3e`, `b90ae4a`, `c0eaede`, `287b05f`, `aa5a4ac`
+
+#### Added
+- **PacketDetailCard** — новая карточка для детального просмотра пакетов EGTS:
+  - Compact view: статус OK/ERROR с краткой сводкой (PID, Service, Direction)
+  - Expanded view: 4 вкладки (Raw Data с HEX+ASCII, Transport Layer, Service Layer, Metadata)
+  - Floating mode с кнопкой 📌 Pin для открепления/закрепления
+  - Максимум 6 одновременно открытых карточек (LRU при превышении)
+  - Автоматическое закрытие всех детальных карточек при скрытии LivePackets
+
+- **Порт 8054 уже занят** — улучшенная обработка ошибок:
+  - `gui/utils/port_checker.py` — новый модуль проверки доступности порта
+  - `is_port_available()` с использованием `SO_REUSEADDR` для избежания `TIME_WAIT`
+  - `get_error_message()` — генерация понятных сообщений для пользователя с вариантами решения
+  - Интеграция в `EngineWrapper.start()` — проверка до попытки запуска сервера
+
+#### Fixed
+- **KeyError при закрытии карточек** — правильное отключение сигналов и очистка словаря `_open_detail_cards`
+- **Повторное открытие карточки** — `closeEvent` в `PacketDetailCard` корректно испускает сигнал `closed`
+- **None значения в packet_id** — обработка `None` для `pid` и `timestamp` при генерации уникального `card_id` (использование MD5 hash)
+- **Данных исходящих SMS нет** — поиск ключа `packet_bytes` в событии `packet.sent`, парсинг HEX-данных исходящих пакетов
+- **Floating mode resize** — замена `Qt.Dialog | FramelessWindowHint` на `Qt.Window` для возможности системного изменения размера, скрытие resize handles в floating режиме
+- **TypeError в `_format_hex_dump`** — добавлена проверка `isinstance(hex_str, bytes)` с конвертацией через `.hex()` перед обработкой
+
+#### Tests
+- **test_packet_detail.py** — 13 модульных тестов для `PacketDetailCard`
+- **test_live_packets.py** — 18 тестов (обновлены: `TestLivePacketsDetailCards`)
+- **test_integration.py** — 9 интеграционных тестов (`TestLivePacketsToDetailIntegration`, `TestPacketDetailCardWorkflow`)
+- **test_port_checker.py** — 3 теста для проверки порта
+- **Итого:** 171 GUI тест проходит успешно ✅
+
+#### Technical Details
+- Генерация `card_id` основана на MD5 hash от `(timestamp, pid, direction, hex[:30])` для надежности
+- `_close_all_detail_cards()` очищает словарь ДО отключения сигналов для избежания double-delete
+- `SO_REUSEADDR` решает проблему `TIME_WAIT` состояния порта
+- Обработка обоих ключей для HEX-данных: `packet_bytes` (от `command.sent`) и `hex` (от `packet.processed`)
+
+---
+
+### Поддержка packet_hex в SendStep (завершена)
+
+**Дата:** 25.04.2026
+
+#### Added
+- **packet_hex — поддержка hex-строки в build** — SendStep теперь принимает
+  `build.packet_hex` (строка hex) в дополнение к `packet_bytes` (bytes) и `packet` (dict).
+  Преобразование: `bytes.fromhex(packet_hex)`.
+
+- **Тесты для packet_hex** — 2 новых теста:
+  - `test_packet_hex_format` — позитивный тест
+  - `test_packet_hex_invalid_raises` — негативный (невалидный hex)
+
+- **Переименование сценариев:**
+  - `verification_v2/` → `verification_static/`
+  - `verification_v3/` → `verification_dynamic/`
+  - `auth_v2/` → `auth_static/`
+  - `auth_v3/` → `auth_dynamic/`
+  - Все `scenario_version` = "1"
+
+#### Fixed
+- **scenario_version исправлен** — все сценарии теперь имеют `"scenario_version": "1"`
+  (было 2, 3 — они обрабатываются через V1 парсер)
+
+#### Приоритет обработки build (финальный)
+
+| # | Ключ | Формат |
+|---|------|-------|
+| 1 | `packet` | dict → Packet → bytes |
+| 2 | `packet_bytes` | bytes напрямую |
+| 3 | `packet_hex` | строка hex → bytes |
+
+---
+
+### Аудит core/ и исправления (завершена)
+
+**Дата:** 23.04.2026
+
+#### Fixed
+- **LogManager — утечка обработчика `packet.sent`** — `stop()` теперь отписывается от
+  события `packet.sent` (logger.py:113). Добавлена симметричность подписки/отписки.
+  Тест обновлён: 4 события вместо 3.
+- **Hardcoded `logging.basicConfig` в dispatcher.py** — удалён закомментированный
+  `basicConfig(level=CRITICAL) #fixme` из строки 38. Логирование управляется
+  централизованно через `python_logger`.
+
+#### Тесты
+- 27 тестов logger.py: 27 passed, 13 warnings (RuntimeWarning о не-awaited coroutine)
+- Все тесты: 482 passed, 2 skipped
+
+---
 
 ### Итерация 12: Сценарий авторизации PASS (завершена)
 

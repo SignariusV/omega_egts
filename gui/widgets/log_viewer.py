@@ -1,0 +1,65 @@
+# OMEGA_EGTS GUI
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPlainTextEdit
+from PySide6.QtCore import Qt
+from datetime import datetime
+
+
+LEVEL_COLORS = {
+    "DEBUG": "#808080",
+    "INFO": "#CCCCCC",
+    "WARNING": "#CE9178",
+    "ERROR": "#F44747",
+    "CRITICAL": "#F44747",
+}
+
+SOURCE_COLORS = {
+    "GUI": "#4FC1FF",
+    "CLI": "#B5CEA8",
+    "logger": "#6A9955",
+    "tcp_server": "#569CD6",
+    "dispatcher": "#DCDCAA",
+    "session": "#C586C0",
+    "engine": "#4EC9B0",
+    "cmw500": "#CE9178",
+    "scenario": "#9CDCFE",
+    "Packets": "#569CD6",
+    "Connections": "#DCDCAA",
+    "Scenarios": "#C586C0",
+    "Commands": "#4EC9B0",
+    "Python": "#808080",
+}
+
+
+class LogViewer(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._setup_ui()
+
+    def _setup_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self._text_edit = QPlainTextEdit()
+        self._text_edit.setReadOnly(True)
+        self._text_edit.setStyleSheet("""
+            QPlainTextEdit {
+                background-color: #1E1E1E;
+                color: #CCCCCC;
+                font-family: Consolas, monospace;
+                font-size: 15px;
+            }
+        """)
+        layout.addWidget(self._text_edit)
+
+    def append_log(self, level: str, message: str, timestamp: float = None, source: str = None):
+        ts = datetime.fromtimestamp(timestamp).strftime("%H:%M:%S.%f")[:-3] if timestamp else ""
+        level_color = LEVEL_COLORS.get(level, "#CCCCCC")
+        source_color = SOURCE_COLORS.get(source, "") if source else ""
+        source_tag = f'<span style="color: {source_color};">[{source}]</span> ' if source else ""
+        formatted = f"[{ts}] {level}: {source_tag}{message}"
+        self._text_edit.appendHtml(f'<span style="color: {level_color};">{formatted}</span>')
+
+    def clear(self):
+        self._text_edit.clear()
+
+    def get_content(self) -> str:
+        return self._text_edit.toPlainText()

@@ -142,10 +142,11 @@ class TestLogManagerInit:
         await lm.stop()
 
         off_calls = mock_bus.off.call_args_list
-        assert len(off_calls) == 3
+        assert len(off_calls) == 4
 
         event_names = [call[0][0] for call in off_calls]
         assert "packet.processed" in event_names
+        assert "packet.sent" in event_names
         assert "connection.changed" in event_names
         assert "scenario.step" in event_names
 

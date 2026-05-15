@@ -1,0 +1,682 @@
+2026-04-29 14:34:36.574 - core.python_logger - INFO - ============================================================
+2026-04-29 14:34:36.574 - core.python_logger - INFO - Python logging initialized
+2026-04-29 14:34:36.574 - core.python_logger - INFO - Session ID: 20260429-143436
+2026-04-29 14:34:36.574 - core.python_logger - INFO - Log file: logs\python-20260429-143436.log
+2026-04-29 14:34:36.574 - core.python_logger - INFO - Console level: ERROR, File level: DEBUG
+2026-04-29 14:34:36.574 - core.python_logger - INFO - Rotation: 10485760 bytes, 5 backups
+2026-04-29 14:34:36.574 - core.python_logger - INFO - ============================================================
+2026-04-29 14:34:37.125 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:37.127 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:37.162 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:37.170 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:37.188 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:38.179 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:39.188 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:41.190 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:41.624 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:55.568 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:55.569 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:55.631 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:55.643 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:55.667 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.404 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.616 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.619 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.619 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.627 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.788 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.789 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.789 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:56.789 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.060 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.066 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.074 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.080 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.082 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.127 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.158 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.191 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.220 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.333 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.414 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.518 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.616 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.704 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.704 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.795 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:57.906 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:58.114 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:58.784 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_from_file0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.792 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_empty_file0\empty.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.792 - core.credentials - WARNING - Файл учётных данных не найден: C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_missing_file0\nonexistent.json
+2026-04-29 14:34:58.802 - core.credentials - ERROR - Ошибка чтения файла учётных данных: Expecting value: line 1 column 1 (char 0)
+2026-04-29 14:34:58.802 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_invalid_json0\invalid.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.813 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_find_by_imei0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.817 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_find_by_imei_not_found0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.824 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_get_by_device_id0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.833 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_get_not_found0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.833 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_save_new_credentials0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.849 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_update_existing_credentia0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.859 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_save_persists_to_file0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.859 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_save_persists_to_file0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.859 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_save_uses_device_id_as_ke0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.872 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_save_without_device_id_us0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.879 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_list_all_returns_dict0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.884 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_list_all_after_save0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.897 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_secure_file_on_windows_lo0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.898 - core.credentials - WARNING - Failed to secure credentials file: Access denied
+2026-04-29 14:34:58.912 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_credentials_without_0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.919 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_credentials_with_ext0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.924 - core.credentials - WARNING - Windows: restrict ACL for C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_save_with_none_descriptio0\credentials.json manually (Properties → Security → Advanced)
+2026-04-29 14:34:58.934 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:58.934 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_packet_through_full_0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:34:58.934 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60095
+2026-04-29 14:34:59.153 - core.tcp_server - INFO - Новое подключение a545aea2-b58f-48ff-afbc-063e98350e6f от ('127.0.0.1', 60098)
+2026-04-29 14:34:59.153 - core.logger - DEBUG - LogManager: connection a545aea2-b58f-48ff-afbc-063e98350e6f None -> CONNECTED
+2026-04-29 14:34:59.155 - core.tcp_server - DEBUG - Получено 59 байт от a545aea2-b58f-48ff-afbc-063e98350e6f: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-29 14:34:59.155 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=a545aea2-b58f-48ff-afbc-063e98350e6f, size=59
+2026-04-29 14:34:59.155 - core.pipeline - DEBUG - CRC check passed for connection a545aea2-b58f-48ff-afbc-063e98350e6f
+2026-04-29 14:34:59.157 - core.pipeline - DEBUG - Parse successful for connection a545aea2-b58f-48ff-afbc-063e98350e6f (packet_type=1)
+2026-04-29 14:34:59.157 - core.pipeline - DEBUG - First seen PID=42 from a545aea2-b58f-48ff-afbc-063e98350e6f
+2026-04-29 14:34:59.157 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-29 14:34:59.157 - core.logger - DEBUG - LogManager: connection a545aea2-b58f-48ff-afbc-063e98350e6f authenticating -> authenticating
+2026-04-29 14:34:59.157 - core.logger - DEBUG - LogManager: packet conn=a545aea2-b58f-48ff-afbc-063e98350e6f channel=tcp crc=True dup=False
+2026-04-29 14:34:59.157 - core.dispatcher - INFO - RESPONSE отправлен a545aea2-b58f-48ff-afbc-063e98350e6f через TCP (29 байт)
+2026-04-29 14:34:59.157 - core.pipeline - DEBUG - Emitted packet.processed for connection a545aea2-b58f-48ff-afbc-063e98350e6f (terminated=False, crc_valid=True)
+2026-04-29 14:34:59.462 - core.tcp_server - DEBUG - Клиент a545aea2-b58f-48ff-afbc-063e98350e6f закрыл соединение
+2026-04-29 14:34:59.462 - core.tcp_server - INFO - Отключение a545aea2-b58f-48ff-afbc-063e98350e6f
+2026-04-29 14:34:59.462 - core.logger - DEBUG - LogManager: connection a545aea2-b58f-48ff-afbc-063e98350e6f authenticating -> DISCONNECTED
+2026-04-29 14:34:59.465 - core.logger - DEBUG - LogManager: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_packet_through_full_0\logs\2026-04-29.jsonl
+2026-04-29 14:34:59.465 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:34:59.465 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:34:59.465 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:34:59.465 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:34:59.465 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:34:59.465 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:59.476 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_response_sent_back0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:34:59.478 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60099
+2026-04-29 14:34:59.663 - core.tcp_server - INFO - Новое подключение 5e98ef08-5c9b-4730-8366-41103c017a1d от ('127.0.0.1', 60102)
+2026-04-29 14:34:59.663 - core.logger - DEBUG - LogManager: connection 5e98ef08-5c9b-4730-8366-41103c017a1d None -> CONNECTED
+2026-04-29 14:34:59.665 - core.tcp_server - DEBUG - Получено 59 байт от 5e98ef08-5c9b-4730-8366-41103c017a1d: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-29 14:34:59.665 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=5e98ef08-5c9b-4730-8366-41103c017a1d, size=59
+2026-04-29 14:34:59.665 - core.pipeline - DEBUG - CRC check passed for connection 5e98ef08-5c9b-4730-8366-41103c017a1d
+2026-04-29 14:34:59.665 - core.pipeline - DEBUG - Parse successful for connection 5e98ef08-5c9b-4730-8366-41103c017a1d (packet_type=1)
+2026-04-29 14:34:59.665 - core.pipeline - DEBUG - First seen PID=42 from 5e98ef08-5c9b-4730-8366-41103c017a1d
+2026-04-29 14:34:59.665 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-29 14:34:59.665 - core.logger - DEBUG - LogManager: connection 5e98ef08-5c9b-4730-8366-41103c017a1d authenticating -> authenticating
+2026-04-29 14:34:59.665 - core.logger - DEBUG - LogManager: packet conn=5e98ef08-5c9b-4730-8366-41103c017a1d channel=tcp crc=True dup=False
+2026-04-29 14:34:59.667 - core.dispatcher - INFO - RESPONSE отправлен 5e98ef08-5c9b-4730-8366-41103c017a1d через TCP (29 байт)
+2026-04-29 14:34:59.667 - core.pipeline - DEBUG - Emitted packet.processed for connection 5e98ef08-5c9b-4730-8366-41103c017a1d (terminated=False, crc_valid=True)
+2026-04-29 14:34:59.667 - core.tcp_server - DEBUG - Клиент 5e98ef08-5c9b-4730-8366-41103c017a1d закрыл соединение
+2026-04-29 14:34:59.667 - core.tcp_server - INFO - Отключение 5e98ef08-5c9b-4730-8366-41103c017a1d
+2026-04-29 14:34:59.667 - core.logger - DEBUG - LogManager: connection 5e98ef08-5c9b-4730-8366-41103c017a1d authenticating -> DISCONNECTED
+2026-04-29 14:34:59.667 - core.logger - DEBUG - LogManager: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_response_sent_back0\logs\2026-04-29.jsonl
+2026-04-29 14:34:59.667 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:34:59.671 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:34:59.671 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:34:59.671 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:34:59.671 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:34:59.671 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:34:59.684 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_then_command0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:34:59.684 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60103
+2026-04-29 14:34:59.890 - core.tcp_server - INFO - Новое подключение f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad от ('127.0.0.1', 60106)
+2026-04-29 14:34:59.890 - core.logger - DEBUG - LogManager: connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad None -> CONNECTED
+2026-04-29 14:34:59.893 - core.tcp_server - DEBUG - Получено 59 байт от f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-29 14:34:59.893 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad, size=59
+2026-04-29 14:34:59.893 - core.pipeline - DEBUG - CRC check passed for connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad
+2026-04-29 14:34:59.895 - core.pipeline - DEBUG - Parse successful for connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad (packet_type=1)
+2026-04-29 14:34:59.895 - core.pipeline - DEBUG - First seen PID=42 from f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad
+2026-04-29 14:34:59.895 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-29 14:34:59.895 - core.logger - DEBUG - LogManager: connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad authenticating -> authenticating
+2026-04-29 14:34:59.895 - core.logger - DEBUG - LogManager: packet conn=f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad channel=tcp crc=True dup=False
+2026-04-29 14:34:59.895 - core.dispatcher - INFO - RESPONSE отправлен f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad через TCP (29 байт)
+2026-04-29 14:34:59.895 - core.pipeline - DEBUG - Emitted packet.processed for connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad (terminated=False, crc_valid=True)
+2026-04-29 14:35:00.184 - core.tcp_server - DEBUG - Получено 38 байт от f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad: 0100000B0019001100015612002000400404330F00500000000000000000000000011501DCBE
+2026-04-29 14:35:00.184 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad, size=38
+2026-04-29 14:35:00.184 - core.pipeline - DEBUG - CRC check passed for connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad
+2026-04-29 14:35:00.184 - core.pipeline - DEBUG - Parse successful for connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad (packet_type=1)
+2026-04-29 14:35:00.184 - core.pipeline - DEBUG - First seen PID=17 from f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad
+2026-04-29 14:35:00.184 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=17 (29 байт)
+2026-04-29 14:35:00.184 - core.logger - DEBUG - LogManager: packet conn=f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad channel=tcp crc=True dup=False
+2026-04-29 14:35:00.184 - core.dispatcher - INFO - RESPONSE отправлен f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad через TCP (29 байт)
+2026-04-29 14:35:00.184 - core.pipeline - DEBUG - Emitted packet.processed for connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad (terminated=False, crc_valid=True)
+2026-04-29 14:35:00.494 - core.tcp_server - DEBUG - Клиент f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad закрыл соединение
+2026-04-29 14:35:00.494 - core.tcp_server - INFO - Отключение f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad
+2026-04-29 14:35:00.494 - core.logger - DEBUG - LogManager: connection f4a8cc25-59cc-42b4-b12a-2fdd5deeaaad authenticating -> DISCONNECTED
+2026-04-29 14:35:00.494 - core.logger - DEBUG - LogManager: записано 5 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_then_command0\logs\2026-04-29.jsonl
+2026-04-29 14:35:00.494 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:00.494 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:00.494 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:00.494 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:00.494 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:00.504 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:00.504 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_duplicate_packet_detectio0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:00.504 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60107
+2026-04-29 14:35:00.694 - core.tcp_server - INFO - Новое подключение 77175f20-1fe5-4a69-b3dd-73cc0c87da61 от ('127.0.0.1', 60110)
+2026-04-29 14:35:00.694 - core.logger - DEBUG - LogManager: connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61 None -> CONNECTED
+2026-04-29 14:35:00.696 - core.tcp_server - DEBUG - Получено 59 байт от 77175f20-1fe5-4a69-b3dd-73cc0c87da61: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-29 14:35:00.696 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=77175f20-1fe5-4a69-b3dd-73cc0c87da61, size=59
+2026-04-29 14:35:00.696 - core.pipeline - DEBUG - CRC check passed for connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61
+2026-04-29 14:35:00.699 - core.pipeline - DEBUG - Parse successful for connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61 (packet_type=1)
+2026-04-29 14:35:00.699 - core.pipeline - DEBUG - First seen PID=42 from 77175f20-1fe5-4a69-b3dd-73cc0c87da61
+2026-04-29 14:35:00.699 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-29 14:35:00.699 - core.logger - DEBUG - LogManager: connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61 authenticating -> authenticating
+2026-04-29 14:35:00.699 - core.logger - DEBUG - LogManager: packet conn=77175f20-1fe5-4a69-b3dd-73cc0c87da61 channel=tcp crc=True dup=False
+2026-04-29 14:35:00.699 - core.dispatcher - INFO - RESPONSE отправлен 77175f20-1fe5-4a69-b3dd-73cc0c87da61 через TCP (29 байт)
+2026-04-29 14:35:00.699 - core.pipeline - DEBUG - Emitted packet.processed for connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61 (terminated=False, crc_valid=True)
+2026-04-29 14:35:01.000 - core.tcp_server - DEBUG - Получено 59 байт от 77175f20-1fe5-4a69-b3dd-73cc0c87da61: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-29 14:35:01.000 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=77175f20-1fe5-4a69-b3dd-73cc0c87da61, size=59
+2026-04-29 14:35:01.000 - core.pipeline - DEBUG - CRC check passed for connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61
+2026-04-29 14:35:01.000 - core.pipeline - DEBUG - Parse successful for connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61 (packet_type=1)
+2026-04-29 14:35:01.000 - core.pipeline - INFO - Duplicate packet PID=42 from 77175f20-1fe5-4a69-b3dd-73cc0c87da61
+2026-04-29 14:35:01.000 - core.logger - DEBUG - LogManager: packet conn=77175f20-1fe5-4a69-b3dd-73cc0c87da61 channel=tcp crc=True dup=True
+2026-04-29 14:35:01.000 - core.dispatcher - INFO - RESPONSE отправлен 77175f20-1fe5-4a69-b3dd-73cc0c87da61 через TCP (29 байт)
+2026-04-29 14:35:01.000 - core.pipeline - DEBUG - Emitted packet.processed for connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61 (terminated=True, crc_valid=True)
+2026-04-29 14:35:01.310 - core.tcp_server - DEBUG - Клиент 77175f20-1fe5-4a69-b3dd-73cc0c87da61 закрыл соединение
+2026-04-29 14:35:01.310 - core.tcp_server - INFO - Отключение 77175f20-1fe5-4a69-b3dd-73cc0c87da61
+2026-04-29 14:35:01.311 - core.logger - DEBUG - LogManager: connection 77175f20-1fe5-4a69-b3dd-73cc0c87da61 authenticating -> DISCONNECTED
+2026-04-29 14:35:01.312 - core.logger - DEBUG - LogManager: записано 5 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_duplicate_packet_detectio0\logs\2026-04-29.jsonl
+2026-04-29 14:35:01.313 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:01.313 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:01.313 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:01.313 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:01.313 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:01.313 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:01.324 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_via_sms0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:01.326 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60111
+2026-04-29 14:35:02.255 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:02.255 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:02.255 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:02.255 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:02.255 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:02.259 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:02.278 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_packets_logged_to_file0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:02.278 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60114
+2026-04-29 14:35:02.522 - core.tcp_server - INFO - Новое подключение 4d4ffa0b-3cfb-456d-a670-4063f619b2f9 от ('127.0.0.1', 60117)
+2026-04-29 14:35:02.522 - core.logger - DEBUG - LogManager: connection 4d4ffa0b-3cfb-456d-a670-4063f619b2f9 None -> CONNECTED
+2026-04-29 14:35:02.522 - core.tcp_server - DEBUG - Получено 59 байт от 4d4ffa0b-3cfb-456d-a670-4063f619b2f9: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-29 14:35:02.522 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=4d4ffa0b-3cfb-456d-a670-4063f619b2f9, size=59
+2026-04-29 14:35:02.522 - core.pipeline - DEBUG - CRC check passed for connection 4d4ffa0b-3cfb-456d-a670-4063f619b2f9
+2026-04-29 14:35:02.522 - core.pipeline - DEBUG - Parse successful for connection 4d4ffa0b-3cfb-456d-a670-4063f619b2f9 (packet_type=1)
+2026-04-29 14:35:02.522 - core.pipeline - DEBUG - First seen PID=42 from 4d4ffa0b-3cfb-456d-a670-4063f619b2f9
+2026-04-29 14:35:02.522 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-29 14:35:02.522 - core.logger - DEBUG - LogManager: connection 4d4ffa0b-3cfb-456d-a670-4063f619b2f9 authenticating -> authenticating
+2026-04-29 14:35:02.522 - core.logger - DEBUG - LogManager: packet conn=4d4ffa0b-3cfb-456d-a670-4063f619b2f9 channel=tcp crc=True dup=False
+2026-04-29 14:35:02.522 - core.dispatcher - INFO - RESPONSE отправлен 4d4ffa0b-3cfb-456d-a670-4063f619b2f9 через TCP (29 байт)
+2026-04-29 14:35:02.522 - core.pipeline - DEBUG - Emitted packet.processed for connection 4d4ffa0b-3cfb-456d-a670-4063f619b2f9 (terminated=False, crc_valid=True)
+2026-04-29 14:35:03.357 - core.tcp_server - DEBUG - Клиент 4d4ffa0b-3cfb-456d-a670-4063f619b2f9 закрыл соединение
+2026-04-29 14:35:03.357 - core.tcp_server - INFO - Отключение 4d4ffa0b-3cfb-456d-a670-4063f619b2f9
+2026-04-29 14:35:03.357 - core.logger - DEBUG - LogManager: connection 4d4ffa0b-3cfb-456d-a670-4063f619b2f9 authenticating -> DISCONNECTED
+2026-04-29 14:35:03.357 - core.logger - DEBUG - LogManager: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_packets_logged_to_file0\logs\2026-04-29.jsonl
+2026-04-29 14:35:03.357 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:03.357 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:03.357 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:03.357 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:03.357 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:03.367 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:03.369 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_run_simple_scenario0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:03.369 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60118
+2026-04-29 14:35:03.459 - core.scenario - DEBUG - Scenario load warnings: ["Deprecated 'version' key detected; use 'scenario_version' instead", "steps[0]: Missing 'timeout' (default 30.0s will be used)"]
+2026-04-29 14:35:03.469 - core.scenario - ERROR - SendStep: packet_file or build required
+2026-04-29 14:35:03.469 - core.scenario - WARNING - ScenarioManager: step '' returned ERROR
+2026-04-29 14:35:03.469 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:03.469 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:03.469 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:03.469 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:03.469 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:03.469 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:03.482 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_and_export0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:03.482 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60121
+2026-04-29 14:35:03.715 - core.tcp_server - INFO - Новое подключение 62ceab13-7aab-4878-a995-bc8bbf709789 от ('127.0.0.1', 60124)
+2026-04-29 14:35:03.715 - core.logger - DEBUG - LogManager: connection 62ceab13-7aab-4878-a995-bc8bbf709789 None -> CONNECTED
+2026-04-29 14:35:03.719 - core.tcp_server - DEBUG - Получено 59 байт от 62ceab13-7aab-4878-a995-bc8bbf709789: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-29 14:35:03.720 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=62ceab13-7aab-4878-a995-bc8bbf709789, size=59
+2026-04-29 14:35:03.720 - core.pipeline - DEBUG - CRC check passed for connection 62ceab13-7aab-4878-a995-bc8bbf709789
+2026-04-29 14:35:03.720 - core.pipeline - DEBUG - Parse successful for connection 62ceab13-7aab-4878-a995-bc8bbf709789 (packet_type=1)
+2026-04-29 14:35:03.720 - core.pipeline - DEBUG - First seen PID=42 from 62ceab13-7aab-4878-a995-bc8bbf709789
+2026-04-29 14:35:03.720 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-29 14:35:03.720 - core.logger - DEBUG - LogManager: connection 62ceab13-7aab-4878-a995-bc8bbf709789 authenticating -> authenticating
+2026-04-29 14:35:03.720 - core.logger - DEBUG - LogManager: packet conn=62ceab13-7aab-4878-a995-bc8bbf709789 channel=tcp crc=True dup=False
+2026-04-29 14:35:03.720 - core.dispatcher - INFO - RESPONSE отправлен 62ceab13-7aab-4878-a995-bc8bbf709789 через TCP (29 байт)
+2026-04-29 14:35:03.720 - core.pipeline - DEBUG - Emitted packet.processed for connection 62ceab13-7aab-4878-a995-bc8bbf709789 (terminated=False, crc_valid=True)
+2026-04-29 14:35:04.521 - core.tcp_server - DEBUG - Клиент 62ceab13-7aab-4878-a995-bc8bbf709789 закрыл соединение
+2026-04-29 14:35:04.521 - core.tcp_server - INFO - Отключение 62ceab13-7aab-4878-a995-bc8bbf709789
+2026-04-29 14:35:04.525 - core.logger - DEBUG - LogManager: connection 62ceab13-7aab-4878-a995-bc8bbf709789 authenticating -> DISCONNECTED
+2026-04-29 14:35:04.525 - core.logger - DEBUG - LogManager: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_and_export0\logs\2026-04-29.jsonl
+2026-04-29 14:35:04.525 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:04.527 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:04.527 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:04.527 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:04.527 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:04.533 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.536 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_get_status_returns_full_i0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:04.536 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60128
+2026-04-29 14:35:04.682 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:04.682 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:04.682 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:04.682 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:04.682 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:04.682 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.692 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_cmw_status_returns_connec0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:04.692 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60131
+2026-04-29 14:35:04.811 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:04.811 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:04.813 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:04.813 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:04.813 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:04.814 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.824 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.839 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.853 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.863 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.884 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.894 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.915 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.920 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.937 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.960 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:04.985 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.000 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.021 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.054 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.076 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.086 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.107 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.117 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.145 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.173 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.187 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.239 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.269 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.281 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.294 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.321 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.331 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.352 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.378 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.381 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.402 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.426 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.439 - core.engine - DEBUG - Не удалось получить статус CMW-500: SCPI timeout
+2026-04-29 14:35:05.441 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.466 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.483 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.494 - core.engine - DEBUG - Ошибка получения статистики логгера: log dir not found
+2026-04-29 14:35:05.504 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.518 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.529 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.539 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.539 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.554 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.633 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.656 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.778 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.837 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.904 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.918 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.921 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.932 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.946 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.946 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=True)
+2026-04-29 14:35:05.946 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.957 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=True)
+2026-04-29 14:35:05.957 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.967 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=True)
+2026-04-29 14:35:05.967 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.978 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=True)
+2026-04-29 14:35:05.978 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.988 - core.pipeline - DEBUG - Emitted packet.processed for connection error-conn (terminated=True, crc_valid=False)
+2026-04-29 14:35:05.993 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:05.993 - core.pipeline - DEBUG - Emitted packet.processed for connection error-conn (terminated=True, crc_valid=False)
+2026-04-29 14:35:05.993 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.003 - core.pipeline - DEBUG - Emitted packet.processed for connection dup-conn (terminated=False, crc_valid=True)
+2026-04-29 14:35:06.003 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.014 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=False)
+2026-04-29 14:35:06.018 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.018 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=False, crc_valid=False)
+2026-04-29 14:35:06.018 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.029 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn (terminated=True, crc_valid=False)
+2026-04-29 14:35:06.055 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.115 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.222 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.306 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.375 - core.export - INFO - Export CSV: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_creates_file0\report.csv
+2026-04-29 14:35:06.390 - core.export - INFO - Export CSV: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_content0\report.csv
+2026-04-29 14:35:06.400 - core.export - INFO - Export CSV: записано 2 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_filters_by_typ0\packets.csv
+2026-04-29 14:35:06.404 - core.export - INFO - Export CSV: записано 1 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_filters_by_sce0\scenario.csv
+2026-04-29 14:35:06.414 - core.export - INFO - Export CSV: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_sorts_by_times0\sorted.csv
+2026-04-29 14:35:06.424 - core.export - WARNING - Export CSV: нет записей для экспорта в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_empty_log_dir0
+2026-04-29 14:35:06.424 - core.export - INFO - Export CSV: записано 0 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_empty_log_dir0\empty.csv
+2026-04-29 14:35:06.424 - core.export - WARNING - Export CSV: нет записей для экспорта в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_no_matching_en0
+2026-04-29 14:35:06.435 - core.export - INFO - Export CSV: записано 0 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_csv_no_matching_en0\none.csv
+2026-04-29 14:35:06.439 - core.export - INFO - Export JSON: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_json_creates_file0\report.json
+2026-04-29 14:35:06.453 - core.export - INFO - Export JSON: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_json_content0\report.json
+2026-04-29 14:35:06.454 - core.export - INFO - Export JSON: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_json_summary0\report.json
+2026-04-29 14:35:06.464 - core.export - INFO - Export JSON: записано 2 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_json_filters0\packets.json
+2026-04-29 14:35:06.480 - core.export - INFO - Export JSON: записано 4 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_json_pretty_print0\pretty.json
+2026-04-29 14:35:06.490 - core.export - INFO - Export JSON: записано 0 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_json_empty_log_dir0\empty.json
+2026-04-29 14:35:06.490 - core.export - INFO - Export scenario CSV: записано 3 шагов в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_scenario_csv0\scenario.csv
+2026-04-29 14:35:06.500 - core.export - INFO - Export scenario JSON: сохранено в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_scenario_json0\scenario.json
+2026-04-29 14:35:06.510 - core.export - INFO - Export scenario CSV: записано 0 шагов в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_scenario_csv_no_st0\empty.csv
+2026-04-29 14:35:06.518 - core.export - WARNING - Export: пропуск битой строки в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_handles_malformed_0\bad.jsonl
+2026-04-29 14:35:06.518 - core.export - INFO - Export JSON: записано 2 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_handles_malformed_0\report.json
+2026-04-29 14:35:06.528 - core.export - INFO - Export JSON: записано 0 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_export_json_with_scenario0\none.json
+2026-04-29 14:35:06.573 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_creates_log_dir0\subdir\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:06.574 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_subscribes_on_init0, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:06.588 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.598 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_stop_unsubscribes0, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:06.602 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:06.603 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_packet_hex0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.603 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.613 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.613 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_parsed_data0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.613 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.624 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.624 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_metadata0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.624 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.634 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.640 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_errors0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.640 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.663 - core.logger - DEBUG - LogManager: packet conn=err-conn channel=tcp crc=False dup=False
+2026-04-29 14:35:06.669 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_duplicate0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.669 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.680 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=True
+2026-04-29 14:35:06.689 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_sms_channel0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.689 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.708 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=sms crc=True dup=False
+2026-04-29 14:35:06.708 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_empty_raw_packet0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.708 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.719 - core.logger - DEBUG - LogManager: packet conn=empty-conn channel=tcp crc=False dup=False
+2026-04-29 14:35:06.719 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_parsed_is_none0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.719 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.729 - core.logger - DEBUG - LogManager: packet conn=no-parse-conn channel=tcp crc=False dup=False
+2026-04-29 14:35:06.733 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_state_change0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.733 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.743 - core.logger - DEBUG - LogManager: connection conn-1 DISCONNECTED -> CONNECTED
+2026-04-29 14:35:06.747 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_without_prev_state0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.747 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.747 - core.logger - DEBUG - LogManager: connection new-conn None -> CONNECTED
+2026-04-29 14:35:06.758 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_step_result0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.758 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.768 - core.logger - DEBUG - LogManager: scenario auth step=wait_auth_info result=PASS
+2026-04-29 14:35:06.772 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_logs_fail_result0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.772 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.782 - core.logger - DEBUG - LogManager: scenario auth step=wait_auth_info result=FAIL
+2026-04-29 14:35:06.786 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_creates_file0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.786 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.796 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.796 - core.logger - DEBUG - LogManager: записано 1 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_creates_file0\2026-04-29.jsonl
+2026-04-29 14:35:06.807 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_writes_jsonl0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.807 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.817 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.819 - core.logger - DEBUG - LogManager: записано 1 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_writes_jsonl0\2026-04-29.jsonl
+2026-04-29 14:35:06.831 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_sorts_by_timestamp0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.831 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.841 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.841 - core.logger - DEBUG - LogManager: packet conn=conn-2 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.843 - core.logger - DEBUG - LogManager: записано 2 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_sorts_by_timestamp0\2026-04-29.jsonl
+2026-04-29 14:35:06.852 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_clears_buffer0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.852 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.852 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.852 - core.logger - DEBUG - LogManager: записано 1 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_clears_buffer0\2026-04-29.jsonl
+2026-04-29 14:35:06.862 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.866 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_flush_empty_buffer_no_fil0, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:06.899 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_multiple_events_in_buffer0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:06.901 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.901 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.904 - core.logger - DEBUG - LogManager: connection conn-1 None -> CONNECTED
+2026-04-29 14:35:06.904 - core.logger - DEBUG - LogManager: scenario test step=step1 result=PASS
+2026-04-29 14:35:06.905 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.915 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_daily_log_filename0, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:06.918 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.919 - core.logger - DEBUG - LogManager: записано 1 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_daily_log_filename0\2026-04-29.jsonl
+2026-04-29 14:35:06.919 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.931 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_stop_flushes_before_unsub0, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:06.931 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.933 - core.logger - DEBUG - LogManager: записано 1 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_stop_flushes_before_unsub0\2026-04-29.jsonl
+2026-04-29 14:35:06.933 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:06.940 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:06.950 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auto_flush_loop0, flush_interval=0.1, batch_size=3
+2026-04-29 14:35:06.950 - core.logger - DEBUG - LogManager: packet conn=conn-0 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.950 - core.logger - DEBUG - LogManager: packet conn=conn-1 channel=tcp crc=True dup=False
+2026-04-29 14:35:06.950 - core.logger - DEBUG - LogManager: packet conn=conn-2 channel=tcp crc=True dup=False
+2026-04-29 14:35:07.061 - core.logger - DEBUG - LogManager: записано 3 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auto_flush_loop0\2026-04-29.jsonl
+2026-04-29 14:35:07.252 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:07.262 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.262 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_stop_cancels_flush_task0, flush_interval=999.0, batch_size=9999
+2026-04-29 14:35:07.262 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:07.262 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.272 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_append_to_existing_file0, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:07.272 - core.logger - DEBUG - LogManager: packet conn=c1 channel=tcp crc=True dup=False
+2026-04-29 14:35:07.272 - core.logger - DEBUG - LogManager: записано 1 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_append_to_existing_file0\2026-04-29.jsonl
+2026-04-29 14:35:07.272 - core.logger - DEBUG - LogManager: packet conn=c2 channel=tcp crc=True dup=False
+2026-04-29 14:35:07.272 - core.logger - DEBUG - LogManager: записано 1 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_append_to_existing_file0\2026-04-29.jsonl
+2026-04-29 14:35:07.292 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.307 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_records_from_jsonl0\test_log.jsonl
+2026-04-29 14:35:07.316 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.331 - core.packet_source - INFO - ReplaySource: загружено 0 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_empty_file1\empty.jsonl
+2026-04-29 14:35:07.331 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.356 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.376 - core.packet_source - INFO - ReplaySource: загружено 1 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_skips_non_packet_rec0\mixed.jsonl
+2026-04-29 14:35:07.387 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.400 - core.packet_source - WARNING - ReplaySource: пропуск строки JSON: Expecting value: line 1 column 1 (char 0)
+2026-04-29 14:35:07.400 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_load_skips_malformed_json0\bad.jsonl
+2026-04-29 14:35:07.400 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.411 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_sends_through_pipe0\test_log.jsonl
+2026-04-29 14:35:07.411 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-29 14:35:07.420 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.424 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_emits_packet_proce0\test_log.jsonl
+2026-04-29 14:35:07.425 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-29 14:35:07.425 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.435 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_without_pipeline0\test_log.jsonl
+2026-04-29 14:35:07.435 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-29 14:35:07.442 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.460 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_hex_to_bytes0\test_log.jsonl
+2026-04-29 14:35:07.460 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-29 14:35:07.470 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.470 - core.packet_source - INFO - ReplaySource: загружено 3 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_skip_duplicates_enabled0\dupes.jsonl
+2026-04-29 14:35:07.470 - core.packet_source - DEBUG - ReplaySource: пропуск дубликата c1
+2026-04-29 14:35:07.470 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=1, errors=0
+2026-04-29 14:35:07.480 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.480 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_skip_duplicates_disabled0\dupes.jsonl
+2026-04-29 14:35:07.480 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-29 14:35:07.497 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.503 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_returns_stats0\test_log.jsonl
+2026-04-29 14:35:07.503 - core.packet_source - INFO - ReplaySource: завершено — processed=2, skipped=0, errors=0
+2026-04-29 14:35:07.507 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.507 - core.packet_source - INFO - ReplaySource: загружено 1 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_counts_only_packet0\mixed.jsonl
+2026-04-29 14:35:07.517 - core.packet_source - INFO - ReplaySource: завершено — processed=1, skipped=0, errors=0
+2026-04-29 14:35:07.527 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.527 - core.packet_source - INFO - ReplaySource: загружено 1 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_handles_pipeline_e0\err.jsonl
+2026-04-29 14:35:07.527 - core.packet_source - WARNING - ReplaySource: Ошибка replay: pipeline error
+2026-04-29 14:35:07.527 - core.packet_source - INFO - ReplaySource: завершено — processed=0, skipped=0, errors=1
+2026-04-29 14:35:07.542 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.547 - core.packet_source - INFO - ReplaySource: загружено 2 записей из C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_replay_invalid_hex0\bad_hex.jsonl
+2026-04-29 14:35:07.547 - core.packet_source - WARNING - ReplaySource: Некорректный hex в записи: non-hexadecimal number found in fromhex() arg at position 0
+2026-04-29 14:35:07.547 - core.packet_source - INFO - ReplaySource: завершено — processed=1, skipped=0, errors=1
+2026-04-29 14:35:07.559 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.559 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.568 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.568 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.568 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.578 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.578 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.578 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.592 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.602 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.829 - core.scenario - DEBUG - Scenario load warnings: ["steps[0]: Missing 'timeout' (default 30.0s will be used)"]
+2026-04-29 14:35:07.842 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.842 - core.scenario - DEBUG - Scenario load warnings: ["steps[0]: Missing 'timeout' (default 30.0s will be used)"]
+2026-04-29 14:35:07.853 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:07.868 - core.scenario - DEBUG - Scenario load warnings: ["steps[0]: Missing 'timeout' (default 30.0s will be used)"]
+2026-04-29 14:35:07.970 - core.scenario - WARNING - ScenarioManager: step 'step1' returned TIMEOUT
+2026-04-29 14:35:08.078 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.137 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.138 - core.scenario - ERROR - SendStep: connection_id required for TCP channel
+2026-04-29 14:35:08.143 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.253 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.334 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.343 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.347 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.357 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.375 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.389 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.396 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.418 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.420 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60389
+2026-04-29 14:35:08.422 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:08.422 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:08.424 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.436 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60392
+2026-04-29 14:35:08.436 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:08.436 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:08.436 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.446 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60395
+2026-04-29 14:35:08.448 - core.tcp_server - DEBUG - TcpServerManager уже запущен, пропускаю start()
+2026-04-29 14:35:08.451 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:08.451 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:08.452 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.452 - core.tcp_server - DEBUG - TcpServerManager не запущен, пропускаю stop()
+2026-04-29 14:35:08.452 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.462 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60400
+2026-04-29 14:35:08.462 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:08.462 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:08.465 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60401
+2026-04-29 14:35:08.465 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:08.465 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:08.466 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.477 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60404
+2026-04-29 14:35:08.479 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:08.479 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:08.481 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.481 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60407
+2026-04-29 14:35:08.481 - core.tcp_server - INFO - Новое подключение 2e33cbfd-55ec-4def-9452-1ea43c470ab2 от ('127.0.0.1', 60408)
+2026-04-29 14:35:08.591 - core.tcp_server - DEBUG - Клиент 2e33cbfd-55ec-4def-9452-1ea43c470ab2 закрыл соединение
+2026-04-29 14:35:08.591 - core.tcp_server - INFO - Отключение 2e33cbfd-55ec-4def-9452-1ea43c470ab2
+2026-04-29 14:35:08.591 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:08.591 - core.tcp_server - DEBUG - Задача чтения 2e33cbfd-55ec-4def-9452-1ea43c470ab2 отменена
+2026-04-29 14:35:08.591 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:08.591 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.601 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60411
+2026-04-29 14:35:08.604 - core.tcp_server - INFO - Новое подключение cc623942-ee56-4ed6-b079-3783a6e82cbd от ('127.0.0.1', 60412)
+2026-04-29 14:35:08.655 - core.tcp_server - DEBUG - Клиент cc623942-ee56-4ed6-b079-3783a6e82cbd закрыл соединение
+2026-04-29 14:35:08.655 - core.tcp_server - INFO - Отключение cc623942-ee56-4ed6-b079-3783a6e82cbd
+2026-04-29 14:35:08.966 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:08.966 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:08.966 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:08.976 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60415
+2026-04-29 14:35:08.978 - core.tcp_server - INFO - Новое подключение 08c2ae94-9158-4084-bd03-b5ef8b1d1c4a от ('127.0.0.1', 60416)
+2026-04-29 14:35:08.980 - asyncio - ERROR - Unhandled exception in client_connected_cb
+transport: <_ProactorSocketTransport fd=916 read=<_OverlappedFuture pending cb=[_ProactorReadPipeTransport._loop_reading()]>>
+Traceback (most recent call last):
+  File "C:\Users\verta\PycharmProjects\OMEGA_EGTS\core\tcp_server.py", line 162, in _handle_connection
+    if conn.fsm is not None:
+       ^^^^^^^^
+AttributeError: 'dict' object has no attribute 'fsm'
+2026-04-29 14:35:09.082 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:09.082 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:09.087 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:09.098 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60419
+2026-04-29 14:35:09.101 - core.tcp_server - INFO - Новое подключение aaf71adf-b524-4f76-962a-262dfb169eec от ('127.0.0.1', 60420)
+2026-04-29 14:35:09.161 - core.tcp_server - DEBUG - Получено 11 байт от aaf71adf-b524-4f76-962a-262dfb169eec: 012A000000000000010203
+2026-04-29 14:35:09.464 - core.tcp_server - DEBUG - Клиент aaf71adf-b524-4f76-962a-262dfb169eec закрыл соединение
+2026-04-29 14:35:09.464 - core.tcp_server - INFO - Отключение aaf71adf-b524-4f76-962a-262dfb169eec
+2026-04-29 14:35:09.468 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:09.469 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:09.472 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:09.474 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60423
+2026-04-29 14:35:09.476 - core.tcp_server - INFO - Новое подключение bea007ce-85b3-4996-9472-7ce15c76d3de от ('127.0.0.1', 60424)
+2026-04-29 14:35:09.530 - core.tcp_server - DEBUG - Получено 18 байт от bea007ce-85b3-4996-9472-7ce15c76d3de: 010100000000000000010200000000000000
+2026-04-29 14:35:10.036 - core.tcp_server - DEBUG - Клиент bea007ce-85b3-4996-9472-7ce15c76d3de закрыл соединение
+2026-04-29 14:35:10.036 - core.tcp_server - INFO - Отключение bea007ce-85b3-4996-9472-7ce15c76d3de
+2026-04-29 14:35:10.036 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:10.036 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:10.036 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:10.046 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60427
+2026-04-29 14:35:10.049 - core.tcp_server - INFO - Новое подключение 5c83ad43-e0c2-41a5-8181-85d937ab9758 от ('127.0.0.1', 60428)
+2026-04-29 14:35:10.101 - core.tcp_server - DEBUG - Клиент 5c83ad43-e0c2-41a5-8181-85d937ab9758 закрыл соединение
+2026-04-29 14:35:10.101 - core.tcp_server - INFO - Отключение 5c83ad43-e0c2-41a5-8181-85d937ab9758
+2026-04-29 14:35:10.103 - core.tcp_server - INFO - Новое подключение 0b76e4ba-23c1-4839-bd9f-74d8a5db06bf от ('127.0.0.1', 60429)
+2026-04-29 14:35:10.161 - core.tcp_server - DEBUG - Клиент 0b76e4ba-23c1-4839-bd9f-74d8a5db06bf закрыл соединение
+2026-04-29 14:35:10.161 - core.tcp_server - INFO - Отключение 0b76e4ba-23c1-4839-bd9f-74d8a5db06bf
+2026-04-29 14:35:10.161 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:10.161 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:10.166 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:10.177 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60432
+2026-04-29 14:35:10.177 - core.tcp_server - INFO - Новое подключение 1347e58f-bb0e-4ff4-a9c5-3034a634dd6a от ('127.0.0.1', 60433)
+2026-04-29 14:35:10.232 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:10.232 - core.tcp_server - INFO - Отключение 1347e58f-bb0e-4ff4-a9c5-3034a634dd6a
+2026-04-29 14:35:10.232 - core.tcp_server - DEBUG - Задача чтения 1347e58f-bb0e-4ff4-a9c5-3034a634dd6a отменена
+2026-04-29 14:35:10.234 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:10.236 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:10.257 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60436
+2026-04-29 14:35:10.257 - core.tcp_server - INFO - Новое подключение 06ef4de2-06da-4928-b251-cf112d565c6e от ('127.0.0.1', 60437)
+2026-04-29 14:35:10.358 - core.tcp_server - DEBUG - Клиент 06ef4de2-06da-4928-b251-cf112d565c6e закрыл соединение
+2026-04-29 14:35:10.358 - core.tcp_server - INFO - Отключение 06ef4de2-06da-4928-b251-cf112d565c6e
+2026-04-29 14:35:10.358 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:10.358 - core.tcp_server - DEBUG - Задача чтения 06ef4de2-06da-4928-b251-cf112d565c6e отменена
+2026-04-29 14:35:10.358 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:10.358 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:10.358 - core.tcp_server - INFO - TcpServerManager запущен на 127.0.0.1:60440
+2026-04-29 14:35:10.358 - core.tcp_server - INFO - Новое подключение 5c636ba8-ef03-4a25-b201-1c7c11a2a2da от ('127.0.0.1', 60441)
+2026-04-29 14:35:10.412 - core.tcp_server - DEBUG - Получено 9 байт от 5c636ba8-ef03-4a25-b201-1c7c11a2a2da: 010100000000000000
+2026-04-29 14:35:10.626 - core.tcp_server - DEBUG - Клиент 5c636ba8-ef03-4a25-b201-1c7c11a2a2da закрыл соединение
+2026-04-29 14:35:10.626 - core.tcp_server - INFO - Отключение 5c636ba8-ef03-4a25-b201-1c7c11a2a2da
+2026-04-29 14:35:10.836 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:10.836 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:11.017 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:11.028 - core.logger - INFO - LogManager инициализирован, log_dir=C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_three_packets_with_r0\logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:11.028 - core.tcp_server - INFO - TcpServerManager запущен на 0.0.0.0:3098
+2026-04-29 14:35:11.028 - core.tcp_server - INFO - Новое подключение c3b150e2-dabe-4894-8d4f-76c3138d3de0 от ('127.0.0.1', 60444)
+2026-04-29 14:35:11.028 - core.logger - DEBUG - LogManager: connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 None -> CONNECTED
+2026-04-29 14:35:11.028 - core.tcp_server - DEBUG - Получено 59 байт от c3b150e2-dabe-4894-8d4f-76c3138d3de0: 0100000B002E002A0001CC270049008001010124000100000016383630383033303636343438333133303235303737303031373135363433390F3A
+2026-04-29 14:35:11.028 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=c3b150e2-dabe-4894-8d4f-76c3138d3de0, size=59
+2026-04-29 14:35:11.028 - core.pipeline - DEBUG - CRC check passed for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0
+2026-04-29 14:35:11.028 - core.pipeline - DEBUG - Parse successful for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 (packet_type=1)
+2026-04-29 14:35:11.028 - core.pipeline - DEBUG - First seen PID=42 from c3b150e2-dabe-4894-8d4f-76c3138d3de0
+2026-04-29 14:35:11.028 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=42 (29 байт)
+2026-04-29 14:35:11.028 - core.logger - DEBUG - LogManager: connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 authenticating -> authenticating
+2026-04-29 14:35:11.028 - core.logger - DEBUG - LogManager: packet conn=c3b150e2-dabe-4894-8d4f-76c3138d3de0 channel=tcp crc=True dup=False
+2026-04-29 14:35:11.028 - core.dispatcher - INFO - RESPONSE отправлен c3b150e2-dabe-4894-8d4f-76c3138d3de0 через TCP (29 байт)
+2026-04-29 14:35:11.028 - core.pipeline - DEBUG - Emitted packet.processed for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 (terminated=False, crc_valid=True)
+2026-04-29 14:35:12.039 - core.tcp_server - DEBUG - Получено 48 байт от c3b150e2-dabe-4894-8d4f-76c3138d3de0: 0100000B0023002B0001781C004A00800101031900314434475032354230333831303837373501000000010000006CE1
+2026-04-29 14:35:12.039 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=c3b150e2-dabe-4894-8d4f-76c3138d3de0, size=48
+2026-04-29 14:35:12.039 - core.pipeline - DEBUG - CRC check passed for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0
+2026-04-29 14:35:12.039 - core.pipeline - DEBUG - Parse successful for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 (packet_type=1)
+2026-04-29 14:35:12.039 - core.pipeline - DEBUG - First seen PID=43 from c3b150e2-dabe-4894-8d4f-76c3138d3de0
+2026-04-29 14:35:12.039 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=43 (29 байт)
+2026-04-29 14:35:12.039 - core.logger - DEBUG - LogManager: packet conn=c3b150e2-dabe-4894-8d4f-76c3138d3de0 channel=tcp crc=True dup=False
+2026-04-29 14:35:12.039 - core.dispatcher - INFO - RESPONSE отправлен c3b150e2-dabe-4894-8d4f-76c3138d3de0 через TCP (29 байт)
+2026-04-29 14:35:12.039 - core.pipeline - DEBUG - Emitted packet.processed for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 (terminated=False, crc_valid=True)
+2026-04-29 14:35:13.040 - core.tcp_server - DEBUG - Получено 29 байт от c3b150e2-dabe-4894-8d4f-76c3138d3de0: 0100000B0010002C00006A20000006004B008001010003002F0000F139
+2026-04-29 14:35:13.040 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=c3b150e2-dabe-4894-8d4f-76c3138d3de0, size=29
+2026-04-29 14:35:13.040 - core.pipeline - DEBUG - CRC check passed for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0
+2026-04-29 14:35:13.040 - core.pipeline - DEBUG - Parse successful for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 (packet_type=0)
+2026-04-29 14:35:13.040 - core.pipeline - DEBUG - First seen PID=44 from c3b150e2-dabe-4894-8d4f-76c3138d3de0
+2026-04-29 14:35:13.040 - core.pipeline - DEBUG - AutoResponse: RESPONSE для PID=44 (29 байт)
+2026-04-29 14:35:13.040 - core.logger - DEBUG - LogManager: packet conn=c3b150e2-dabe-4894-8d4f-76c3138d3de0 channel=tcp crc=True dup=False
+2026-04-29 14:35:13.040 - core.dispatcher - INFO - RESPONSE отправлен c3b150e2-dabe-4894-8d4f-76c3138d3de0 через TCP (29 байт)
+2026-04-29 14:35:13.040 - core.pipeline - DEBUG - Emitted packet.processed for connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 (terminated=False, crc_valid=True)
+2026-04-29 14:35:13.040 - core.tcp_server - DEBUG - Клиент c3b150e2-dabe-4894-8d4f-76c3138d3de0 закрыл соединение
+2026-04-29 14:35:13.040 - core.tcp_server - INFO - Отключение c3b150e2-dabe-4894-8d4f-76c3138d3de0
+2026-04-29 14:35:13.040 - core.logger - DEBUG - LogManager: connection c3b150e2-dabe-4894-8d4f-76c3138d3de0 authenticating -> DISCONNECTED
+2026-04-29 14:35:13.550 - core.logger - DEBUG - LogManager: записано 6 записей в C:\Users\verta\AppData\Local\Temp\pytest-of-verta\pytest-470\test_auth_three_packets_with_r0\logs\2026-04-29.jsonl
+2026-04-29 14:35:13.563 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:13.563 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:13.563 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:13.563 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:13.563 - core.dispatcher - INFO - CommandDispatcher: отписался от событий
+2026-04-29 14:35:14.067 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-29 14:35:14.078 - core.logger - INFO - LogManager инициализирован, log_dir=logs, flush_interval=5.0, batch_size=1000
+2026-04-29 14:35:14.078 - core.tcp_server - INFO - TcpServerManager запущен на 0.0.0.0:8090
+2026-04-29 14:35:14.078 - core.logger - DEBUG - LogManager: connection test-conn-1 DISCONNECTED -> CONNECTED
+2026-04-29 14:35:14.078 - core.dispatcher - DEBUG - PacketDispatcher: обработка пакета channel=tcp, connection_id=test-conn-1, size=10
+2026-04-29 14:35:14.078 - core.pipeline - WARNING - CRC check: connection test-conn-1 not found
+2026-04-29 14:35:14.078 - core.logger - DEBUG - LogManager: packet conn=test-conn-1 channel=tcp crc=False dup=False
+2026-04-29 14:35:14.078 - core.pipeline - DEBUG - Emitted packet.processed for connection test-conn-1 (terminated=True, crc_valid=False)
+2026-04-29 14:35:14.183 - core.logger - DEBUG - LogManager: записано 2 записей в logs\2026-04-29.jsonl
+2026-04-29 14:35:14.185 - core.logger - INFO - LogManager: остановлен, буфер сброшен
+2026-04-29 14:35:14.185 - core.tcp_server - INFO - Останавливаю TcpServerManager...
+2026-04-29 14:35:14.185 - core.tcp_server - INFO - TcpServerManager остановлен
+2026-04-29 14:35:14.185 - core.dispatcher - INFO - PacketDispatcher: отписался от событий
+2026-04-29 14:35:14.185 - core.dispatcher - INFO - CommandDispatcher: отписался от событий

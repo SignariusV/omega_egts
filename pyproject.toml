@@ -45,6 +45,7 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.12.0",
+    "pytest-qt>=4.4.0",
     
     # Линтер и форматирование
     "ruff>=0.3.0",
@@ -54,9 +55,8 @@ dev = [
     "types-setuptools",
 ]
 gui = [
-    "PyQt6>=6.6.0",
-    # или
-    # "PySide6>=6.6.0",
+    "PySide6>=6.6.0",
+    "qasync>=0.27.0",
 ]
 asn1 = [
     # ASN.1 PER кодек для eCall/MSD (ГОСТ 33464)
@@ -76,7 +76,7 @@ Issues = "https://github.com/your-org/OMEGA_EGTS/issues"
 include = ["core*", "cli*", "libs*"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "gui/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

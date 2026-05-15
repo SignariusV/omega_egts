@@ -1,0 +1,408 @@
+# OMEGA_EGTS GUI
+from PySide6.QtGui import QColor, QFont
+from PySide6.QtWidgets import QApplication
+
+
+THEME_VSCODE_DARK = {
+    "bg": "#1E1E1E",
+    "card_bg": "#252526",
+    "border": "#3E3E42",
+    "text": "#CCCCCC",
+    "accent": "#007ACC",
+    "accent_hover": "#1C97EA",
+    "success": "#4EC9B0",
+    "warning": "#CE9178",
+    "error": "#F44747",
+    "title_bg": "#2D2D30",
+    "header_bg": "#333333",
+    "input_bg": "#3C3C3C",
+    "font_main": "Segoe UI",
+    "font_mono": "Consolas",
+    "grip_bg": "rgba(0, 120, 215, 30)",
+    "grip_border": "rgba(0, 120, 215, 100)",
+    "grip_hover": "rgba(0, 120, 215, 80)",
+    "title_color": "#FFD700",
+    "title_size": 18,
+    "border_radius": "12px",
+    "section_title": "#4EC9B0",
+    "toggle_color": "#4EC9B0",
+    "group_header": "#2D2D30",
+    "group_border": "#454545",
+    "button_bg": "#0E639C",
+    "button_hover": "#1177BB",
+}
+
+
+def generate_qss(theme: dict) -> str:
+    font_main = theme.get("font_main", "Segoe UI")
+    font_mono = theme.get("font_mono", "Consolas")
+    
+    grip_bg = theme.get("grip_bg", "rgba(0, 120, 215, 30)")
+    grip_border = theme.get("grip_border", "rgba(0, 120, 215, 100)")
+    grip_hover = theme.get("grip_hover", "rgba(0, 120, 215, 80)")
+    
+    title_color = theme.get("title_color", "#FFD700")
+    title_size = theme.get("title_size", 18)
+    border_radius = theme.get("border_radius", "12px")
+    
+    return f"""
+    QMainWindow {{
+        background-color: {theme['bg']};
+        color: {theme['text']};
+        font-family: "{font_main}";
+    }}
+
+    QFrame[class="CardWidget"] {{
+        background-color: {theme['card_bg']};
+        border: 1px solid {theme['border']};
+        border-radius: {border_radius};
+    }}
+
+    QFrame[class="TitleBar"] {{
+        background-color: {theme['title_bg']};
+        border-bottom: 1px solid {theme['border']};
+    }}
+
+    QLabel#titleLabel {{
+        color: {title_color};
+        font-family: "{font_main}";
+        font-size: {title_size}px;
+        font-weight: bold;
+    }}
+
+    QToolButton#collapseButton {{
+        background-color: transparent;
+        border: none;
+        color: {theme['text']};
+    }}
+    QToolButton#collapseButton:hover {{
+        color: {theme['accent']};
+    }}
+
+    QFrame#resizeGrip {{
+        background-color: {grip_bg};
+        border: 1px solid {grip_border};
+        border-radius: 2px;
+    }}
+    QFrame#resizeGrip:hover {{
+        background-color: {grip_hover};
+    }}
+
+    QPushButton {{
+        background-color: {theme['accent']};
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 4px 12px;
+        font-family: "{font_main}";
+    }}
+    QPushButton:hover {{
+        background-color: {theme['accent_hover']};
+    }}
+    QPushButton#toggleServerButton[serverState="running"] {{
+        background-color: #F44747;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 6px 16px;
+        font-weight: bold;
+    }}
+    QPushButton#toggleServerButton[serverState="stopped"] {{
+        background-color: #007ACC;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 6px 16px;
+        font-weight: bold;
+    }}
+
+    QPushButton#scenarioToggleButton[scenarioState="running"] {{
+        background-color: #F44747;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 6px 16px;
+        font-weight: bold;
+    }}
+    QPushButton#scenarioToggleButton[scenarioState="stopped"] {{
+        background-color: #007ACC;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        padding: 6px 16px;
+        font-weight: bold;
+    }}
+    QTableWidget, QTableView {{
+        background-color: {theme['card_bg']};
+        gridline-color: {theme['border']};
+        font-family: "{font_mono}";
+        font-size: 11px;
+        color: {theme['text']};
+    }}
+    QTableView::item {{
+        padding: 2px;
+    }}
+    QTableView::item:selected {{
+        background-color: {theme['accent']};
+        color: white;
+    }}
+    QHeaderView::section {{
+        background-color: {theme['header_bg']};
+        color: {theme['text']};
+        border: none;
+        font-family: "{font_main}";
+    }}
+    QGroupBox {{
+        color: {theme['text']};
+        border: 1px solid {theme['border']};
+        margin-top: 10px;
+        font-family: "{font_main}";
+    }}
+    QGroupBox::title {{
+        color: {theme['text']};
+        subcontrol-origin: margin;
+        left: 10px;
+        padding: 0 5px 0 5px;
+    }}
+    QLabel {{
+        color: {theme['text']};
+        font-family: "{font_main}";
+    }}
+    QComboBox {{
+        background-color: {theme['input_bg']};
+        color: {theme['success']};
+        border: 1px solid {theme['border']};
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-family: "{font_main}";
+        font-size: 11px;
+    }}
+    QComboBox QAbstractItemView {{
+        background-color: {theme['input_bg']};
+        color: {theme['success']};
+        selection-background-color: {theme['accent']};
+        selection-color: white;
+        border: 1px solid {theme['border']};
+        padding: 4px;
+    }}
+    QComboBox::item {{
+        color: {theme['success']};
+    }}
+    QComboBox::item:selected {{
+        background-color: {theme['accent']};
+        color: white;
+    }}
+    QCheckBox {{
+        color: {theme['success']};
+        spacing: 5px;
+    }}
+    QCheckBox::indicator {{
+        width: 13px;
+        height: 13px;
+    }}
+    QCheckBox::indicator:unchecked {{
+        background-color: {theme['input_bg']};
+        border: 1px solid {theme['border']};
+        border-radius: 3px;
+    }}
+    QCheckBox::indicator:checked {{
+        background-color: {theme['accent']};
+        border: 1px solid {theme['accent']};
+        border-radius: 3px;
+    }}
+    QPlainTextEdit, QTextEdit {{
+        background-color: {theme['input_bg']};
+        color: {theme['text']};
+        border: 1px solid {theme['border']};
+        border-radius: 3px;
+        font-family: "{font_mono}";
+    }}
+    QPlainTextEdit#compactLogEdit {{
+        background-color: {theme['card_bg']};
+        color: {theme['text']};
+        font-family: "{font_mono}";
+        font-size: 10px;
+        border: none;
+    }}
+
+    QWidget#cardSidebar {{
+        background-color: {theme['bg']};
+        border-right: 1px solid {theme['border']};
+    }}
+
+    QScrollArea#cardSidebarScroll {{
+        background-color: {theme['bg']};
+        border: none;
+    }}
+
+    QToolButton[class="SidebarButton"] {{
+        border: 1px solid transparent;
+        border-radius: 4px;
+        padding: 4px;
+        background-color: {theme['card_bg']};
+        color: {theme['text']};
+        font-size: 16px;
+        font-weight: bold;
+    }}
+    QToolButton[class="SidebarButton"]:hover {{
+        background-color: {theme['title_bg']};
+        border-color: {theme['border']};
+    }}
+    QToolButton[class="SidebarButton"]:checked {{
+        background-color: {theme['accent']};
+        border-color: {theme['accent_hover']};
+        color: white;
+    }}
+
+    QToolButton#sidebarToggle {{
+        background-color: transparent;
+        border: none;
+        color: {theme['text']};
+        font-size: 12px;
+    }}
+    QToolButton#sidebarToggle:hover {{
+        color: {theme['accent']};
+    }}
+
+    QScrollArea {{
+        background-color: {theme['card_bg']};
+        border: none;
+    }}
+    QScrollArea > QWidget > QWidget {{
+        background-color: {theme['card_bg']};
+    }}
+
+QSpinBox, QDoubleSpinBox {{
+        background-color: {theme['input_bg']};
+        color: {theme['text']};
+        border: 1px solid {theme['border']};
+        border-radius: 3px;
+        padding: 2px 4px;
+        font-family: "{font_main}";
+        font-size: 11px;
+    }}
+    QSpinBox:focus, QDoubleSpinBox:focus {{
+        border: 1px solid {theme['accent']};
+    }}
+    QSpinBox::up-button, QDoubleSpinBox::up-button {{
+        border-left: 1px solid {theme['border']};
+        background-color: {theme['header_bg']};
+        width: 14px;
+    }}
+    QSpinBox::down-button, QDoubleSpinBox::down-button {{
+        border-left: 1px solid {theme['border']};
+        background-color: {theme['header_bg']};
+        width: 14px;
+    }}
+    QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {{
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-bottom: 5px solid {theme['text']};
+    }}
+    QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-top: 5px solid {theme['text']};
+    }}
+
+    QLineEdit {{
+        background-color: {theme['input_bg']};
+        color: {theme['text']};
+        border: 1px solid {theme['border']};
+        border-radius: 3px;
+        padding: 3px 6px;
+        font-family: "{font_main}";
+        font-size: 11px;
+    }}
+    QLineEdit:focus {{
+        border: 1px solid {theme['accent']};
+    }}
+
+    QFormLayout {{
+        background-color: {theme['card_bg']};
+    }}
+    QFormLayout::label {{
+        color: {theme['text']};
+        font-family: "{font_main}";
+    }}
+
+    QWidget[class="CollapsibleGroupBox"] {{
+        background-color: {theme['card_bg']};
+        border: 1px solid {theme.get('group_border', theme['border'])};
+        border-radius: 6px;
+        margin-top: 8px;
+    }}
+    QWidget[class="CollapsibleGroupHeader"] {{
+        background-color: {theme.get('group_header', theme['title_bg'])};
+        border-bottom: 1px solid {theme['border']};
+        border-radius: 6px 6px 0 0;
+        padding: 4px;
+    }}
+    QPushButton[class="CollapsibleToggle"] {{
+        background-color: transparent;
+        color: {theme.get('toggle_color', theme['success'])};
+        border: none;
+        font-size: 14px;
+        font-weight: bold;
+    }}
+    QPushButton[class="CollapsibleToggle"]:hover {{
+        color: {theme['accent']};
+    }}
+    QLabel {{
+        color: {theme.get('section_title', theme['success'])};
+        font-weight: bold;
+    }}
+    QPushButton#saveSettingsButton {{
+        background-color: {theme.get('button_bg', theme['accent'])};
+        color: white;
+        border: 1px solid {theme['accent']};
+        border-radius: 4px;
+        padding: 8px 24px;
+        font-weight: bold;
+    }}
+    QPushButton#saveSettingsButton:hover {{
+        background-color: {theme.get('button_hover', theme['accent_hover'])};
+    }}
+    """
+
+
+def apply_theme(app, theme_name: str = "vscode_dark"):
+    """Apply theme to QApplication."""
+    if theme_name == "vscode_dark":
+        theme = THEME_VSCODE_DARK
+    else:
+        theme = THEME_VSCODE_DARK
+    app.setStyleSheet(generate_qss(theme))
+    _setup_fonts(app, theme)
+
+
+def _setup_fonts(app, theme):
+    """Setup application fonts."""
+    font_main = QFont(theme.get("font_main", "Segoe UI"), 11)
+    app.setFont(font_main)
+
+
+def contrast_ratio(bg: str, fg: str) -> float:
+    """Calculate contrast ratio between two colors (WCAG 2.0)."""
+    bg_luminance = _relative_luminance(QColor(bg))
+    fg_luminance = _relative_luminance(QColor(fg))
+    lighter = max(bg_luminance, fg_luminance)
+    darker = min(bg_luminance, fg_luminance)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def _relative_luminance(color: QColor) -> float:
+    """Calculate relative luminance of a color."""
+    r, g, b = color.redF(), color.greenF(), color.blueF()
+    r = r / 12.92 if r <= 0.03928 else ((r + 0.055) / 1.055) ** 2.4
+    g = g / 12.92 if g <= 0.03928 else ((g + 0.055) / 1.055) ** 2.4
+    b = b / 12.92 if b <= 0.03928 else ((b + 0.055) / 1.055) ** 2.4
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def validate_contrast(theme: dict) -> bool:
+    """Validate that theme meets WCAG AA contrast requirements (4.5:1)."""
+    bg = theme.get("bg", "#FFFFFF")
+    text = theme.get("text", "#000000")
+    ratio = contrast_ratio(bg, text)
+    return ratio >= 4.5

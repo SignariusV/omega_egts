@@ -182,6 +182,12 @@ class TestCmw500Emulator:
         assert result["simulate"] is True
         assert result["serial"] == "EMULATOR"
         assert result["ip"] == "192.168.1.100"
+        # НОВОЕ: проверка imei, imsi, timestamp
+        assert "imei" in result
+        assert "imsi" in result
+        assert result["imei"] == "351234567890123"
+        assert result["imsi"] == "250011234567890"
+        assert "timestamp" in result
 
         await emul.disconnect()
 
@@ -339,8 +345,92 @@ class TestFullStatusCache:
         assert emul._status_cache is not None
 
         await emul.disconnect()
-
+        
         assert emul._status_cache is None
+
+
+class TestGetFullStatusWithImeiImsi:
+    """Тесты get_full_status с включением imei и imsi."""
+    
+    async def test_full_status_includes_imei_imsi_emulator(self, event_bus: EventBus):
+        """Emulator: get_full_status возвращает imei и imsi."""
+        emul = Cmw500Emulator(bus=event_bus, ip="192.168.1.100")
+        await emul.connect()
+        
+        result = await emul.get_full_status()
+        
+        assert "imei" in result
+        assert "imsi" in result
+        assert result["imei"] == "351234567890123"
+        assert result["imsi"] == "250011234567890"
+        assert "timestamp" in result
+        
+        await emul.disconnect()
+    
+    async def test_full_status_timestamp_is_recent(self, event_bus: EventBus):
+        """timestamp в get_full_status близок к текущему времени."""
+        import time
+        
+        emul = Cmw500Emulator(bus=event_bus, ip="192.168.1.100")
+        await emul.connect()
+        
+        before = time.time()
+        result = await emul.get_full_status()
+        after = time.time()
+        
+        assert before <= result["timestamp"] <= after
+        
+        await emul.disconnect()
+
+
+class TestPollLoopEmitsStatus:
+    """Тесты что _poll_loop эмитит cmw.status."""
+    
+    async def test_poll_loop_emits_cmw_status(self, event_bus: EventBus):
+        """_poll_loop должен эмитить cmw.status каждую итерацию."""
+        received = []
+        event_bus.on("cmw.status", lambda d: received.append(d))
+        
+        emul = Cmw500Emulator(
+            bus=event_bus,
+            ip="127.0.0.1",
+            poll_interval=0.1,
+            tcp_delay_min=0.01,
+            tcp_delay_max=0.05,
+        )
+        await emul.connect()
+        
+        # Ждём пару циклов poll
+        await asyncio.sleep(0.25)
+        
+        await emul.disconnect()
+        
+        assert len(received) >= 1
+        assert "imei" in received[0]
+        assert "imsi" in received[0]
+        assert received[0]["simulate"] is True
+
+    async def test_poll_loop_emits_cmw_status_with_data(self, event_bus: EventBus):
+        """cmw.status содержит корректные imei и imsi."""
+        received = []
+        event_bus.on("cmw.status", lambda d: received.append(d))
+        
+        emul = Cmw500Emulator(
+            bus=event_bus,
+            ip="127.0.0.1",
+            poll_interval=999.0,  # Отключаем фоновый poll, будем вызывать вручную
+        )
+        await emul.connect()
+        
+        # Ручной вызов эмуляции poll_loop (вызов get_full_status и emit)
+        status = await emul.get_full_status()
+        await event_bus.emit("cmw.status", status)
+        
+        await emul.disconnect()
+        
+        assert len(received) >= 1
+        assert received[0]["imei"] == "351234567890123"
+        assert received[0]["imsi"] == "250011234567890"
 
 
 # Импорт для патчинга
