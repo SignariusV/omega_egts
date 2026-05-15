@@ -4,6 +4,52 @@
 
 ---
 
+### Этап 3: Валидация авторизации и аутентификации (завершена)
+
+**Дата:** 15.05.2026
+**Ветка:** `feature/tz-compliance` | **Коммит:** `bc96074`
+
+#### Added
+- **AuthValidationMiddleware** (order=2.5) — валидация TERM_IDENTITY и VEHICLE_DATA против конфигурации (ТЗ п. 2.3.1 шаг 8, 10)
+- **ServiceInfoValidator** — проверка сервисов: только ST=10 (EGTS_ECALL_SERVICE) разрешён (ТЗ п. 2.3.1 шаг 11)
+- **Форматная валидация** IMEI/IMSI/MSISDN в `Credentials` с `__post_init__` (ТЗ п. 2.1.3)
+- **AuthValidator** — сверка параметров авторизации (IMSI, IMEI, MSISDN, UNIT_ID) и аутентификации (VIN, категория ТС, тип топлива)
+- **События EventBus**: `auth.validation_passed`, `auth.validation_failed`, `service_info.requested`, `service_info.responded`
+- Маппинги категорий ТС (M1-N3) и типов топлива (бензин/дизель/газ/электричество) по ГОСТ 33465-2015
+
+#### Changed
+- `CmwConfig.mnc` исправлен с 60 на 77 (ТЗ: NID=25077)
+- `docs/ARCHITECTURE.md`: добавлены секции подзаписей, кодов команд, таблица middleware
+
+#### Fixed
+- `TestServicePartDataRoundtrip`: корректная обработка null-терминатора ODH
+
+#### Tests
+- 66 новых тестов (unit + integration), 820 всего, покрытие 83%
+
+---
+
+### Этап 4: Управление сеансом проверок (завершена)
+
+**Дата:** 15.05.2026
+**Ветка:** `feature/tz-compliance` | **Коммит:** `05d39c0`
+
+#### Added
+- **TestSession** — управление сеансом проверок (ТЗ п. 2.2.5-2.2.6):
+  - `SessionState`: INACTIVE, ACTIVE, COMPLETED
+  - `TestResult`: результаты отдельных проверок (test_name, passed, steps, config_type)
+  - 12 статус-флагов: cmw_connected, usv_registered, tcp_connected, auth_done, ...
+  - Snapshots конфигурации и credentials для отчётов
+- **Интеграция с CoreEngine**:
+  - `start_session()` / `stop_session()` / `on_network_off()` API
+  - Подписки на 5 событий EventBus для автоматического обновления статусов
+  - Отписка при `_cleanup()`
+
+#### Tests
+- 38 новых тестов, `test_session.py` — 100% покрытие, `engine.py` — 99%
+
+---
+
 ### Интеграция статуса CMW-500 в EventBus (завершена)
 
 **Дата:** 29.04.2026  
