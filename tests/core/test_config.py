@@ -10,6 +10,7 @@ from core.config import (
     Config,
     LogConfig,
     TimeoutsConfig,
+    VehicleConfig,
 )
 
 # --- Дефолты ---
@@ -287,3 +288,320 @@ class TestSubDataclasses:
         """LogConfig создаётся без Config."""
         log = LogConfig(level="DEBUG")
         assert log.level == "DEBUG"
+
+
+# --- Новые поля CmwConfig (ТЗ п. 2.1.1, 2.1.2) ---
+
+
+class TestNewCmwConfigFields:
+    """Тесты новых полей CmwConfig."""
+
+    def test_visa_resource_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.visa_resource == "TCPIP::192.168.2.2::inst0::INSTR"
+
+    def test_network_type_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.network_type == "GSM/EDGE"
+
+    def test_ps_domain_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.ps_domain is True
+
+    def test_gsm_auth_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.gsm_auth is False
+
+    def test_frequency_band_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.frequency_band == "900"
+
+    def test_voice_codec_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.voice_codec == "FR"
+
+    def test_arfcn_defaults(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.arfcn_bch == 0
+        assert cmw.arfcn_tch == 0
+
+    def test_rf_level_range_defaults(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.rf_level_min == -30.0
+        assert cmw.rf_level_max == 30.0
+
+    def test_pcl_value_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.pcl_value == "MAX"
+
+    def test_profile_imsi_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.profile_imsi == ""
+
+    def test_smsc_number_default(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.smsc_number == ""
+
+    def test_network_ip_defaults(self) -> None:
+        cmw = CmwConfig()
+        assert cmw.dau_ip == "192.168.2.1"
+        assert cmw.dau_subnet_mask == "255.255.255.0"
+        assert cmw.test_system_ip == "192.168.2.100"
+        assert cmw.usv_dhcp_ip == "192.168.2.200"
+
+    def test_mnc_default_is_77(self) -> None:
+        """ТЗ: NID=25077, mnc=77."""
+        cmw = CmwConfig()
+        assert cmw.mnc == 77
+
+    def test_mcc_default_is_250(self) -> None:
+        """ТЗ: NID=25077, mcc=250."""
+        cmw = CmwConfig()
+        assert cmw.mcc == 250
+
+
+# --- VehicleConfig ---
+
+
+class TestVehicleConfig:
+    """Тесты VehicleConfig (ТЗ п. 2.1.4)."""
+
+    def test_defaults(self) -> None:
+        v = VehicleConfig()
+        assert v.vin == ""
+        assert v.category == ""
+        assert v.fuel_type == ""
+
+    def test_custom_values(self) -> None:
+        v = VehicleConfig(vin="WBA12345678901234", category="M1", fuel_type="бензин")
+        assert v.vin == "WBA12345678901234"
+        assert v.category == "M1"
+        assert v.fuel_type == "бензин"
+
+    def test_is_frozen(self) -> None:
+        v = VehicleConfig()
+        with pytest.raises(AttributeError):
+            v.vin = "test"  # type: ignore[misc]
+
+
+# --- Валидация MCC/MNC (ТЗ: не корректируемы) ---
+
+
+class TestMccMncValidation:
+    """MCC=250 и MNC=77 — не корректируемы (ТЗ п. 2.1.2 в)."""
+
+    def test_mcc_not_250_raises(self) -> None:
+        with pytest.raises(ValueError, match="mcc.*250"):
+            Config(cmw500=CmwConfig(mcc=255))
+
+    def test_mnc_not_77_raises(self) -> None:
+        with pytest.raises(ValueError, match="mnc.*77"):
+            Config(cmw500=CmwConfig(mnc=60))
+
+    def test_valid_mcc_mnc(self) -> None:
+        cfg = Config(cmw500=CmwConfig(mcc=250, mnc=77))
+        assert cfg.cmw500.mcc == 250
+        assert cfg.cmw500.mnc == 77
+
+
+# --- Валидация frequency_band ---
+
+
+class TestFrequencyBandValidation:
+    """frequency_band ∈ {900, 1800}."""
+
+    def test_invalid_band_raises(self) -> None:
+        with pytest.raises(ValueError, match="frequency_band"):
+            Config(cmw500=CmwConfig(frequency_band="2100"))
+
+    def test_valid_900(self) -> None:
+        cfg = Config(cmw500=CmwConfig(frequency_band="900"))
+        assert cfg.cmw500.frequency_band == "900"
+
+    def test_valid_1800(self) -> None:
+        cfg = Config(cmw500=CmwConfig(frequency_band="1800"))
+        assert cfg.cmw500.frequency_band == "1800"
+
+
+# --- Валидация profile_imsi ---
+
+
+class TestProfileImsiValidation:
+    """profile_imsi должен начинаться с 25077."""
+
+    def test_valid_prefix(self) -> None:
+        cfg = Config(cmw500=CmwConfig(profile_imsi="250770000000001"))
+        assert cfg.cmw500.profile_imsi == "250770000000001"
+
+    def test_empty_allowed(self) -> None:
+        cfg = Config(cmw500=CmwConfig(profile_imsi=""))
+        assert cfg.cmw500.profile_imsi == ""
+
+    def test_invalid_prefix_raises(self) -> None:
+        with pytest.raises(ValueError, match="profile_imsi.*25077"):
+            Config(cmw500=CmwConfig(profile_imsi="250011234567890"))
+
+
+# --- Валидация IPv4-адресов ---
+
+
+class TestIpv4Validation:
+    """IPv4-адреса должны быть валидными."""
+
+    def test_invalid_dau_ip(self) -> None:
+        with pytest.raises(ValueError, match="dau_ip"):
+            Config(cmw500=CmwConfig(dau_ip="999.999.999.999"))
+
+    def test_invalid_subnet_mask(self) -> None:
+        with pytest.raises(ValueError, match="dau_subnet_mask"):
+            Config(cmw500=CmwConfig(dau_subnet_mask="not-an-ip"))
+
+    def test_invalid_test_system_ip(self) -> None:
+        with pytest.raises(ValueError, match="test_system_ip"):
+            Config(cmw500=CmwConfig(test_system_ip="abc.def.ghi.jkl"))
+
+    def test_invalid_usv_dhcp_ip(self) -> None:
+        with pytest.raises(ValueError, match="usv_dhcp_ip"):
+            Config(cmw500=CmwConfig(usv_dhcp_ip="300.1.2.3"))
+
+    def test_valid_ips(self) -> None:
+        cfg = Config(cmw500=CmwConfig(
+            dau_ip="10.0.0.1",
+            dau_subnet_mask="255.255.255.0",
+            test_system_ip="10.0.0.100",
+            usv_dhcp_ip="10.0.0.200",
+        ))
+        assert cfg.cmw500.dau_ip == "10.0.0.1"
+
+
+# --- Валидация VehicleConfig ---
+
+
+class TestVehicleValidation:
+    """Валидация параметров ТС."""
+
+    def test_invalid_vin_length(self) -> None:
+        with pytest.raises(ValueError, match="vin.*17"):
+            Config(vehicle=VehicleConfig(vin="TOOSHORT"))
+
+    def test_valid_vin(self) -> None:
+        cfg = Config(vehicle=VehicleConfig(vin="WBA12345678901234"))
+        assert cfg.vehicle.vin == "WBA12345678901234"
+
+    def test_empty_vin_allowed(self) -> None:
+        cfg = Config(vehicle=VehicleConfig(vin=""))
+        assert cfg.vehicle.vin == ""
+
+    def test_invalid_category(self) -> None:
+        with pytest.raises(ValueError, match="category"):
+            Config(vehicle=VehicleConfig(category="X9"))
+
+    def test_valid_categories(self) -> None:
+        for cat in ("M1", "M2", "M3", "N1", "N2", "N3"):
+            cfg = Config(vehicle=VehicleConfig(category=cat))
+            assert cfg.vehicle.category == cat
+
+    def test_empty_category_allowed(self) -> None:
+        cfg = Config(vehicle=VehicleConfig(category=""))
+        assert cfg.vehicle.category == ""
+
+
+# --- Config.vehicle ---
+
+
+class TestConfigVehicle:
+    """vehicle в Config."""
+
+    def test_vehicle_default(self) -> None:
+        cfg = Config()
+        assert cfg.vehicle.vin == ""
+        assert cfg.vehicle.category == ""
+        assert cfg.vehicle.fuel_type == ""
+
+    def test_vehicle_custom(self) -> None:
+        cfg = Config(vehicle=VehicleConfig(vin="WBA12345678901234", category="M1"))
+        assert cfg.vehicle.vin == "WBA12345678901234"
+        assert cfg.vehicle.category == "M1"
+
+
+# --- from_file с новыми полями ---
+
+
+class TestFromFileNewFields:
+    """Загрузка новых полей из JSON."""
+
+    def test_load_new_cmw_fields(self) -> None:
+        data = {
+            "cmw500": {
+                "visa_resource": "TCPIP::10.0.0.1::inst0::INSTR",
+                "network_type": "GSM/EDGE",
+                "ps_domain": False,
+                "gsm_auth": True,
+                "frequency_band": "1800",
+                "voice_codec": "HR",
+                "arfcn_bch": 12,
+                "arfcn_tch": 34,
+                "profile_imsi": "250770000000001",
+                "smsc_number": "+79001234567",
+                "dau_ip": "10.0.0.1",
+                "dau_subnet_mask": "255.255.255.0",
+                "test_system_ip": "10.0.0.100",
+                "usv_dhcp_ip": "10.0.0.200",
+            },
+        }
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(data, f)
+            path = f.name
+
+        cfg = Config.from_file(path)
+        assert cfg.cmw500.visa_resource == "TCPIP::10.0.0.1::inst0::INSTR"
+        assert cfg.cmw500.ps_domain is False
+        assert cfg.cmw500.gsm_auth is True
+        assert cfg.cmw500.frequency_band == "1800"
+        assert cfg.cmw500.voice_codec == "HR"
+        assert cfg.cmw500.arfcn_bch == 12
+        assert cfg.cmw500.arfcn_tch == 34
+        assert cfg.cmw500.profile_imsi == "250770000000001"
+        assert cfg.cmw500.smsc_number == "+79001234567"
+        assert cfg.cmw500.dau_ip == "10.0.0.1"
+        assert cfg.cmw500.dau_subnet_mask == "255.255.255.0"
+        assert cfg.cmw500.test_system_ip == "10.0.0.100"
+        assert cfg.cmw500.usv_dhcp_ip == "10.0.0.200"
+
+    def test_load_vehicle_from_file(self) -> None:
+        data = {
+            "vehicle": {
+                "vin": "WBA12345678901234",
+                "category": "M1",
+                "fuel_type": "бензин",
+            },
+        }
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(data, f)
+            path = f.name
+
+        cfg = Config.from_file(path)
+        assert cfg.vehicle.vin == "WBA12345678901234"
+        assert cfg.vehicle.category == "M1"
+        assert cfg.vehicle.fuel_type == "бензин"
+
+
+# --- CLI merge для vehicle ---
+
+
+class TestMergeVehicle:
+    """merge_with_cli для vehicle."""
+
+    def test_override_vehicle_field(self) -> None:
+        cfg = Config()
+        merged = cfg.merge_with_cli({"vehicle.vin": "WBA12345678901234"})
+        assert merged.vehicle.vin == "WBA12345678901234"
+
+    def test_override_multiple_vehicle_fields(self) -> None:
+        cfg = Config()
+        merged = cfg.merge_with_cli({
+            "vehicle.vin": "WBA12345678901234",
+            "vehicle.category": "N1",
+        })
+        assert merged.vehicle.vin == "WBA12345678901234"
+        assert merged.vehicle.category == "N1"

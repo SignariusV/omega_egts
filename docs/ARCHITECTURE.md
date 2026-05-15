@@ -933,22 +933,55 @@ class ReplaySource:
 ```python
 @dataclass(frozen=True)
 class CmwConfig:
+    # Подключение и управление
     ip: str | None = "192.168.2.2"
     simulate: bool = False
+    visa_resource: str = "TCPIP::192.168.2.2::inst0::INSTR"  # ТЗ 2.1.1
     timeout: float = 5.0
     retries: int = 3
     sms_send_timeout: float = 10.0
     status_poll_interval: float = 2.0
-    mcc: int = 250
-    mnc: int = 60
+
+    # Сотовая сеть (ТЗ 2.1.2)
+    mcc: int = 250              # NID=25077, не корректируемо
+    mnc: int = 77               # NID=25077, не корректируемо
+    network_type: str = "GSM/EDGE"
+    ps_domain: bool = True
+    gsm_auth: bool = False
+    frequency_band: str = "900"  # "900" или "1800"
+    voice_codec: str = "FR"
+    arfcn_bch: int = 0
+    arfcn_tch: int = 0
     rf_level_tch: float = -40.0
+    rf_level_min: float = -30.0
+    rf_level_max: float = 30.0
+    pcl_value: str = "MAX"
+    profile_imsi: str = ""       # Должен начинаться с "25077"
+    smsc_number: str = ""
+
+    # PS-параметры
     ps_service: str = "TMA"
     ps_tlevel: str = "EGPRS"
     ps_cscheme_ul: str = "MC9"
     ps_dl_carrier: list[str] = field(default_factory=lambda: ["OFF","OFF","OFF","ON","ON","OFF","OFF","OFF"])
     ps_dl_cscheme: list[str] = field(default_factory=lambda: ["MC9"] * 8)
+
+    # SMS
     sms_dcoding: str = "BIT8"
     sms_pidentifier: int = 1
+
+    # Сетевые параметры DAU (ТЗ 2.1.2 н-р)
+    dau_ip: str = "192.168.2.1"
+    dau_subnet_mask: str = "255.255.255.0"
+    test_system_ip: str = "192.168.2.100"
+    usv_dhcp_ip: str = "192.168.2.200"
+
+@dataclass(frozen=True)
+class VehicleConfig:
+    """Параметры ТС для аутентификации (ТЗ п. 2.1.4)."""
+    vin: str = ""              # 17 символов
+    category: str = ""          # M1, M2, M3, N1, N2, N3
+    fuel_type: str = ""
 
 @dataclass(frozen=True)
 class TimeoutsConfig:
@@ -975,6 +1008,7 @@ class Config:
     cmw500: CmwConfig = field(default_factory=CmwConfig)
     timeouts: TimeoutsConfig = field(default_factory=TimeoutsConfig)
     logging: LogConfig = field(default_factory=LogConfig)
+    vehicle: VehicleConfig = field(default_factory=VehicleConfig)
     credentials_path: str = "config/credentials.json"
 
     @classmethod
@@ -988,11 +1022,12 @@ config = Config.from_file("config/settings.json")
 config = config.merge_with_cli({"tcp_port": 9090})
 print(config.cmw500.timeout)       # 5.0
 print(config.timeouts.tl_response_to)  # 5.0
+print(config.vehicle.vin)          # ""
 ```
 
 **Приоритеты:** CLI args > settings.json > defaults.
-**CLI merge:** dot-notation — `"cmw500.timeout": 10` → `config.cmw500.timeout = 10`.
-**Валидация:** `__post_init__` — порт 1–65535, таймауты > 0, retries >= 0.
+**CLI merge:** dot-notation — `"cmw500.timeout": 10` → `config.cmw500.timeout = 10`, `"vehicle.vin": "WBA..."` → `config.vehicle.vin = "WBA..."`.
+**Валидация:** `__post_init__` — порт 1–65535, таймауты > 0, retries >= 0, mcc=250, mnc=77, frequency_band ∈ {900, 1800}, profile_imsi начинается с "25077", IPv4-адреса валидны, VIN=17 символов, category ∈ {M1..N3}.
 
 ---
 

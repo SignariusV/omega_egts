@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Credentials:
-    """Учётные данные одного устройства УСВ."""
+    """Учётные данные одного устройства УСВ (ТЗ п. 2.1.3)."""
 
     imei: str
     imsi: str
@@ -22,6 +22,12 @@ class Credentials:
     auth_key: str
     device_id: str
     description: str | None = None
+
+    # Новые поля (ТЗ п. 2.1.3)
+    msisdn: str = ""
+    serial_number: str = ""
+    model: str = ""
+    egts_unit_id: int = 0
 
     def to_dict(self) -> dict[str, Any]:
         """Преобразование в словарь для сериализации."""
@@ -34,6 +40,14 @@ class Credentials:
         }
         if self.description is not None:
             result["description"] = self.description
+        if self.msisdn:
+            result["msisdn"] = self.msisdn
+        if self.serial_number:
+            result["serial_number"] = self.serial_number
+        if self.model:
+            result["model"] = self.model
+        if self.egts_unit_id:
+            result["egts_unit_id"] = self.egts_unit_id
         return result
 
     @classmethod
@@ -46,6 +60,10 @@ class Credentials:
             auth_key=data["auth_key"],
             device_id=data.get("device_id", data["imei"]),
             description=data.get("description"),
+            msisdn=data.get("msisdn", ""),
+            serial_number=data.get("serial_number", ""),
+            model=data.get("model", ""),
+            egts_unit_id=data.get("egts_unit_id", 0),
         )
 
 

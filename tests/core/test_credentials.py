@@ -358,3 +358,148 @@ class TestCredentialsRepositoryEdgeCases:
         saved = repo.get("USV-005")
         assert saved is not None
         assert saved.description is None
+
+
+# --- Новые поля Credentials (ТЗ п. 2.1.3) ---
+
+
+class TestNewCredentialsFields:
+    """Тесты новых полей Credentials."""
+
+    def test_new_fields_defaults(self) -> None:
+        creds = Credentials(
+            imei="351234567890123",
+            imsi="250011234567890",
+            term_code="TEST001",
+            auth_key="key-001",
+            device_id="USV-001",
+        )
+        assert creds.msisdn == ""
+        assert creds.serial_number == ""
+        assert creds.model == ""
+        assert creds.egts_unit_id == 0
+
+    def test_new_fields_custom(self) -> None:
+        creds = Credentials(
+            imei="351234567890123",
+            imsi="250011234567890",
+            term_code="TEST001",
+            auth_key="key-001",
+            device_id="USV-001",
+            msisdn="+79001234567",
+            serial_number="SN-001",
+            model="USV-Model-X",
+            egts_unit_id=42,
+        )
+        assert creds.msisdn == "+79001234567"
+        assert creds.serial_number == "SN-001"
+        assert creds.model == "USV-Model-X"
+        assert creds.egts_unit_id == 42
+
+    def test_to_dict_includes_new_fields(self) -> None:
+        creds = Credentials(
+            imei="351234567890123",
+            imsi="250011234567890",
+            term_code="TEST001",
+            auth_key="key-001",
+            device_id="USV-001",
+            msisdn="+79001234567",
+            serial_number="SN-001",
+            model="USV-Model-X",
+            egts_unit_id=42,
+        )
+        d = creds.to_dict()
+        assert d["msisdn"] == "+79001234567"
+        assert d["serial_number"] == "SN-001"
+        assert d["model"] == "USV-Model-X"
+        assert d["egts_unit_id"] == 42
+
+    def test_to_dict_omits_empty_new_fields(self) -> None:
+        creds = Credentials(
+            imei="351234567890123",
+            imsi="250011234567890",
+            term_code="TEST001",
+            auth_key="key-001",
+            device_id="USV-001",
+        )
+        d = creds.to_dict()
+        assert "msisdn" not in d
+        assert "serial_number" not in d
+        assert "model" not in d
+        assert "egts_unit_id" not in d
+
+    def test_from_dict_reads_new_fields(self) -> None:
+        data = {
+            "imei": "351234567890123",
+            "imsi": "250011234567890",
+            "term_code": "TEST001",
+            "auth_key": "key-001",
+            "device_id": "USV-001",
+            "msisdn": "+79001234567",
+            "serial_number": "SN-001",
+            "model": "USV-Model-X",
+            "egts_unit_id": 42,
+        }
+        creds = Credentials.from_dict(data)
+        assert creds.msisdn == "+79001234567"
+        assert creds.serial_number == "SN-001"
+        assert creds.model == "USV-Model-X"
+        assert creds.egts_unit_id == 42
+
+    def test_from_dict_defaults_missing_new_fields(self) -> None:
+        data = {
+            "imei": "351234567890123",
+            "imsi": "250011234567890",
+            "term_code": "TEST001",
+            "auth_key": "key-001",
+            "device_id": "USV-001",
+        }
+        creds = Credentials.from_dict(data)
+        assert creds.msisdn == ""
+        assert creds.serial_number == ""
+        assert creds.model == ""
+        assert creds.egts_unit_id == 0
+
+    def test_roundtrip_with_new_fields(self) -> None:
+        original = Credentials(
+            imei="351234567890123",
+            imsi="250011234567890",
+            term_code="TEST001",
+            auth_key="key-001",
+            device_id="USV-001",
+            msisdn="+79001234567",
+            serial_number="SN-001",
+            model="USV-Model-X",
+            egts_unit_id=42,
+        )
+        restored = Credentials.from_dict(original.to_dict())
+        assert restored.msisdn == original.msisdn
+        assert restored.serial_number == original.serial_number
+        assert restored.model == original.model
+        assert restored.egts_unit_id == original.egts_unit_id
+
+    def test_repository_loads_new_fields(self, tmp_path: Path) -> None:
+        cred_file = tmp_path / "credentials.json"
+        data = {
+            "credentials": [
+                {
+                    "imei": "351234567890123",
+                    "imsi": "250011234567890",
+                    "term_code": "TEST001",
+                    "auth_key": "key-001",
+                    "device_id": "USV-001",
+                    "msisdn": "+79001234567",
+                    "serial_number": "SN-001",
+                    "model": "USV-Model-X",
+                    "egts_unit_id": 42,
+                }
+            ]
+        }
+        cred_file.write_text(json.dumps(data))
+        repo = CredentialsRepository(cred_file)
+        creds = repo.get("USV-001")
+        assert creds is not None
+        assert creds.msisdn == "+79001234567"
+        assert creds.serial_number == "SN-001"
+        assert creds.model == "USV-Model-X"
+        assert creds.egts_unit_id == 42

@@ -10,10 +10,27 @@
     "sms_send_timeout": 10.0,
     "status_poll_interval": 2.0,
     "mcc": 250,
-    "mnc": 60,
+    "mnc": 77,
     "rf_level_tch": -40.0,
     "sms_dcoding": "BIT8",
-    "sms_pidentifier": 1
+    "sms_pidentifier": 1,
+    "visa_resource": "TCPIP::192.168.2.2::inst0::INSTR",
+    "network_type": "GSM/EDGE",
+    "ps_domain": true,
+    "gsm_auth": false,
+    "frequency_band": "900",
+    "voice_codec": "FR",
+    "arfcn_bch": 0,
+    "arfcn_tch": 0,
+    "rf_level_min": -30.0,
+    "rf_level_max": 30.0,
+    "pcl_value": "MAX",
+    "profile_imsi": "",
+    "smsc_number": "",
+    "dau_ip": "192.168.2.1",
+    "dau_subnet_mask": "255.255.255.0",
+    "test_system_ip": "192.168.2.100",
+    "usv_dhcp_ip": "192.168.2.200"
   },
   "timeouts": {
     "tl_response_to": 5.0,
@@ -26,5 +43,10 @@
     "dir": "logs",
     "max_size_mb": 100,
     "retention_days": 30
+  },
+  "vehicle": {
+    "vin": "",
+    "category": "",
+    "fuel_type": ""
   }
 }

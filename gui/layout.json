@@ -1,5 +1,12 @@
 [
   {
+    "card_id": "system_status",
+    "row": 0,
+    "col": 0,
+    "row_span": 4,
+    "col_span": 4
+  },
+  {
     "card_id": "scenario_runner",
     "row": 0,
     "col": 4,
@@ -8,7 +15,7 @@
   },
   {
     "card_id": "live_packets",
-    "row": 0,
+    "row": 4,
     "col": 0,
     "row_span": 4,
     "col_span": 4
@@ -18,13 +25,6 @@
     "row": 2,
     "col": 4,
     "row_span": 6,
-    "col_span": 4
-  },
-  {
-    "card_id": "system_status",
-    "row": 4,
-    "col": 0,
-    "row_span": 4,
     "col_span": 4
   }
 ]
