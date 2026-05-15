@@ -1,15 +1,16 @@
 # План реализации ядра OMEGA_EGTS по ТЗ на ПАК
 
-> **Дата:** 2026-05-15
+> **Дата:** 2026-05-15 (ред. 2 — переработан Этап 5)
 > **Основание:** ТЗ на ПАК (редакция 2), ГОСТ 33464-2015, ГОСТ 33465-2015
 > **Объект:** Ядро (`core/`) — без GUI
-> **Текущая готовность ядра:** ~45%
+> **Текущая готовность ядра:** ~70% (Этапы 1-4 завершены)
+> **Архитектура:** Все проверки ТЗ через сценарии JSON + ScenarioManager
 
 ---
 
 ## Стратегия реализации
 
-План разбит на **8 этапов**, каждый из которых:
+План разбит на **7 этапов**, каждый из которых:
 - Добавляет конкретную функциональность ядра
 - Покрывается unit/integration тестами
 - Не ломает существующую архитектуру (EventBus, pipeline, FSM)
@@ -20,6 +21,17 @@
 2. Каждый этап — отдельная ветка git
 3. Тесты пишутся одновременно с кодом (≥90% coverage)
 4. Обратная совместимость: старые сценарии JSON продолжают работать
+5. **Все проверки ТЗ через сценарии JSON** — никаких отдельных Python-классов тестов
+
+**Архитектурное решение:**
+Система уже имеет `ScenarioManager` + `ScenarioParserFactory` + `StepFactory` для выполнения сценариев.
+Этапы 5-8 используют эту архитектуру:
+- Сценарии JSON описывают последовательность пакетов и проверок
+- `send` / `expect` — отправка и ожидание пакетов (уже реализовано)
+- `wait` — ожидание событий EventBus (новый тип шага)
+- `check` — проверка условий, статусов, диапазонов (новый тип шага)
+- `TestSession` обновляется автоматически через EventBus подписки
+- Результаты сценариев сохраняются как `TestResult` в `TestSession`
 
 ---
 
@@ -744,406 +756,660 @@ async def _on_auth_passed(self, data: dict) -> None:
 
 ---
 
-## Этап 5 — Специализированные тесты (5 проверок ТЗ)
+## Этап 5 — Специализированные проверки ТЗ (через сценарии)
 
-**Цель:** Создать 5 классов тестов с пошаговой логикой согласно ТЗ.
+**Цель:** Реализовать 5 проверок ТЗ (п. 7.3, 6.8, 6.9, 7.8, 9.2.2) через существующую систему сценариев — **без** создания отдельных Python-классов тестов.
 
-### 5.1. Архитектура тестов
+### 5.1. Архитектурный принцип
 
-```
-core/test_suite/
-    __init__.py
-    base_test.py           # Базовый класс для всех тестов
-    passive_mode_test.py   # Тест п. 7.3 (конфиг №1 и №2)
-    accel_profile_test.py  # Тест п. 6.8
-    trajectory_test.py     # Тест п. 6.9
-    firmware_test.py       # Тест п. 7.8
-    param_change_test.py   # Тест п. 9.2.2
-```
+Все проверки ТЗ выполняются через **сценарии JSON** (`scenarios/`) + `ScenarioManager`.
+Инфраструктура (EventBus, TestSession, AuthValidationMiddleware, FSM) уже работает.
+Сценарии описывают последовательность пакетов, а система автоматически:
+- Валидирует авторизацию (AuthValidationMiddleware, order=2.5)
+- Обновляет статусы (TestSession через EventBus подписки)
+- Ведёт FSM (UsvStateMachine)
+- Логирует 100% пакетов (LogManager)
 
-### 5.2. Базовый класс `core/test_suite/base_test.py`
+### 5.2. Реализовать тип шага `wait` — ожидание события EventBus
+
+**Файл:** `core/scenario.py`
 
 ```python
-from abc import ABC, abstractmethod
-from core.test_session import TestSession, TestResult
-from core.event_bus import EventBus
-from core.config import Config
-from core.credentials import Credentials
+@dataclass
+class WaitStep:
+    """Шаг ожидания события EventBus с условием.
 
-class BaseTest(ABC):
-    """Базовый класс для всех проверок ТЗ."""
+    Примеры использования:
+    - Ожидание TCP-соединения (connection.changed → state="connected")
+    - Ожидание регистрации УСВ (cmw.status → imsi="25077...")
+    - Ожидание авторизации (auth.validation_passed)
+    """
 
-    def __init__(
-        self,
-        bus: EventBus,
-        session: TestSession,
-        config: Config,
-        credentials: Credentials,
-    ):
-        self.bus = bus
-        self.session = session
-        self.config = config
-        self.credentials = credentials
-        self._active = False
-        self._result: TestResult | None = None
-        self._cancel_event = asyncio.Event()
+    name: str
+    event: str              # Имя события EventBus
+    condition: dict         # Условие: field → expected_value
+    timeout: float = 30.0
+    capture: dict[str, str] = field(default_factory=dict)  # var_name → field_path
 
-    @property
-    @abstractmethod
-    def test_name(self) -> str:
-        """Имя теста: '7.3', '6.8', '6.9', '7.8', '9.2.2'."""
+    async def execute(self, ctx: ScenarioContext, bus: EventBus, timeout: float | None = None) -> str:
+        """Подписаться на event, ждать совпадения condition, извлечь capture."""
+        eff_timeout = timeout or self.timeout
+        event = asyncio.Event()
+        result_container: dict[str, str] = {"status": "PENDING"}
 
-    @property
-    @abstractmethod
-    def total_steps(self) -> int:
-        """Общее количество шагов алгоритма."""
+        def _on_event(data: dict) -> None:
+            # Проверка condition (exact match по полям)
+            for field, expected in self.condition.items():
+                actual = data.get(field)
+                if actual != expected:
+                    return  # Не совпало — ждём дальше
+            # Совпало — извлечь capture
+            for var_name, field_path in self.capture.items():
+                value = data.get(field_path)
+                if value is not None:
+                    ctx.set(var_name, value)
+            result_container["status"] = "PASS"
+            event.set()
 
-    async def activate(self) -> None:
-        """Активировать проверку (ТЗ п. 2.3.x б)."""
-        self._active = True
-        self._cancel_event.clear()
-        self._result = TestResult(
-            test_name=self.test_name,
-            passed=False,
-            reasons=[],
-            steps_completed=0,
-            steps_total=self.total_steps,
-            started_at=time.time(),
+        bus.on(self.event, _on_event)
+        try:
+            await asyncio.wait_for(event.wait(), timeout=eff_timeout)
+        except TimeoutError:
+            result_container["status"] = "TIMEOUT"
+        finally:
+            bus.off(self.event, _on_event)
+
+        return result_container["status"]
+```
+
+**Пример в сценарии:**
+```json
+{
+  "name": "Ожидание TCP-соединения",
+  "type": "wait",
+  "event": "connection.changed",
+  "condition": {"state": "connected"},
+  "timeout": 30,
+  "capture": {"usv_id": "usv_id"}
+}
+```
+
+### 5.3. Реализовать тип шага `check` — проверка условий
+
+**Файл:** `core/scenario.py`
+
+```python
+@dataclass
+class CheckStep:
+    """Шаг проверки условий (статусы TestSession, переменные, диапазоны).
+
+    Примеры:
+    - Проверка что config_done=false (предварительные условия)
+    - Проверка что получено ≥600 сэмплов ускорения
+    - Проверка что VIN совпадает с конфигурацией
+    """
+
+    name: str
+    check_type: str         # "session_status", "variable", "range"
+    target: str             # Путь: "config_done", "accel_samples", "vehicle.vin"
+    expected: Any           # Ожидаемое значение или {"min": N, "max": N}
+    timeout: float = 5.0
+
+    async def execute(self, ctx: ScenarioContext, bus: EventBus,
+                      timeout: float | None = None,
+                      engine: Any = None) -> str:  # engine для доступа к test_session
+        eff_timeout = timeout or self.timeout
+        start = time.monotonic()
+
+        while (time.monotonic() - start) < eff_timeout:
+            actual = self._resolve(engine, ctx)
+            if self._matches(actual):
+                return "PASS"
+            await asyncio.sleep(0.1)
+
+        return "FAIL"
+
+    def _resolve(self, engine: Any, ctx: ScenarioContext) -> Any:
+        if self.check_type == "session_status" and engine:
+            return getattr(engine.test_session, self.target, None)
+        if self.check_type == "variable":
+            return ctx.get(self.target)
+        return None
+
+    def _matches(self, actual: Any) -> bool:
+        if isinstance(self.expected, dict) and "min" in self.expected:
+            if not isinstance(actual, (int, float)):
+                return False
+            return actual >= self.expected["min"]
+        return actual == self.expected
+```
+
+**Пример в сценарии:**
+```json
+{
+  "name": "Проверка предварительных условий",
+  "type": "check",
+  "check_type": "session_status",
+  "target": "config_done",
+  "expected": false
+}
+```
+
+### 5.4. Обновить StepFactory
+
+**Файл:** `core/scenario.py`
+
+```python
+class StepFactory:
+    @staticmethod
+    def create(step_def: StepDefinition) -> Step:
+        if step_def.type == "expect":
+            return ExpectStep(...)
+        if step_def.type == "send":
+            return SendStep(...)
+        if step_def.type == "wait":
+            return WaitStep(
+                name=step_def.name,
+                event=step_def.extra.get("event", ""),
+                condition=step_def.extra.get("condition", {}),
+                timeout=step_def.timeout or 30.0,
+                capture=step_def.capture,
+            )
+        if step_def.type == "check":
+            return CheckStep(
+                name=step_def.name,
+                check_type=step_def.extra.get("check_type", ""),
+                target=step_def.extra.get("target", ""),
+                expected=step_def.extra.get("expected"),
+                timeout=step_def.timeout or 5.0,
+            )
+        raise NotImplementedError(f"Step type '{step_def.type}' is not implemented")
+```
+
+### 5.5. Обновить ScenarioParserV1.validate()
+
+Добавить валидацию обязательных полей для новых типов:
+
+```python
+# В validate(), внутри цикла по шагам:
+if step_type == "wait":
+    if "event" not in step:
+        errors.append(f"{prefix}: Missing 'event' field for wait step")
+    if "condition" not in step:
+        errors.append(f"{prefix}: Missing 'condition' field for wait step")
+
+if step_type == "check":
+    if "check_type" not in step:
+        errors.append(f"{prefix}: Missing 'check_type' field for check step")
+    if "target" not in step:
+        errors.append(f"{prefix}: Missing 'target' field for check step")
+    if "expected" not in step:
+        errors.append(f"{prefix}: Missing 'expected' field for check step")
+```
+
+### 5.6. Интеграция результатов сценариев с TestSession
+
+**Файл:** `core/engine.py`
+
+Обновить `run_scenario()` чтобы сохранять результат как `TestResult`:
+
+```python
+async def run_scenario(self, scenario_path: str, connection_id: str | None = None,
+                       test_name: str | None = None) -> dict[str, Any]:
+    """Запустить сценарий и сохранить результат в TestSession."""
+    if not self.is_running:
+        raise RuntimeError("CoreEngine не запущен")
+
+    if self.scenario_mgr is None:
+        return {"status": "error", "error": "ScenarioManager не инициализирован"}
+
+    scenario_path_obj = Path(scenario_path)
+    if scenario_path_obj.is_dir():
+        scenario_path_obj = scenario_path_obj / "scenario.json"
+
+    self.scenario_mgr.load(scenario_path_obj)
+    scenario_timeout = self.scenario_mgr.metadata.timeout or 60.0
+
+    result = await self.scenario_mgr.execute(
+        bus=self.bus, connection_id=connection_id, timeout=scenario_timeout,
+    )
+    history = self.scenario_mgr.context.history
+
+    # Сохранить в TestSession как TestResult
+    if self.test_session.state == SessionState.ACTIVE:
+        test_name = test_name or self.scenario_mgr.metadata.name
+        test_result = TestResult(
+            test_name=test_name,
+            passed=(result == "PASS"),
+            reasons=[h.details for h in history if h.result != "PASS"],
+            steps_completed=sum(1 for h in history if h.result == "PASS"),
+            steps_total=len(history),
+            started_at=time.time() - sum(h.duration for h in history),
+            completed_at=time.time(),
         )
+        self.test_session.test_results[test_name] = test_result
 
-    async def deactivate(self) -> None:
-        """Деактивировать проверку (ТЗ п. 2.3.x в)."""
-        self._active = False
-        self._cancel_event.set()
-        if self._result:
-            self._result.completed_at = time.time()
-            self.session.test_results[self.test_name] = self._result
-
-    async def cancel(self) -> None:
-        """Принудительная остановка (ТЗ: сброс всех параметров)."""
-        await self.deactivate()
-        self._result = None
-
-    @abstractmethod
-    async def run(self) -> TestResult:
-        """Выполнить алгоритм проверки."""
-
-    async def _step(self, step_num: int, condition: bool, fail_reason: str) -> bool:
-        """Выполнить один шаг. Возвращает True если шаг пройден."""
-        if not self._active:
-            return False
-
-        if self._result:
-            self._result.steps_completed = step_num
-
-        if not condition:
-            if self._result:
-                self._result.reasons.append(fail_reason)
-            return False
-        return True
-
-    def _is_cancelled(self) -> bool:
-        return self._cancel_event.is_set()
+    return {
+        "name": self.scenario_mgr.metadata.name,
+        "status": result,
+        "steps_total": len(history),
+        "steps_passed": sum(1 for h in history if h.result == "PASS"),
+    }
 ```
 
-### 5.3. Тест п. 7.3 — Пассивный режим `core/test_suite/passive_mode_test.py`
+### 5.7. Сценарии для 5 проверок ТЗ
 
-**Алгоритм конфигурирования №1 (16 шагов):**
+#### 5.7.1. п. 7.3 — Пассивный режим (конфигурирование №1)
 
-```python
-class PassiveModeTest(BaseTest):
-    test_name = "7.3"
-    total_steps = 16  # Для конфига №1
+**Файл:** `scenarios/test_7_3_config1/scenario.json`
 
-    def __init__(self, ..., config_type: str = "1", auth_response: bool = True):
-        super().__init__(...)
-        self.config_type = config_type  # "1" или "2"
-        self.auth_response = auth_response  # Ответ на авторизацию да/нет
-
-    async def run(self) -> TestResult:
-        await self.activate()
-
-        # Шаг 2: Проверка предварительных условий
-        if not await self._step(2,
-            not self.session.config_done
-            and not self.session.tcp_connected
-            and not self.session.auth_done,
-            "Конфигурирование уже выполнено / TCP соединение уже установлено / Авторизация уже пройдена"
-        ):
-            return await self._fail()
-
-        # Шаг 3: Ожидание регистрации на IMSI (NID=25077)
-        imsi = await self._wait_for_registration()
-        if not await self._step(3, imsi is not None, "УВ не зарегистрировалось"):
-            return await self._fail()
-
-        self.session.usv_registered = True
-        self.session.registered_imsi = imsi
-
-        if self.config_type == "1":
-            return await self._run_config_1()
-        else:
-            return await self._run_config_2()
-
-    async def _run_config_1(self) -> TestResult:
-        """Конфигурирование №1 (ТЗ п. 2.3.1.1)."""
-
-        # Шаг 5: Установка параметров через SMS
-        params = [
-            (EgtsCommandParamType.EGTS_GPRS_APN, self.config.cmw500.dau_ip),
-            (EgtsCommandParamType.EGTS_SERVER_ADDRESS, self.config.cmw500.test_system_ip),
-            (EgtsCommandParamType.EGTS_UNIT_ID, self.credentials.egts_unit_id),
-        ]
-        for param_type, value in params:
-            success = await self._send_config_command(param_type, value)
-            if not await self._step(5, success, f"Конфигурирование не удалось ({param_type.name})"):
-                return await self._fail()
-
-        self.session.config_done = True
-
-        # Шаг 6: Ожидание TCP/IP соединения (30 сек)
-        tcp_ok = await self._wait_for_tcp_connection(timeout=30.0)
-        if not await self._step(6, tcp_ok, "Не удалось установить соединение TCP/IP"):
-            return await self._fail()
-
-        # Шаг 7: Ожидание TERM_IDENTITY (авторизация)
-        term_identity = await self._wait_for_term_identity()
-        if not await self._step(7, term_identity is not None, "Авторизация не удалась"):
-            return await self._fail()
-
-        # Шаг 8: Сверка TERM_IDENTITY с настройками
-        validation = self.auth_validator.validate_term_identity(
-            unit_id=term_identity.unit_id,
-            imsi=term_identity.imsi,
-            imei=term_identity.imei,
-            msisdn=term_identity.msisdn,
-        )
-        if not await self._step(8, validation.passed, f"Авторизационные параметры не совпадают: {validation.reasons}"):
-            return await self._fail()
-
-        # Шаг 9: Ожидание VEHICLE_DATA (аутентификация)
-        vehicle_data = await self._wait_for_vehicle_data()
-        if not await self._step(9, vehicle_data is not None, "Аутентификация не удалась"):
-            return await self._fail()
-
-        # Шаг 10: Сверка VEHICLE_DATA с настройками
-        validation = self.auth_validator.validate_vehicle_data(
-            vin=vehicle_data.vin,
-            category=vehicle_data.category,
-            fuel_type=vehicle_data.fuel_type,
-        )
-        if not await self._step(10, validation.passed, f"Аутентификационные параметры не совпадают: {validation.reasons}"):
-            return await self._fail()
-
-        # Шаг 11: Service Info negotiation
-        if not await self._handle_service_info():
-            return await self._fail()
-
-        # Шаг 12: Отправка RESULT_CODE
-        result_code = 0 if self.auth_response else 151  # 151 = AUTH_DENIED
-        success = await self._send_result_code(result_code)
-        if not await self._step(12, success, "Авторизация/аутентификация не удалась"):
-            return await self._fail()
-
-        # Шаг 13: Обновление статусов
-        self.session.auth_done = True
-        self.session.auth_result = self.auth_response
-        if not self.auth_response:
-            return await self._fail("В авторизации/аутентификации отказано по решению пользователя")
-
-        # Успех
-        if self._result:
-            self._result.passed = True
-        return await self._succeed()
+```json
+{
+  "name": "Тест 7.3 — Пассивный режим (конфиг №1)",
+  "scenario_version": "1",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 120,
+  "description": "Полный алгоритм пассивного режима: конфигурирование через SMS, авторизация, аутентификация",
+  "channels": ["tcp", "sms"],
+  "steps": [
+    {
+      "name": "Проверка: конфигурирование не выполнено",
+      "type": "check",
+      "check_type": "session_status",
+      "target": "config_done",
+      "expected": false
+    },
+    {
+      "name": "Проверка: TCP не подключён",
+      "type": "check",
+      "check_type": "session_status",
+      "target": "tcp_connected",
+      "expected": false
+    },
+    {
+      "name": "Ожидание регистрации УСВ (IMSI)",
+      "type": "wait",
+      "event": "cmw.status",
+      "condition": {},
+      "timeout": 60,
+      "capture": {"registered_imsi": "imsi"}
+    },
+    {
+      "name": "Конфигурирование: GPRS APN (SMS)",
+      "type": "send",
+      "channel": "sms",
+      "packet_file": "packets/platform/gprs_apn.hex",
+      "timeout": 10
+    },
+    {
+      "name": "Подтверждение APN",
+      "type": "expect",
+      "channel": "sms",
+      "checks": {"subrecord_type": "CT_COMCONF"},
+      "timeout": 10
+    },
+    {
+      "name": "Конфигурирование: Server Address (SMS)",
+      "type": "send",
+      "channel": "sms",
+      "packet_file": "packets/platform/server_address.hex",
+      "timeout": 10
+    },
+    {
+      "name": "Подтверждение Server Address",
+      "type": "expect",
+      "channel": "sms",
+      "checks": {"subrecord_type": "CT_COMCONF"},
+      "timeout": 10
+    },
+    {
+      "name": "Конфигурирование: UNIT_ID (SMS)",
+      "type": "send",
+      "channel": "sms",
+      "packet_file": "packets/platform/unit_id.hex",
+      "timeout": 10
+    },
+    {
+      "name": "Подтверждение UNIT_ID",
+      "type": "expect",
+      "channel": "sms",
+      "checks": {"subrecord_type": "CT_COMCONF"},
+      "timeout": 10
+    },
+    {
+      "name": "Ожидание TCP-соединения",
+      "type": "wait",
+      "event": "connection.changed",
+      "condition": {"state": "connected"},
+      "timeout": 30
+    },
+    {
+      "name": "Ожидание TERM_IDENTITY",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"service": 1},
+      "capture": {"tid": "TID", "imei": "IMEI", "imsi": "IMSI"},
+      "timeout": 10
+    },
+    {
+      "name": "Ожидание VEHICLE_DATA",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"service": 5},
+      "capture": {"vin": "VIN", "category": "vehicle_category", "fuel_type": "fuel_type"},
+      "timeout": 10
+    },
+    {
+      "name": "Service Info (ST=10 accept)",
+      "type": "send",
+      "channel": "tcp",
+      "build": {
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": 99,
+          "packet_type": 2,
+          "records": [{
+            "record_id": 1,
+            "service_type": 10,
+            "subrecords": [{
+              "subrecord_type": 7,
+              "data": {"service_type": 10, "service_status": 0}
+            }]
+          }]
+        }
+      },
+      "timeout": 5
+    },
+    {
+      "name": "RESULT_CODE (AUTH_OK)",
+      "type": "send",
+      "channel": "tcp",
+      "packet_file": "packets/platform/result_code.hex",
+      "timeout": 5
+    },
+    {
+      "name": "Подтверждение RESULT_CODE",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"subrecord_type": "EGTS_SR_RECORD_RESPONSE", "rst": 0},
+      "timeout": 5
+    }
+  ]
+}
 ```
 
-**Методы-хелперы:**
+#### 5.7.2. п. 7.3 — Пассивный режим (конфигурирование №2)
 
-```python
-    async def _wait_for_registration(self, timeout=60.0) -> str | None:
-        """Ожидание регистрации УВ на профиле IMSI (NID=25077)."""
-        # Подписка на cmw.status → проверка IMSI
-        # Возвращает IMSI или None по таймауту
+**Файл:** `scenarios/test_7_3_config2/scenario.json`
 
-    async def _send_config_command(self, param_type, value) -> bool:
-        """Отправка команды конфигурирования через SMS."""
-        # Строит EGTS_SR_COMMAND_DATA → EGTS_PT_APPDATA → SMS
-        # Ждёт подтверждение EGTS_SR_COMMAND_DATA
+Аналогично конфиг №1, но без шагов конфигурирования (шаги 4-9). УСВ уже сконфигурировано.
 
-    async def _wait_for_tcp_connection(self, timeout=30.0) -> bool:
-        """Ожидание TCP/IP соединения."""
-        # Подписка на connection.changed → state="connected"
+#### 5.7.3. п. 6.8 — Профиль ускорения
 
-    async def _wait_for_term_identity(self, timeout=10.0) -> dict | None:
-        """Ожидание TERM_IDENTITY от УВ."""
-        # Подписка на packet.processed → service=1
+**Файл:** `scenarios/test_6_8/scenario.json`
 
-    async def _wait_for_vehicle_data(self, timeout=10.0) -> dict | None:
-        """Ожидание VEHICLE_DATA от УВ."""
-        # Подписка на packet.processed → service=5
-
-    async def _handle_service_info(self) -> bool:
-        """Service Info negotiation (ST=10, отказ другим)."""
-        # Отправка EGTS_SR_SERVICE_INFO (ST=10, status=0)
-        # Если УВ запросит другой сервис → отказ (status=1)
-
-    async def _send_result_code(self, code: int) -> bool:
-        """Отправка EGTS_SR_RESULT_CODE."""
-        # Строит RECORD → EGTS_PT_APPDATA → TCP
-        # Ждёт RECORD_RESPONSE
+```json
+{
+  "name": "Тест 6.8 — Профиль ускорения",
+  "scenario_version": "1",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 180,
+  "description": "Приём профиля ускорения: ≥600 выборок (250×1мс + 350×10мс)",
+  "channels": ["tcp", "sms"],
+  "steps": [
+    {
+      "name": "Проверка: конфигурирование выполнено",
+      "type": "check",
+      "check_type": "session_status",
+      "target": "config_done",
+      "expected": true
+    },
+    {
+      "name": "Ожидание TCP-соединения",
+      "type": "wait",
+      "event": "connection.changed",
+      "condition": {"state": "connected"},
+      "timeout": 30
+    },
+    {
+      "name": "Ожидание TERM_IDENTITY",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"service": 1},
+      "timeout": 10
+    },
+    {
+      "name": "RESULT_CODE (AUTH_OK)",
+      "type": "send",
+      "channel": "tcp",
+      "packet_file": "packets/platform/result_code.hex",
+      "timeout": 5
+    },
+    {
+      "name": "Service Info (ST=10)",
+      "type": "send",
+      "channel": "tcp",
+      "build": {
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": 99,
+          "packet_type": 2,
+          "records": [{
+            "record_id": 1,
+            "service_type": 10,
+            "subrecords": [{
+              "subrecord_type": 7,
+              "data": {"service_type": 10, "service_status": 0}
+            }]
+          }]
+        }
+      },
+      "timeout": 5
+    },
+    {
+      "name": "Команда: запрос профиля ускорения (SMS)",
+      "type": "send",
+      "channel": "sms",
+      "packet_file": "packets/platform/accel_data_request.hex",
+      "timeout": 10
+    },
+    {
+      "name": "Подтверждение SMS-команды",
+      "type": "expect",
+      "channel": "sms",
+      "checks": {"subrecord_type": "CT_COMCONF"},
+      "timeout": 10
+    },
+    {
+      "name": "Приём данных профиля ускорения",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"service": 2, "subrecord_type": "EGTS_SR_ACCEL_DATA"},
+      "capture": {"accel_points_count": "points_count"},
+      "timeout": 60
+    },
+    {
+      "name": "Проверка: ≥600 выборок",
+      "type": "check",
+      "check_type": "variable",
+      "target": "accel_points_count",
+      "expected": {"min": 600}
+    },
+    {
+      "name": "Подтверждение профиля ускорения",
+      "type": "send",
+      "channel": "tcp",
+      "packet_file": "packets/platform/record_response_accel.hex",
+      "timeout": 5
+    }
+  ]
+}
 ```
 
-### 5.4. Тест п. 6.8 — Профиль ускорения `core/test_suite/accel_profile_test.py`
+#### 5.7.4. п. 6.9 — Траектория движения
 
-```python
-class AccelProfileTest(BaseTest):
-    test_name = "6.8"
-    total_steps = 18
+**Файл:** `scenarios/test_6_9/scenario.json`
 
-    REQUIRED_SAMPLES = 600  # 250×1мс + 350×10мс
-    MAX_SAMPLES_PER_RECORD = 255
+Аналогично п. 6.8, но:
+- Команда: `packets/platform/track_data_request.hex`
+- Проверка: `expected: {"min": 70}` (координаты, 1с интервал)
+- Подтверждение: `packets/platform/record_response_track.hex`
 
-    async def run(self) -> TestResult:
-        await self.activate()
+#### 5.7.5. п. 7.8 — Загрузка ПО
 
-        # Шаг 2: Проверка предварительных условий
-        if not await self._step(2,
-            self.session.config_done and self.session.vehicle_auth_done,
-            "Конфигурирование не выполнено / Аутентификация не пройдена"
-        ):
-            return await self._fail()
+**Файл:** `scenarios/test_7_8/scenario.json`
 
-        # Шаг 3-4: Ожидание экстренного вызова + регистрация
-        imsi = await self._wait_for_emergency_call()
-        if not await self._step(4, imsi is not None, "Экстренный вызов не получен"):
-            return await self._fail()
-
-        # Шаг 6: Приём МНД
-        mnd = await self._wait_for_mnd(timeout=60.0)
-        if not await self._step(6, mnd is not None, "МНД не принято"):
-            return await self._fail()
-
-        # Шаг 7: TCP соединение (30 сек)
-        tcp_ok = await self._wait_for_tcp_connection(timeout=30.0)
-        if not await self._step(7, tcp_ok, "Не удалось установить соединение TCP/IP"):
-            return await self._fail()
-
-        # Шаг 8-9: Авторизация + валидация
-        term_identity = await self._wait_for_term_identity()
-        if not await self._step(8, term_identity is not None, "Авторизация не удалась"):
-            return await self._fail()
-
-        validation = self.auth_validator.validate_term_identity(...)
-        if not await self._step(9, validation.passed, "Авторизационные параметры не совпадают"):
-            return await self._fail()
-
-        # Шаг 10: RESULT_CODE
-        await self._send_result_code(0 if self.auth_response else 151)
-
-        # Шаг 12: Service Info
-        if not await self._handle_service_info():
-            return await self._fail()
-
-        # Шаг 14: Команда EGTS_TRACK_DATA через SMS
-        cmd_ok = await self._send_track_data_command()
-        if not await self._step(14, cmd_ok, "Не удалось подать команду на передачу данных"):
-            return await self._fail()
-
-        # Шаг 15: Приём данных профиля ускорения
-        accel_data = await self._wait_for_accel_data(timeout=60.0)
-        if not await self._step(15, accel_data is not None, "Данные профиля ускорения не получены"):
-            return await self._fail()
-
-        # Валидация: 600 выборок
-        total_samples = sum(len(record.points) for record in accel_data.records)
-        if not await self._step(15, total_samples >= self.REQUIRED_SAMPLES,
-            f"Получено {total_samples} выборок, требуется {self.REQUIRED_SAMPLES}"
-        ):
-            return await self._fail()
-
-        return await self._succeed()
+```json
+{
+  "name": "Тест 7.8 — Загрузка ПО",
+  "scenario_version": "1",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 300,
+  "description": "Передача ПО частями через TCP/IP, проверка целостности",
+  "channels": ["tcp"],
+  "steps": [
+    {
+      "name": "Проверка: авторизация пройдена",
+      "type": "check",
+      "check_type": "session_status",
+      "target": "auth_done",
+      "expected": true
+    },
+    {
+      "name": "Часть 1 прошивки",
+      "type": "send",
+      "channel": "tcp",
+      "packet_file": "packets/platform/service_part_data_1.hex",
+      "timeout": 30
+    },
+    {
+      "name": "Подтверждение части 1 (IN_PROGRESS)",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"subrecord_type": "EGTS_SR_RECORD_RESPONSE", "rst": 1},
+      "timeout": 10
+    },
+    {
+      "name": "Часть 2 прошивки",
+      "type": "send",
+      "channel": "tcp",
+      "packet_file": "packets/platform/service_part_data_2.hex",
+      "timeout": 30
+    },
+    {
+      "name": "Подтверждение части 2 (OK)",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"subrecord_type": "EGTS_SR_RECORD_RESPONSE", "rst": 0},
+      "timeout": 10
+    }
+  ]
+}
 ```
 
-### 5.5. Тест п. 6.9 — Траектория `core/test_suite/trajectory_test.py`
+#### 5.7.6. п. 9.2.2 — Изменение параметров
 
-Аналогично 6.8, но:
-- `REQUIRED_SAMPLES = 70` (координаты, 1с интервал)
-- `MAX_SAMPLES_PER_RECORD = 255` → достаточно 1 записи
+**Файл:** `scenarios/test_9_2_2/scenario.json`
 
-### 5.6. Тест п. 7.8 — Загрузка ПО `core/test_suite/firmware_test.py`
-
-```python
-class FirmwareTest(BaseTest):
-    test_name = "7.8"
-    total_steps = 17
-
-    def __init__(self, ..., firmware_path: str, command_code: int):
-        super().__init__(...)
-        self.firmware_path = firmware_path
-        self.command_code = command_code
-
-    async def run(self) -> TestResult:
-        ...
-        # Шаг 13: Команда на загрузку ПО через SMS (EGTS_RAW_DATA)
-        cmd_ok = await self._send_firmware_command(self.command_code)
-        if not await self._step(13, cmd_ok, "Не удалось подать команду на загрузку ПО по SMS"):
-            return await self._fail()
-
-        # Шаг 14: Передача ПО частями через TCP/IP
-        firmware_data = Path(self.firmware_path).read_bytes()
-        chunk_size = 1024  # Размер части
-        total_parts = (len(firmware_data) + chunk_size - 1) // chunk_size
-
-        for i in range(total_parts):
-            chunk = firmware_data[i*chunk_size:(i+1)*chunk_size]
-            success = await self._send_firmware_part(i+1, total_parts, chunk)
-            if not await self._step(14, success, "Не удалось осуществить загрузку ПО"):
-                return await self._fail()
-```
-
-### 5.7. Тест п. 9.2.2 — Изменение параметров `core/test_suite/param_change_test.py`
-
-```python
-class ParamChangeTest(BaseTest):
-    test_name = "9.2.2"
-    total_steps = 16
-
-    def __init__(self, ..., mic_level: int = 5, spk_level: int = 5):
-        super().__init__(...)
-        if not (0 <= mic_level <= 10):
-            raise ValueError("mic_level must be 0-10")
-        if not (0 <= spk_level <= 10):
-            raise ValueError("spk_level must be 0-10")
-        self.mic_level = mic_level
-        self.spk_level = spk_level
-
-    async def run(self) -> TestResult:
-        ...
-        # Шаг 13: Отправка команд MIC/SPK level через TCP/IP
-        mic_ok = await self._send_param_command(
-            EgtsCommandParamType.EGTS_UNIT_MIC_LEVEL, self.mic_level
-        )
-        spk_ok = await self._send_param_command(
-            EgtsCommandParamType.EGTS_UNIT_SPK_LEVEL, self.spk_level
-        )
-        if not await self._step(13, mic_ok and spk_ok, "Не удалось выполнить установку параметров"):
-            return await self._fail()
+```json
+{
+  "name": "Тест 9.2.2 — Изменение параметров (MIC/SPK)",
+  "scenario_version": "1",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 60,
+  "description": "Изменение уровня микрофона и динамика через EGTS_COMMANDS_SERVICE",
+  "channels": ["tcp"],
+  "steps": [
+    {
+      "name": "Проверка: авторизация пройдена",
+      "type": "check",
+      "check_type": "session_status",
+      "target": "auth_done",
+      "expected": true
+    },
+    {
+      "name": "Команда: MIC level = 5",
+      "type": "send",
+      "channel": "tcp",
+      "build": {
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": 50,
+          "packet_type": 2,
+          "records": [{
+            "record_id": 1,
+            "service_type": 4,
+            "subrecords": [{
+              "subrecord_type": 30,
+              "data": {
+                "command_code_hex": "0501",
+                "params_hex": "0405"
+              }
+            }]
+          }]
+        }
+      },
+      "timeout": 10
+    },
+    {
+      "name": "Подтверждение MIC level",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"subrecord_type": "CT_COMCONF"},
+      "timeout": 10
+    },
+    {
+      "name": "Команда: SPK level = 5",
+      "type": "send",
+      "channel": "tcp",
+      "build": {
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": 51,
+          "packet_type": 2,
+          "records": [{
+            "record_id": 1,
+            "service_type": 4,
+            "subrecords": [{
+              "subrecord_type": 30,
+              "data": {
+                "command_code_hex": "0502",
+                "params_hex": "0505"
+              }
+            }]
+          }]
+        }
+      },
+      "timeout": 10
+    },
+    {
+      "name": "Подтверждение SPK level",
+      "type": "expect",
+      "channel": "tcp",
+      "checks": {"subrecord_type": "CT_COMCONF"},
+      "timeout": 10
+    }
+  ]
+}
 ```
 
 ### 5.8. Тесты
 
 **Файлы:**
-- `tests/core/test_suite/test_passive_mode.py`
-- `tests/core/test_suite/test_accel_profile.py`
-- `tests/core/test_suite/test_trajectory.py`
-- `tests/core/test_suite/test_firmware.py`
-- `tests/core/test_suite/test_param_change.py`
+- `tests/core/test_scenario_wait_step.py` — WaitStep unit-тесты
+- `tests/core/test_scenario_check_step.py` — CheckStep unit-тесты
+- `tests/core/test_scenario_integration.py` — интеграционные тесты сценариев с TestSession
+
+**Каждый тест:**
+- WaitStep: ожидание события, condition match/mismatch, timeout, capture
+- CheckStep: session_status, variable, range check, polling
+- Integration: запуск сценария → проверка что TestResult сохранён в TestSession
 
 ---
 
 ## Этап 6 — Отчёты по тестам (ТЗ п. 1.7, 2.2.7)
 
-**Цель:** Создать модуль формирования отчётов с результатами тестов и конфигурационными параметрами.
+**Цель:** Создать модуль формирования отчётов с результатами тестов из TestSession + история сценариев.
 
 ### 6.1. Создать `core/report.py`
 
@@ -1184,6 +1450,7 @@ class TestReport:
 
     def to_html(self) -> str:
         """HTML-отчёт для печати."""
+        # Простой HTML с таблицей результатов
         ...
 
     def save_json(self, path: str) -> None:
@@ -1196,165 +1463,90 @@ class TestReport:
 ### 6.2. Интеграция с `CoreEngine`
 
 ```python
-    async def generate_report(self, output_path: str, fmt: str = "json") -> None:
-        """Сформировать отчёт (ТЗ п. 2.2.7)."""
-        if self.test_session.state != SessionState.COMPLETED:
-            raise RuntimeError("Сеанс не завершён")
+async def generate_report(self, output_path: str, fmt: str = "json") -> None:
+    """Сформировать отчёт (ТЗ п. 2.2.7)."""
+    if self.test_session.state != SessionState.COMPLETED:
+        raise RuntimeError("Сеанс не завершён")
 
-        report = TestReport(session=self.test_session)
-        if fmt == "json":
-            report.save_json(output_path)
-        elif fmt == "html":
-            report.save_html(output_path)
-        else:
-            raise ValueError(f"Unsupported format: {fmt}")
+    report = TestReport(session=self.test_session)
+    if fmt == "json":
+        report.save_json(output_path)
+    elif fmt == "html":
+        report.save_html(output_path)
+    else:
+        raise ValueError(f"Unsupported format: {fmt}")
 ```
 
 ### 6.3. Тесты
 
 **Файлы:**
-- `tests/core/test_report.py`
+- `tests/core/test_report.py` — round-trip JSON, HTML генерация, save
 
 ---
 
-## Этап 7 — CMW-500: голосовое соединение и МНД
+## Этап 7 — Интеграция и end-to-end тесты
 
-**Цель:** Расширить CMW-500 контроллер функциями голосового соединения и приёма МНД.
+**Цель:** Связать все компоненты и проверить полные сценарии через `Cmw500Emulator`.
 
-### 7.1. Голосовое соединение `core/cmw500.py`
-
-```python
-class VisaCmw500Driver:
-    def initiate_voice_call(self, phone_number: str) -> None:
-        """Начать голосовой вызов."""
-        self._drv.utilities.write_str_with_opc(
-            f"CALL:GSM:SIGN:CSWitched:ACTion VCALL"
-        )
-
-    def accept_voice_call(self) -> None:
-        """Принять входящий голосовой вызов."""
-        self._drv.utilities.write_str_with_opc(
-            "CALL:GSM:SIGN:CSWitched:ACTion ACCept"
-        )
-
-    def disconnect_voice_call(self) -> None:
-        """Разорвать голосовое соединение."""
-        self._drv.utilities.write_str_with_opc(
-            "CALL:GSM:SIGN:CSWitched:ACTion DISConnect"
-        )
-
-    def get_voice_call_state(self) -> str:
-        """Получить статус голосового вызова."""
-        return self._drv.utilities.query_str_with_opc(
-            "FETCh:GSM:SIGN:CSWitched:STATe?"
-        ).strip()
-```
-
-### 7.2. Тоновой модем для МНД
-
-**Файл:** `core/cmw500.py` или отдельный `core/msd_decoder.py`
-
-```python
-class MsdDecoder:
-    """Декодирование МНД (минимальный набор данных) через тоновый модем."""
-
-    # DTMF/тоновые частоты для eCall MSD
-    MSD_TONE_FREQUENCIES = {
-        '0': (941, 1336),
-        '1': (697, 1209),
-        ...
-    }
-
-    def decode_from_audio(self, audio_data: bytes, sample_rate: int = 8000) -> bytes | None:
-        """Декодировать MSD из аудиопотока."""
-        # Реализация через Goertzel algorithm или FFT
-        # Возвращает сырые байты MSD или None
-        ...
-
-    def parse_msd(self, msd_bytes: bytes) -> dict[str, Any]:
-        """Распарсить MSD согласно ГОСТ 33469-2015."""
-        # VIN, timestamp, coordinates, vehicle type, etc.
-        ...
-```
-
-### 7.3. Интеграция с `TestSession`
-
-```python
-# При активации голосового соединения:
-self.session.voice_connected = True
-
-# При разрыве:
-self.session.voice_connected = False
-
-# При приёме МНД:
-msd = self.msd_decoder.decode_from_audio(audio_data)
-if msd:
-    await self.bus.emit("mnd.received", {"msd": msd, "connection_id": ...})
-```
-
-### 7.4. Тесты
-
-**Файлы:**
-- `tests/core/test_cmw500_voice.py`
-- `tests/core/test_msd_decoder.py`
-
----
-
-## Этап 8 — Интеграция и end-to-end тесты
-
-**Цель:** Связать все компоненты и проверить полные сценарии.
-
-### 8.1. Обновить `CoreEngine` — регистрация тестов
+### 8.1. Обновить `CoreEngine` — API для запуска проверок ТЗ
 
 ```python
 @dataclass
 class CoreEngine:
-    test_suite: dict[str, BaseTest] = field(default_factory=dict)
+    # Существующие поля...
 
-    def _init_test_suite(self) -> None:
-        """Создать все 5 тестов."""
-        creds = self.credentials_repo.get_default()
-        common = {
-            "bus": self.bus,
-            "session": self.test_session,
-            "config": self.config,
-            "credentials": creds,
+    async def run_tz_test(self, test_id: str, **kwargs) -> dict[str, Any]:
+        """Запустить проверку ТЗ по ID.
+
+        test_id: "7.3_config1", "7.3_config2", "6.8", "6.9", "7.8", "9.2.2"
+        """
+        scenario_map = {
+            "7.3_config1": "scenarios/test_7_3_config1",
+            "7.3_config2": "scenarios/test_7_3_config2",
+            "6.8": "scenarios/test_6_8",
+            "6.9": "scenarios/test_6_9",
+            "7.8": "scenarios/test_7_8",
+            "9.2.2": "scenarios/test_9_2_2",
         }
-        self.test_suite["7.3"] = PassiveModeTest(**common, config_type="1")
-        self.test_suite["6.8"] = AccelProfileTest(**common)
-        self.test_suite["6.9"] = TrajectoryTest(**common)
-        self.test_suite["7.8"] = FirmwareTest(**common, firmware_path="", command_code=0)
-        self.test_suite["9.2.2"] = ParamChangeTest(**common)
+        scenario_path = scenario_map.get(test_id)
+        if not scenario_path:
+            raise ValueError(f"Unknown test ID: {test_id}")
 
-    async def run_test(self, test_name: str, **kwargs) -> TestResult:
-        """Запустить конкретный тест."""
-        test = self.test_suite.get(test_name)
-        if test is None:
-            raise ValueError(f"Unknown test: {test_name}")
-        return await test.run()
+        return await self.run_scenario(scenario_path, test_name=test_id, **kwargs)
+
+    async def run_all_tz_tests(self) -> dict[str, dict[str, Any]]:
+        """Запустить все проверки ТЗ последовательно."""
+        results = {}
+        for test_id in ["7.3_config1", "7.3_config2", "6.8", "6.9", "7.8", "9.2.2"]:
+            try:
+                results[test_id] = await self.run_tz_test(test_id)
+            except Exception as e:
+                results[test_id] = {"status": "error", "error": str(e)}
+        return results
 ```
 
 ### 8.2. End-to-end тесты
 
 **Файлы:**
-- `tests/integration/test_full_passive_mode.py`
-- `tests/integration/test_full_accel_profile.py`
-- `tests/integration/test_full_trajectory.py`
-- `tests/integration/test_full_firmware.py`
-- `tests/integration/test_full_param_change.py`
+- `tests/integration/test_e2e_passive_mode.py` — полный flow через эмулятор
+- `tests/integration/test_e2e_accel_profile.py` — профиль ускорения с валидацией 600 сэмплов
+- `tests/integration/test_e2e_trajectory.py` — траектория с валидацией 70 точек
+- `tests/integration/test_e2e_firmware.py` — загрузка ПО частями
+- `tests/integration/test_e2e_param_change.py` — изменение MIC/SPK level
 
 **Каждый тест:**
 - Использует `Cmw500Emulator`
-- Эмулирует УСВ (отправка TERM_IDENTITY, VEHICLE_DATA, TRACK_DATA, ...)
-- Запускает тест
-- Проверяет результат
+- Эмулирует УСВ (отправка TERM_IDENTITY, VEHICLE_DATA, ACCEL_DATA, ...)
+- Запускает сценарий через `CoreEngine.run_scenario()`
+- Проверяет что TestResult сохранён в TestSession
+- Проверяет статусы TestSession
 
 ### 8.3. Обновить документацию
 
 **Файлы:**
-- `docs/ARCHITECTURE.md` — обновить диаграммы, добавить test_suite, test_session, validators
-- `docs/CMW500_SPEC.md` — обновить список SCPI-команд
-- Добавить `docs/TEST_SUITE.md` — описание 5 тестов, алгоритмы, шаги
+- `docs/ARCHITECTURE.md` — обновить диаграммы, добавить WaitStep, CheckStep, TestReport
+- `docs/CMW500_SPEC.md` — обновить список SCPI-команд (voice, MSD)
+- Добавить `docs/TEST_SCENARIOS.md` — описание 6 сценариев проверок ТЗ
 
 ---
 
@@ -1366,10 +1558,10 @@ class CoreEngine:
 | **2** | EGTS подзаписи | `command_params.py` | `types.py`, `subrecords.py`, `registry.py` | Средняя |
 | **3** | Валидация | `validators/auth_validator.py`, `validators/service_info_validator.py` | `session.py`, `event_bus.py` | Средняя |
 | **4** | Сеанс | `test_session.py` | `engine.py` | Средняя |
-| **5** | 5 тестов | `test_suite/base_test.py`, `passive_mode_test.py`, `accel_profile_test.py`, `trajectory_test.py`, `firmware_test.py`, `param_change_test.py` | — | Высокая |
+| **5** | 5 проверок ТЗ | 6 сценариев JSON | `scenario.py`, `scenario_parser.py`, `engine.py` | Средняя |
 | **6** | Отчёты | `report.py` | `engine.py` | Низкая |
 | **7** | CMW voice/МНД | `msd_decoder.py` | `cmw500.py` | Высокая |
-| **8** | Интеграция | — | `engine.py`, `ARCHITECTURE.md` | Средняя |
+| **7** | Интеграция | 5 e2e тестов | `engine.py`, `ARCHITECTURE.md` | Средняя |
 
 ---
 
@@ -1393,13 +1585,13 @@ class CoreEngine:
     ↓
 Этап 4 (Сеанс) ← использует Этап 1
     ↓
-Этап 5 (5 тестов) ← использует Этапы 1, 2, 3, 4
+Этап 5 (5 проверок ТЗ) ← использует Этапы 1-4 + сценарии JSON
     ↓
-Этап 6 (Отчёты) ← использует Этап 4
+Этап 6 (Отчёты) ← использует Этап 4 + Этап 5
     ↓
 Этап 7 (CMW voice/МНД) — параллельно с Этапами 1-4
     ↓
-Этап 8 (Интеграция) ← использует все предыдущие
+Этап 7 (Интеграция) ← использует все предыдущие
 ```
 
 **Параллельно можно делать:**
@@ -1416,5 +1608,5 @@ class CoreEngine:
 | SCPI-команды CMW-500 могут отличаться от ожидаемых | Высокое | Тестировать на реальном приборе на ранних этапах |
 | Тоновой модем МНД — сложная DSP-задача | Высокое | Использовать готовую библиотеку (например, `goertzel`) |
 | Эмулятор УСВ для интеграционных тестов | Среднее | Создать простой mock, который отправляет заранее записанные пакеты |
-| Обратная совместимость сценариев JSON | Среднее | Не менять формат V1, добавить V2 только для новых тестов |
+| Обратная совместимость сценариев JSON | Среднее | Не менять формат V1, добавить `wait`/`check` как новые типы |
 | Время таймаутов в ТЗ (ГОСТ п. 6.8) | Низкое | Вынести все таймауты в `TimeoutsConfig` |
