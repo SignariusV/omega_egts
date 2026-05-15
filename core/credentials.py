@@ -3,13 +3,31 @@
 import json
 import logging
 import os
+import re
 import stat
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def validate_imei(imei: str) -> bool:
+    """Проверить формат IMEI (15 цифр)."""
+    return bool(re.fullmatch(r"\d{15}", imei))
+
+
+def validate_imsi(imsi: str) -> bool:
+    """Проверить формат IMSI (5-15 цифр, начинается с MCC)."""
+    return bool(re.fullmatch(r"\d{5,15}", imsi))
+
+
+def validate_msisdn(msisdn: str) -> bool:
+    """Проверить формат MSISDN (E.164: +7XXXXXXXXXX или 7XXXXXXXXXX)."""
+    if not msisdn:
+        return True
+    return bool(re.fullmatch(r"\+?\d{7,15}", msisdn))
 
 
 @dataclass
@@ -28,6 +46,17 @@ class Credentials:
     serial_number: str = ""
     model: str = ""
     egts_unit_id: int = 0
+
+    def validate_format(self) -> list[str]:
+        """Проверить формат полей. Возвращает список ошибок."""
+        errors: list[str] = []
+        if self.imei and not validate_imei(self.imei):
+            errors.append(f"Неверный формат IMEI: {self.imei}")
+        if self.imsi and not validate_imsi(self.imsi):
+            errors.append(f"Неверный формат IMSI: {self.imsi}")
+        if self.msisdn and not validate_msisdn(self.msisdn):
+            errors.append(f"Неверный формат MSISDN: {self.msisdn}")
+        return errors
 
     def to_dict(self) -> dict[str, Any]:
         """Преобразование в словарь для сериализации."""
@@ -65,6 +94,12 @@ class Credentials:
             model=data.get("model", ""),
             egts_unit_id=data.get("egts_unit_id", 0),
         )
+
+    def __post_init__(self) -> None:
+        """Валидация формата после создания."""
+        errors = self.validate_format()
+        if errors:
+            raise ValueError("; ".join(errors))
 
 
 class CredentialsRepository:

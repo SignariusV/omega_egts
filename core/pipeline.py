@@ -27,13 +27,16 @@ from dataclasses import dataclass, field
 from typing import Protocol
 
 from core.egts_adapter import (
+    EGTS_PC_AUTH_DENIED,
     EGTS_PC_DATACRC_ERROR,
     EGTS_PC_HEADERCRC_ERROR,
+    EGTS_PC_OK,
     PACKET_HEADER_MIN_SIZE,
 )
 from core.event_bus import EventBus
 from core.session import SessionManager
 from libs.egts.models import ParseResult, ResponseRecord, Subrecord
+from libs.egts.types import ServiceType, SubrecordType
 
 logger = logging.getLogger(__name__)
 
@@ -534,6 +537,173 @@ class ParseMiddleware:
             ctx.connection_id,
             parse_result.packet.packet_type if parse_result.packet else None,
         )
+
+
+# =============================================================================
+# AuthValidationMiddleware
+# =============================================================================
+
+
+class AuthValidationMiddleware:
+    """Валидация авторизации и аутентификации (ТЗ п. 2.3.1 шаг 8, 10, 11).
+
+    Проверяет TERM_IDENTITY, VEHICLE_DATA и SERVICE_INFO против конфигурации.
+    При ошибке формирует RESPONSE с RESULT_CODE=151 (AUTH_DENIED).
+
+    Порядок: после ParseMiddleware (order=20), перед DuplicateDetectionMiddleware (order=30).
+    Рекомендуемый order=25.
+    """
+
+    def __init__(
+        self,
+        session_mgr: SessionManager,
+        auth_validator,
+        service_info_validator,
+        bus: EventBus,
+    ) -> None:
+        self._session_mgr = session_mgr
+        self._auth_validator = auth_validator
+        self._service_info_validator = service_info_validator
+        self._bus = bus
+
+    async def __call__(self, ctx: PacketContext) -> None:
+        if not ctx.crc_valid:
+            return
+        if ctx.parsed is None or ctx.parsed.packet is None:
+            return
+
+        conn = self._session_mgr.get_session(ctx.connection_id)
+        if conn is None:
+            return
+
+        protocol = conn.protocol
+        if protocol is None:
+            return
+
+        packet = ctx.parsed.packet
+        pid = packet.packet_id
+
+        for rec in packet.records:
+            if rec.service_type != ServiceType.AUTH:
+                continue
+
+            for sr in rec.subrecords:
+                if not isinstance(sr.data, dict):
+                    continue
+
+                if sr.subrecord_type == SubrecordType.TERM_IDENTITY:
+                    await self._validate_term_identity(ctx, sr.data, protocol, pid)
+                elif sr.subrecord_type == SubrecordType.VEHICLE_DATA:
+                    await self._validate_vehicle_data(ctx, sr.data, protocol, pid)
+                elif sr.subrecord_type == SubrecordType.SERVICE_INFO:
+                    await self._validate_service_info(ctx, sr.data, protocol, pid)
+
+                if ctx.terminated:
+                    return
+
+    async def _validate_term_identity(
+        self, ctx: PacketContext, data: dict, protocol, pid: int
+    ) -> None:
+        imei = data.get("imei")
+        imsi = data.get("imsi")
+        msisdn = data.get("msisdn")
+        tid = data.get("tid")
+
+        result = self._auth_validator.validate_term_identity(
+            unit_id=tid, imsi=imsi, imei=imei, msisdn=msisdn,
+        )
+
+        if not result.passed:
+            ctx.errors.append(f"Auth validation failed: {'; '.join(result.reasons)}")
+            ctx.response_data = protocol.build_response(
+                pid=pid, result_code=EGTS_PC_AUTH_DENIED,
+            )
+            ctx.terminated = True
+            await self._bus.emit("auth.validation_failed", {
+                "connection_id": ctx.connection_id,
+                "reasons": result.reasons,
+                "subrecord": "TERM_IDENTITY",
+            })
+            logger.warning(
+                "Auth validation failed for %s: %s",
+                ctx.connection_id, "; ".join(result.reasons),
+            )
+        else:
+            await self._bus.emit("auth.validation_passed", {
+                "connection_id": ctx.connection_id,
+                "subrecord": "TERM_IDENTITY",
+            })
+
+    async def _validate_vehicle_data(
+        self, ctx: PacketContext, data: dict, protocol, pid: int
+    ) -> None:
+        vin = data.get("vin")
+        vht = data.get("vht")
+        vpst = data.get("vpst")
+
+        result = self._auth_validator.validate_vehicle_data(
+            vin=vin, category=vht, fuel_type=vpst,
+        )
+
+        if not result.passed:
+            ctx.errors.append(f"Vehicle auth validation failed: {'; '.join(result.reasons)}")
+            ctx.response_data = protocol.build_response(
+                pid=pid, result_code=EGTS_PC_AUTH_DENIED,
+            )
+            ctx.terminated = True
+            await self._bus.emit("auth.validation_failed", {
+                "connection_id": ctx.connection_id,
+                "reasons": result.reasons,
+                "subrecord": "VEHICLE_DATA",
+            })
+            logger.warning(
+                "Vehicle auth validation failed for %s: %s",
+                ctx.connection_id, "; ".join(result.reasons),
+            )
+        else:
+            await self._bus.emit("auth.validation_passed", {
+                "connection_id": ctx.connection_id,
+                "subrecord": "VEHICLE_DATA",
+            })
+
+    async def _validate_service_info(
+        self, ctx: PacketContext, data: dict, protocol, pid: int
+    ) -> None:
+        services = data.get("services", [])
+        for svc in services:
+            if isinstance(svc, dict):
+                st = svc.get("st", 0)
+            else:
+                st = int(svc)
+
+            result = self._service_info_validator.validate_request(st)
+            await self._bus.emit("service_info.requested", {
+                "connection_id": ctx.connection_id,
+                "service_type": st,
+            })
+
+            if not result.passed:
+                ctx.errors.append(f"Service Info validation failed: {'; '.join(result.reasons)}")
+                ctx.response_data = protocol.build_response(
+                    pid=pid, result_code=EGTS_PC_AUTH_DENIED,
+                )
+                ctx.terminated = True
+                await self._bus.emit("service_info.responded", {
+                    "connection_id": ctx.connection_id,
+                    "service_type": st,
+                    "status": "rejected",
+                })
+                logger.warning(
+                    "Service Info validation failed for %s: %s",
+                    ctx.connection_id, "; ".join(result.reasons),
+                )
+                return
+
+        await self._bus.emit("service_info.responded", {
+            "connection_id": ctx.connection_id,
+            "service_type": self._service_info_validator.ALLOWED_SERVICE_TYPE,
+            "status": "accepted",
+        })
 
 
 # =============================================================================

@@ -127,6 +127,10 @@ class EventBus:
 | `cmw.connected` | `ip, serial, simulate` | Cmw500Controller | CLI/GUI |
 | `cmw.disconnected` | `{}` | Cmw500Controller | CLI/GUI |
 | `cmw.status` | `cs_state, ps_state, rssi, ber, rx_level, cell_status, imei, imsi, timestamp, serial, simulate, ip` | Cmw500Controller | GUI |
+| `auth.validation_passed` | `connection_id, subrecord` | AuthValidationMiddleware | TestSession (Этап 4), LogManager |
+| `auth.validation_failed` | `connection_id, reasons, subrecord` | AuthValidationMiddleware | TestSession (Этап 4), LogManager |
+| `service_info.requested` | `connection_id, service_type` | AuthValidationMiddleware | TestSession (Этап 4), LogManager |
+| `service_info.responded` | `connection_id, service_type, status` | AuthValidationMiddleware | TestSession (Этап 4), LogManager |
 
 **Каналы (`channel`):**
 - `"tcp"` — пакет через WiFi CMW-500 (TCP-соединение, `connection_id` есть)
@@ -780,6 +784,7 @@ class PacketPipeline:
 ```
 
 **Особенности:**
+- **AuthValidation (order=2.5)** ставит `terminated=True` при несовпадении авторизационных параметров
 - **AutoResponse (order=3)** не ставит `terminated` — обработка продолжается
 - **Dedup (order=4)** ставит `terminated=True` при обнаружении дубликата
 - **EventEmit (order=5)** вызывается **всегда** — даже при `terminated=True` (100% логирование)
@@ -792,6 +797,7 @@ class PacketPipeline:
 |---|-----------|-------|----------------------|----------|
 | 1 | `CrcValidationMiddleware` | 1 | Да (CRC mismatch) | Проверка CRC-8 + CRC-16 |
 | 2 | `ParseMiddleware` | 2 | Да (ошибка парсинга) | Десериализация EGTS |
+| 2.5 | `AuthValidationMiddleware` | 2.5 | Да (AUTH_DENIED) | Валидация TERM_IDENTITY, VEHICLE_DATA, SERVICE_INFO |
 | 3 | `DuplicateDetectionMiddleware` | 3 | Да (дубликат) | Сверяет PID с кэшем |
 | 4 | `AutoResponseMiddleware` | 4 | Нет | Формирует RESPONSE с `ResponseRecord` (RECORD_RESPONSE), кеширует PID→response |
 | 5 | `EventEmitMiddleware` | 5 | Нет | Emit `packet.processed` (всегда) |
