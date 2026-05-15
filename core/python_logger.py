@@ -8,6 +8,7 @@ from pathlib import Path
 
 _LOGGING_INITIALIZED = False
 _current_session_id: str | None = None
+_log_dir: Path = Path("logs")
 
 
 def setup_python_logging(
@@ -31,12 +32,13 @@ def setup_python_logging(
     Returns:
         session_id: Идентификатор сессии
     """
-    global _LOGGING_INITIALIZED, _current_session_id
+    global _LOGGING_INITIALIZED, _current_session_id, _log_dir
 
     if _LOGGING_INITIALIZED and not force_new:
         return _current_session_id or ""
 
     log_dir = Path(log_dir)
+    _log_dir = log_dir
     log_dir.mkdir(parents=True, exist_ok=True)
 
     _LOGGING_INITIALIZED = True

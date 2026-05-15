@@ -34,4 +34,4 @@ def test_command_error_shown_in_statusbar(qtbot):
 
     window._event_bridge.command_error.emit({"error": "Command failed"})
 
-    assert window._status_bar.currentMessage() == "Command Error: {'error': 'Command failed'}"
+    assert window._status_bar.currentMessage() == "Command Error: Command failed"

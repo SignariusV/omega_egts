@@ -33,10 +33,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 from core.python_logger import setup_python_logging
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 session_id = setup_python_logging(
-    log_dir="logs",
-    console_level="INFO",  # В консоль информация о сценарии
-    file_level="DEBUG",  # В файл всё
+    log_dir=BASE_DIR / "logs",
+    console_level="INFO",
+    file_level="DEBUG",
 )
 
 logger = logging.getLogger(__name__)
@@ -49,7 +51,6 @@ _HandlerFn = Callable[[Any], Awaitable[int]]
 # Точка входа для pyproject.toml
 
 # Базовая директория проекта (OMEGA_EGTS/)
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def _resolve_scenario_path(scenario_name: str) -> str:

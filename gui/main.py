@@ -1,5 +1,6 @@
 # OMEGA_EGTS GUI
 import sys
+from pathlib import Path
 import qasync
 import asyncio
 from PySide6.QtWidgets import QApplication
@@ -8,8 +9,10 @@ from gui.utils.theme import apply_theme
 
 from core.python_logger import setup_python_logging
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 setup_python_logging(
-    log_dir="logs",
+    log_dir=BASE_DIR / "logs",
     console_level="ERROR",
     file_level="DEBUG",
 )
