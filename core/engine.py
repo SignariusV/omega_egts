@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import logging
+import time
 from contextlib import suppress
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from core.config import Config
+from core.credentials import Credentials
 from core.event_bus import EventBus
+from core.test_session import TestSession
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +55,12 @@ class CoreEngine:
     # Source of truth для состояния компонентов — их собственные поля,
     # но _started нужен для быстрой проверки без обращения к компонентам.
     _started: bool = field(default=False, init=False, repr=False)
+
+    # Сеанс проверок (ТЗ п. 2.2.5-2.2.6)
+    test_session: TestSession = field(default_factory=TestSession, init=False, repr=False)
+
+    # Подписки на события для обновления статусов сеанса
+    _event_handlers: list[tuple[str, Any]] = field(default_factory=list, init=False, repr=False)
 
     async def start(self) -> None:
         """Запустить систему.
@@ -169,6 +178,10 @@ class CoreEngine:
                 self.command_dispatcher.cmw = self.cmw500
 
             self._started = True
+
+            # Подписка на события для обновления статусов сеанса проверок
+            self._subscribe_session_events()
+
             await self.bus.emit(
                 "server.started",
                 {"port": self.config.tcp_port, "gost_version": self.config.gost_version},
@@ -196,6 +209,9 @@ class CoreEngine:
 
     async def _cleanup(self) -> None:
         """Внутренний метод для остановки всех компонентов."""
+        # Отписка от событий сеанса
+        self._unsubscribe_session_events()
+
         # Останавливаем в обратном порядке создания
 
         if self.log_mgr is not None:
@@ -233,6 +249,69 @@ class CoreEngine:
     def is_running(self) -> bool:
         """Проверка, запущена ли система."""
         return self._started
+
+    # ===== Управление сеансом проверок (ТЗ п. 2.2.5-2.2.6) =====
+
+    def _subscribe_session_events(self) -> None:
+        """Подписаться на события для обновления статусов сеанса."""
+        handlers: list[tuple[str, Any]] = [
+            ("cmw.connected", self._on_cmw_connected),
+            ("cmw.disconnected", self._on_cmw_disconnected),
+            ("connection.changed", self._on_connection_changed),
+            ("auth.validation_passed", self._on_auth_passed),
+            ("auth.validation_failed", self._on_auth_failed),
+        ]
+        for event_name, handler in handlers:
+            self.bus.on(event_name, handler)
+            self._event_handlers.append((event_name, handler))
+
+    def _unsubscribe_session_events(self) -> None:
+        """Отписаться от событий сеанса."""
+        for event_name, handler in self._event_handlers:
+            self.bus.off(event_name, handler)
+        self._event_handlers.clear()
+
+    async def start_session(self, credentials: Credentials | None = None) -> None:
+        """Активировать сеанс проверок (ТЗ п. 2.2.1)."""
+        creds = credentials or Credentials(
+            imei="", imsi="", term_code="", auth_key="", device_id=""
+        )
+        self.test_session.activate(self.config, creds)
+        await self.bus.emit("session.started", {"timestamp": time.time()})
+
+    async def stop_session(self) -> None:
+        """Завершить сеанс (ТЗ п. 2.2.5)."""
+        self.test_session.deactivate()
+        await self.bus.emit("session.completed", {
+            "test_results": {k: v.__dict__ for k, v in self.test_session.test_results.items()},
+        })
+
+    async def on_network_off(self) -> None:
+        """Выключение сети — сброс статусов (ТЗ п. 2.2.5)."""
+        self.test_session.reset_on_network_off()
+        await self.bus.emit("session.statuses_reset", {})
+
+    async def _on_cmw_connected(self, data: dict) -> None:
+        self.test_session.cmw_connected = True
+
+    async def _on_cmw_disconnected(self, data: dict) -> None:
+        self.test_session.cmw_connected = False
+        await self.on_network_off()
+
+    async def _on_connection_changed(self, data: dict) -> None:
+        state = data.get("state")
+        if state == "connected":
+            self.test_session.tcp_connected = True
+        elif state == "disconnected":
+            self.test_session.tcp_connected = False
+
+    async def _on_auth_passed(self, data: dict) -> None:
+        self.test_session.auth_done = True
+        self.test_session.auth_validation_passed = True
+
+    async def _on_auth_failed(self, data: dict) -> None:
+        self.test_session.auth_done = True
+        self.test_session.auth_validation_passed = False
 
     def __str__(self) -> str:
         """Компактное строковое представление для логов."""
