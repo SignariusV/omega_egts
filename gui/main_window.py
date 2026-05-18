@@ -294,6 +294,7 @@ class MainWindow(QMainWindow):
         
         async def shutdown():
             try:
+                self._event_bridge.unsubscribe()
                 await self._engine_wrapper.stop()
             except Exception:
                 pass

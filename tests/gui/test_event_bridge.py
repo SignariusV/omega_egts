@@ -55,8 +55,10 @@ async def test_cmw_disconnected_signal(bridge, bus, qtbot):
 @pytest.mark.asyncio
 async def test_cmw_error_signal(bridge, bus, qtbot):
     with qtbot.waitSignal(bridge.cmw_error, timeout=100) as blocker:
-        await bus.emit("cmw.error", {"error": "Connection lost"})
-    assert "Connection lost" in blocker.args[0]
+        await bus.emit("cmw.error", {"error": "Connection lost", "command": "connect"})
+    args = blocker.args[0]
+    assert args["error"] == "Connection lost"
+    assert args["command"] == "connect"
 
 
 @pytest.mark.asyncio
@@ -104,3 +106,25 @@ async def test_command_error_signal(bridge, bus, qtbot):
     with qtbot.waitSignal(bridge.command_error, timeout=100) as blocker:
         await bus.emit("command.error", data)
     assert blocker.args[0]["error"] == "timeout"
+
+
+@pytest.mark.asyncio
+async def test_unsubscribe(bridge, bus, qtbot):
+    bridge.unsubscribe()
+    # Signal should not trigger after unsubscribe
+    with pytest.raises(Exception):
+        with qtbot.waitSignal(bridge.packet_processed, timeout=100):
+            await bus.emit("packet.processed", {"ctx": "test"})
+
+
+@pytest.mark.asyncio
+async def test_unsubscribe_idempotent(bridge, bus):
+    bridge.unsubscribe()
+    bridge.unsubscribe()  # Should not raise
+
+
+@pytest.mark.asyncio
+async def test_cmw_error_preserves_context(bridge, bus, qtbot):
+    with qtbot.waitSignal(bridge.cmw_error, timeout=100) as blocker:
+        await bus.emit("cmw.error", {"error": "Timeout", "ip": "192.168.1.1"})
+    assert blocker.args[0]["ip"] == "192.168.1.1"

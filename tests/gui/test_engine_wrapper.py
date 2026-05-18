@@ -88,3 +88,22 @@ async def test_load_scenario_info_invalid_json(tmp_path, config, bus):
     wrapper = EngineWrapper(config, bus)
     with pytest.raises(Exception):
         await wrapper.load_scenario_info(str(scenario_file))
+
+
+@pytest.mark.asyncio
+async def test_start_idempotent(config, bus):
+    """Second start() should return immediately without error."""
+    wrapper = EngineWrapper(config, bus)
+    await wrapper.start()
+    await wrapper.start()  # Should not raise or re-check port
+    status = await wrapper.get_status()
+    assert status["running"] is True
+    await wrapper.stop()
+
+
+@pytest.mark.asyncio
+async def test_stop_scenario_not_implemented(config, bus):
+    """stop_scenario() should raise NotImplementedError with clear message."""
+    wrapper = EngineWrapper(config, bus)
+    with pytest.raises(NotImplementedError, match="Остановка сценария пока не реализована"):
+        await wrapper.stop_scenario()
