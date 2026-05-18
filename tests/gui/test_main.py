@@ -22,7 +22,7 @@ def test_cmw_error_shown_in_statusbar(qtbot):
     qtbot.addWidget(window)
     window.show()
 
-    window._event_bridge.cmw_error.emit("Test error message")
+    window._event_bridge.cmw_error.emit({"error": "Test error message"})
 
     assert window._status_bar.currentMessage() == "CMW Error: Test error message"
 

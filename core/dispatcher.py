@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from core.egts_adapter import create_protocol
+from libs.egts.registry import get_protocol
 from core.event_bus import EventBus
 from core.pipeline import (
     AutoResponseMiddleware,
@@ -258,7 +258,7 @@ class PacketDispatcher:
                 "PacketDispatcher: protocol=None для SMS-сессии, "
                 "использую ГОСТ 2015 по умолчанию"
             )
-            protocol = create_protocol("2015")
+            protocol = get_protocol("2015")
 
         self.session_mgr.create_session(
             connection_id=_SMS_DEFAULT_CONNECTION_ID,
@@ -320,7 +320,7 @@ class CommandDispatcher:
 
     def _get_sms_protocol(self) -> IEgtsProtocol:
         """Получить протокол для SMS-сессии."""
-        return create_protocol("2015")
+        return get_protocol("2015")
 
     async def _on_command(self, data: dict[str, Any]) -> None:
         """Обработать команду отправки.

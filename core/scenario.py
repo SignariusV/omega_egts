@@ -591,8 +591,8 @@ class SendStep:
 
         gost_version = template_data.get("gost_version", "2015")
 
-        from core.egts_adapter import create_protocol
-        protocol = create_protocol(gost_version)
+        from libs.egts.registry import get_protocol
+        protocol = get_protocol(gost_version)
 
         packet = self._dict_to_packet(packet_dict)
         return protocol.build_packet(packet)

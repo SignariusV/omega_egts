@@ -96,6 +96,21 @@ class ConfirmationType(IntEnum):
     INPROG = 0x6     # Команда передана на обработку, результат неизвестен
 
 
+# --- Протокольные константы ---
+
+PACKET_HEADER_MIN_SIZE = 11
+"""Минимальный размер заголовка EGTS-пакета (PR + HL + CRC-16)."""
+
+TL_RESPONSE_TO = 5.0
+"""Таймаут ожидания RESPONSE (секунды)."""
+
+TL_RESEND_ATTEMPTS = 3
+"""Количество повторных отправок при отсутствии RESPONSE."""
+
+TL_RECONNECT_TO = 30.0
+"""Таймаут переподключения (секунды)."""
+
+
 class ActionType(IntEnum):
     """Типы действий (ACT) для команд CT_COM (ГОСТ таблица 30)."""
     PARAMS = 0x0    # Параметры команды

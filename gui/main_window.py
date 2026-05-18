@@ -237,7 +237,7 @@ class MainWindow(QMainWindow):
         eb.scenario_step.connect(self._scenario_card.on_scenario_step)
         eb.command_error.connect(self._scenario_card.on_command_error)
 
-        eb.cmw_error.connect(lambda msg: self._status_bar.showMessage(f"CMW Error: {msg}", 5000))
+        eb.cmw_error.connect(lambda data: self._status_bar.showMessage(f"CMW Error: {data.get('error', data)}", 5000))
         eb.command_error.connect(lambda data: self._status_bar.showMessage(f"Command Error: {data.get('error', data)}", 5000))
 
         self._status_card.toggle_server_requested.connect(self._on_toggle_server)

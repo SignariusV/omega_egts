@@ -1125,16 +1125,9 @@ libs/egts/
     └── subrecords.py      #/subrecord types
 ```
 
-### egts_adapter
-
-Модуль `core/egts_adapter.py` обеспечивает связь между `libs/egts` и `core/`:
-- Экспортирует константы (EGTS_PC_OK, EGTS_PC_HEADERCRC_ERROR, ...)
-- Экспортирует таймауты (TL_RESPONSE_TO, TL_RESEND_ATTEMPTS, ...)
-- Функция `create_protocol(version)` → IEgtsProtocol
-
 ### Принципы
 
-1. **Ядро зависит от `libs/egts/`** — через `egts_adapter.py`
+1. **Ядро зависит от `libs/egts/` напрямую** — константы, типы и протокол импортируются из `libs.egts`
 2. **Чистая Python-реализация CRC** — без внешних зависимостей (`crcmod` не нужен)
 3. **Реестр протоколов** — `get_protocol(version)` для создания реализации
 
@@ -1207,10 +1200,10 @@ protocol.build_response(pid=pid, result_code=0, records=response_records)
 ### Factory
 
 ```python
-from core.egts_adapter import create_protocol
+from libs.egts import get_protocol
 
-protocol = create_protocol("2015")   # EgtsProtocolGost2015
-protocol = create_protocol("2023")   # NotImplementedError (если не реализовано)
+protocol = get_protocol("2015")   # EgtsProtocolGost2015
+protocol = get_protocol("2023")   # ValueError (если не реализовано)
 ```
 
 ---
@@ -1236,7 +1229,6 @@ omega_egts/
 │   ├── logger.py            # LogManager (JSONL, буферизация, сортировка)
 │   ├── credentials.py       # CredentialsRepository (JSON)
 │   ├── export.py            # export_csv/json/scenario_results (функции)
-│   ├── egts_adapter.py     # Адаптер: create_protocol, константы, таймауты
 │   └── python_logger.py     # Python logging bridge
 ├── libs/egts/                  # Библиотека EGTS
 │   ├── __init__.py              # Экспорт публичного API

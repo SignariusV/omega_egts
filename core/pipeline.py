@@ -26,11 +26,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from core.egts_adapter import (
-    EGTS_PC_DATACRC_ERROR,
-    EGTS_PC_HEADERCRC_ERROR,
-    PACKET_HEADER_MIN_SIZE,
-)
+from libs.egts.types import ResultCode, PACKET_HEADER_MIN_SIZE
 from core.event_bus import EventBus
 from core.session import SessionManager
 from libs.egts.models import ParseResult, ResponseRecord, Subrecord
@@ -291,7 +287,7 @@ class CrcValidationMiddleware:
             ctx.crc_valid = False
             # При ошибке CRC-8 PID неизвестен — отправляем RESPONSE с PID=0
             ctx.response_data = protocol.build_response(
-                pid=0, result_code=EGTS_PC_HEADERCRC_ERROR
+                pid=0, result_code=ResultCode.HEADERCRC_ERROR.value
             )
             ctx.terminated = True
             return
@@ -307,7 +303,7 @@ class CrcValidationMiddleware:
             ctx.crc_valid = False
             # При ошибке CRC-16 PID неизвестен — отправляем RESPONSE с PID=0
             ctx.response_data = protocol.build_response(
-                pid=0, result_code=EGTS_PC_DATACRC_ERROR
+                pid=0, result_code=ResultCode.DATACRC_ERROR.value
             )
             ctx.terminated = True
             return

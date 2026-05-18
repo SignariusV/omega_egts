@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from core.egts_adapter import TL_RESEND_ATTEMPTS, TL_RESPONSE_TO
+from libs.egts.types import TL_RESEND_ATTEMPTS, TL_RESPONSE_TO
 from core.event_bus import EventBus
 from libs.egts.protocol import IEgtsProtocol
 
@@ -686,9 +686,9 @@ class SessionManager:
 
         # Автоматическое создание протокола, если не передан (CR-008)
         if protocol is None:
-            from core.egts_adapter import create_protocol
+            from libs.egts.registry import get_protocol
 
-            protocol = create_protocol(self.gost_version)
+            protocol = get_protocol(self.gost_version)
 
         fsm = UsvStateMachine(is_std_usv=is_std_usv)
         txn_mgr = TransactionManager()
