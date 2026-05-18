@@ -9,9 +9,11 @@ GRID_GAP = 6
 
 def cell_size(container_width: float, container_height: float) -> tuple[float, float]:
     """Calculate cell size accounting for gaps (returns float)."""
-    cell_w = (container_width - (GRID_COLS - 1) * GRID_GAP) / GRID_COLS
-    cell_h = (container_height - (GRID_ROWS - 1) * GRID_GAP) / GRID_ROWS
-    return max(1.0, cell_w), max(1.0, cell_h)
+    total_gap_w = (GRID_COLS - 1) * GRID_GAP
+    total_gap_h = (GRID_ROWS - 1) * GRID_GAP
+    cell_w = max(1.0, (container_width - total_gap_w) / GRID_COLS)
+    cell_h = max(1.0, (container_height - total_gap_h) / GRID_ROWS)
+    return cell_w, cell_h
 
 
 def grid_position(pos_x: float, pos_y: float, container_width: float, container_height: float) -> tuple[int, int]:

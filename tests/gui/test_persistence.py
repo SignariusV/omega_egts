@@ -47,3 +47,37 @@ def test_layout_validation_missing_key(tmp_path):
     pm.save_layout([{"card_id": "card1"}])
     data = pm.load_layout()
     assert isinstance(data, list)
+
+
+def test_layout_validation_negative_span(tmp_path):
+    pm = PersistenceManager(tmp_path)
+    pm.save_layout([{"card_id": "card1", "row": 0, "col": 0, "row_span": -1, "col_span": 1}])
+    data = pm.load_layout()
+    assert data == []
+
+
+def test_layout_validation_negative_position(tmp_path):
+    pm = PersistenceManager(tmp_path)
+    pm.save_layout([{"card_id": "card1", "row": -1, "col": 0, "row_span": 1, "col_span": 1}])
+    data = pm.load_layout()
+    assert data == []
+
+
+def test_layout_validation_string_numbers(tmp_path):
+    pm = PersistenceManager(tmp_path)
+    pm.save_layout([{"card_id": "card1", "row": "0", "col": "0", "row_span": "1", "col_span": "1"}])
+    data = pm.load_layout()
+    assert data == []
+
+
+def test_state_validation_not_dict(tmp_path):
+    pm = PersistenceManager(tmp_path)
+    pm.state_path.write_text('["not", "a", "dict"]')
+    data = pm.load_state()
+    assert isinstance(data, dict)
+
+
+def test_save_creates_parent_dirs(tmp_path):
+    pm = PersistenceManager(tmp_path / "nested" / "dir")
+    pm.save_layout([{"card_id": "card1", "row": 0, "col": 0, "row_span": 1, "col_span": 1}])
+    assert pm.layout_path.exists()

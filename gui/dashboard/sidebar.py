@@ -165,7 +165,7 @@ class CardSidebar(QWidget):
         
         btn.setToolTip(card.title)
         btn.setCheckable(True)
-        btn.setChecked(not card.isHidden())
+        btn.setChecked(self._container.is_card_visible(card_id))
         btn.clicked.connect(lambda checked, cid=card_id: self._on_button_clicked(cid))
         btn.setObjectName(f"sidebarBtn_{card_id}")
         btn.setProperty("class", "SidebarButton")

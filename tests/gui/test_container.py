@@ -206,11 +206,13 @@ def test_move_card_to_occupied_area(qtbot):
     card1 = BaseCard("Card1")
     card2 = BaseCard("Card2")
     container.add_card(card1, 0, 0)
-    container.add_card(card2, 2, 0)
+    # Place card2 in a non-overlapping position
+    container.add_card(card2, 0, 4)
     card1_id = card1.card_id
 
     original_pos = container._cards[card1_id]
-    container.move_card(card1_id, 2, 0)
+    # Try to move card1 to where card2 is
+    container.move_card(card1_id, 0, 4)
     assert container._cards[card1_id] == original_pos
 
 
@@ -282,3 +284,90 @@ def test_add_card_preserves_hidden_position(qtbot):
     assert card_id in container._cards
     assert container._cards[card_id][0] == 2
     assert container._cards[card_id][1] == 2
+
+
+def test_resize_card_syncs_card_size(qtbot):
+    container = DashboardContainer()
+    qtbot.addWidget(container)
+    card = BaseCard("Test")
+    card_id = card.card_id
+    container.add_card(card, 0, 0)
+    assert card.grid_size == (4, 4)
+
+    container.resize_card(card_id, 2, 3)
+    assert container._cards[card_id] == (0, 0, 2, 3)
+    assert card.grid_size == (2, 3)
+
+
+def test_add_card_clamps_oversized(qtbot):
+    container = DashboardContainer()
+    qtbot.addWidget(container)
+    card = BaseCard("Test")
+    container.add_card(card, 5, 5, 10, 10)
+    card_id = card.card_id
+    assert card_id in container._cards
+    row, col, row_span, col_span = container._cards[card_id]
+    assert row_span <= 8
+    assert col_span <= 8
+    assert row + row_span <= 8
+    assert col + col_span <= 8
+
+
+def test_add_card_finds_free_spot_when_occupied(qtbot):
+    container = DashboardContainer()
+    qtbot.addWidget(container)
+    card1 = BaseCard("Card1")
+    card2 = BaseCard("Card2")
+    container.add_card(card1, 0, 0)
+    # card2 at (0,0) overlaps with card1, should find free spot
+    container.add_card(card2, 0, 0)
+    card2_id = card2.card_id
+    assert card2_id in container._cards
+    # card2 should NOT be at (0,0) since card1 is there
+    r, c, rs, cs = container._cards[card2_id]
+    assert not (r == 0 and c == 0)
+
+
+def test_add_card_returns_no_space_when_full(qtbot):
+    container = DashboardContainer()
+    qtbot.addWidget(container)
+    # Fill the grid with 4 cards of 4x4
+    c1 = BaseCard("C1")
+    c2 = BaseCard("C2")
+    c3 = BaseCard("C3")
+    c4 = BaseCard("C4")
+    container.add_card(c1, 0, 0)
+    container.add_card(c2, 0, 4)
+    container.add_card(c3, 4, 0)
+    container.add_card(c4, 4, 4)
+    # Grid is full, new card should not be added
+    c5 = BaseCard("C5")
+    container.add_card(c5, 0, 0)
+    assert c5.card_id not in container._cards
+    assert c5.card_id not in container._hidden_cards
+
+
+def test_register_hidden_card(qtbot):
+    container = DashboardContainer()
+    qtbot.addWidget(container)
+    card = BaseCard("Hidden")
+    container.register_hidden_card(card)
+    card_id = card.card_id
+    assert card_id not in container._cards
+    assert card_id in container._hidden_cards
+    assert container.has_card(card_id) is True
+    assert container.is_card_visible(card_id) is False
+    assert card.isHidden() is True
+
+
+def test_register_hidden_card_show(qtbot):
+    container = DashboardContainer()
+    qtbot.addWidget(container)
+    card = BaseCard("Hidden")
+    container.register_hidden_card(card)
+    card_id = card.card_id
+
+    container.show_card(card_id)
+    assert card_id in container._cards
+    assert card_id not in container._hidden_cards
+    assert container.is_card_visible(card_id) is True

@@ -44,8 +44,6 @@ class MainWindow(QMainWindow):
         self.resize(1024, 768)
 
         # Загружаем конфигурацию из settings.json, если файл существует
-        from pathlib import Path
-        # main_window.py: gui/main_window.py -> 2 уровня вверх = OMEGA_EGTS/
         config_path = Path(__file__).resolve().parent.parent / "config" / "settings.json"
         if config_path.exists():
             try:
@@ -62,7 +60,8 @@ class MainWindow(QMainWindow):
         self._event_bridge = EventBridge(self._bus)
 
         # Persistence manager for layout/state
-        self._persistence = PersistenceManager(Path.cwd())
+        project_root = Path(__file__).resolve().parent.parent
+        self._persistence = PersistenceManager(project_root)
 
         self._dashboard = DashboardContainer()
         self._sidebar = CardSidebar(self._dashboard)
@@ -218,9 +217,8 @@ class MainWindow(QMainWindow):
         self._dashboard.add_card(self._scenario_card, row=0, col=4)
         self._dashboard.add_card(self._packets_card, row=4, col=0)
         self._dashboard.add_card(self._logs_card, row=4, col=4)
-        self._dashboard.add_card(self._settings_card, row=0, col=8)  # Временно, переместится в (0,0) автоматически, так как col=8 вне сетки (GRID_COLS=8, cols 0-7)
-        # Скрываем карточку настроек (по умолчанию)
-        self._settings_card.hide()
+        # Settings card: grid is full, register as hidden
+        self._dashboard.register_hidden_card(self._settings_card)
 
         self._dashboard.cards_changed.connect(self._save_layout)
 
@@ -292,7 +290,7 @@ class MainWindow(QMainWindow):
         
         self._closing = True
         self._save_layout()
-        event.ignore()
+        event.accept()
         
         async def shutdown():
             try:
@@ -307,4 +305,4 @@ class MainWindow(QMainWindow):
             asyncio.ensure_future(shutdown())
         except RuntimeError:
             # No event loop running, just quit
-            event.accept()
+            QApplication.instance().quit()

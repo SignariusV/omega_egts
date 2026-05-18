@@ -1,10 +1,19 @@
 # OMEGA_EGTS GUI
-from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu, QStackedWidget
-from PySide6.QtCore import Qt, Signal, QMimeData
-from PySide6.QtGui import QDrag
+from __future__ import annotations
+
 from enum import Enum
+from typing import Optional
+
+from PySide6.QtCore import Qt, Signal, QMimeData, QEvent, QObject
+from PySide6.QtGui import QDrag, QMouseEvent
+from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QToolButton, QSizePolicy, QMenu, QStackedWidget
 
 from gui.dashboard.layout_engine import GRID_COLS, GRID_ROWS, GRID_GAP, cell_size
+
+COMPACT_GRID_SIZE = (1, 2)
+EXPANDED_GRID_SIZE = (4, 4)
+COMPACT_THRESHOLD = 320
+EXPANDED_THRESHOLD = 600
 
 
 class DisplayState(Enum):
@@ -12,28 +21,72 @@ class DisplayState(Enum):
     EXPANDED = "expanded"
 
 
+class _TitleBarEventFilter(QObject):
+    def __init__(self, card: BaseCard):
+        super().__init__(card)
+        self._card = card
+
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.MouseButtonPress:
+            assert isinstance(event, QMouseEvent)
+            if event.button() == Qt.MouseButton.LeftButton:
+                self._card._title_mouse_press(event)
+        elif event.type() == QEvent.Type.MouseButtonDblClick:
+            assert isinstance(event, QMouseEvent)
+            if event.button() == Qt.MouseButton.LeftButton:
+                self._card._title_double_click(event)
+        return super().eventFilter(obj, event)
+
+
+class _GripEventFilter(QObject):
+    def __init__(self, card: BaseCard, grip: QFrame):
+        super().__init__(grip)
+        self._card = card
+        self._grip = grip
+
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.MouseButtonPress:
+            assert isinstance(event, QMouseEvent)
+            self._card._grip_mouse_press(event, self._grip)
+        elif event.type() == QEvent.Type.MouseMove:
+            assert isinstance(event, QMouseEvent)
+            self._card._grip_mouse_move(event, self._grip)
+        elif event.type() == QEvent.Type.MouseButtonRelease:
+            assert isinstance(event, QMouseEvent)
+            self._card._grip_mouse_release(event, self._grip)
+        return super().eventFilter(obj, event)
+
+
+_GRIP_POSITIONS = {
+    Qt.Corner.TopLeftCorner: lambda w, h, gw, gh: (0, 0),
+    Qt.Corner.TopRightCorner: lambda w, h, gw, gh: (w - gw, 0),
+    Qt.Corner.BottomLeftCorner: lambda w, h, gw, gh: (0, h - gh),
+    Qt.Corner.BottomRightCorner: lambda w, h, gw, gh: (w - gw, h - gh),
+}
+
+
 class BaseCard(QFrame):
     """Base class for dashboard cards with compact/expanded views."""
-    
+
     collapse_toggled = Signal(bool)
     drag_started = Signal()
-    grid_size_changed = Signal(int, int)  # row_span, col_span
-    grid_geometry_changed = Signal(int, int, int, int)  # row, col, row_span, col_span
-    card_visibility_changed = Signal(bool)   # True if visible
+    grid_size_changed = Signal(int, int)
+    grid_geometry_changed = Signal(int, int, int, int)
+    card_visibility_changed = Signal(bool)
 
-    def __init__(self, title: str, card_id: str = None, parent=None):
+    def __init__(self, title: str, card_id: Optional[str] = None, parent=None):
         super().__init__(parent)
         self._title = title
         self._card_id = card_id or title.lower().replace(" ", "_")
         self._collapsed = False
         self._display_state = DisplayState.EXPANDED
-        self._row_span = 4  # Default expanded size: 4x4
-        self._col_span = 4
+        self._row_span = EXPANDED_GRID_SIZE[0]
+        self._col_span = EXPANDED_GRID_SIZE[1]
         self._grid_row = 0
         self._grid_col = 0
         self._in_state_change = False
         self._resizing = False
-        self._stack = None
+        self._stack: Optional[QStackedWidget] = None
         self.setProperty("class", "CardWidget")
         self.setMinimumSize(240, 100)
         self._init_ui()
@@ -45,7 +98,6 @@ class BaseCard(QFrame):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
 
-        # TitleBar
         self._title_bar = QFrame()
         self._title_bar.setProperty("class", "TitleBar")
         self._title_bar.setFixedHeight(32)
@@ -63,84 +115,67 @@ class BaseCard(QFrame):
         self._collapse_btn.clicked.connect(self.toggle_collapse)
         title_layout.addWidget(self._collapse_btn)
 
-        # Stacked widget for compact/expanded views
         self._stack = QStackedWidget()
         self._stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         main_layout.addWidget(self._title_bar)
         main_layout.addWidget(self._stack)
 
-        # Resize handles (4 corners)
-        self._grips = []
-        for edge in [Qt.Corner.TopLeftCorner, Qt.Corner.TopRightCorner, Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner]:
+        self._grips: list[QFrame] = []
+        for edge in [Qt.Corner.TopLeftCorner, Qt.Corner.TopRightCorner,
+                     Qt.Corner.BottomLeftCorner, Qt.Corner.BottomRightCorner]:
             grip = QFrame(self)
             grip.setObjectName("resizeGrip")
             grip.setFixedSize(10, 10)
-            grip.setCursor(Qt.CursorShape.SizeFDiagCursor if edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomRightCorner) else Qt.CursorShape.SizeBDiagCursor)
+            is_diag = edge in (Qt.Corner.TopLeftCorner, Qt.Corner.BottomRightCorner)
+            grip.setCursor(Qt.CursorShape.SizeFDiagCursor if is_diag else Qt.CursorShape.SizeBDiagCursor)
             grip.edge = edge
-            grip.mousePressEvent = lambda event, g=grip: self._grip_mouse_press(event, g)
-            grip.mouseMoveEvent = lambda event, g=grip: self._grip_mouse_move(event, g)
-            grip.mouseReleaseEvent = lambda event, g=grip: self._grip_mouse_release(event, g)
             grip.setToolTip("Drag to resize card")
             grip.raise_()
+            grip.installEventFilter(_GripEventFilter(self, grip))
             self._grips.append(grip)
 
-        # Initial positioning of grips
         self._reposition_grips()
 
-        # Drag support
-        self._title_bar.mousePressEvent = self._title_mouse_press
-        self._title_bar.mouseDoubleClickEvent = self._title_double_click
+        self._title_bar.installEventFilter(_TitleBarEventFilter(self))
 
     def finish_init(self):
         """Call after subclass has created all content widgets."""
         self.update_content_visibility(self._display_state)
 
     def set_views(self, compact_widget, expanded_widget):
-        """Set both compact and expanded widgets.
-        
-        Clears the stack and inserts widgets at indices 0 (compact) and 1 (expanded).
-        
-        Args:
-            compact_widget: QWidget to show in compact mode (index 0)
-            expanded_widget: QWidget to show in expanded mode (index 1)
-        """
-        while self._stack.count() > 0:
-            widget = self._stack.widget(0)
-            self._stack.removeWidget(widget)
-            widget.setParent(None)
-        self._stack.insertWidget(0, compact_widget)
-        self._stack.insertWidget(1, expanded_widget)
+        """Set both compact and expanded widgets."""
+        while self._stack.count():
+            self._stack.removeWidget(self._stack.widget(0))
+        self._stack.addWidget(compact_widget)
+        self._stack.addWidget(expanded_widget)
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self._title
 
     @title.setter
-    def title(self, value):
+    def title(self, value: str):
         self._title = value
         self._title_label.setText(value)
 
     @property
     def card_id(self) -> str:
-        """Unique identifier for this card (used for layout persistence)."""
         return self._card_id
 
     @property
-    def grid_size(self):
+    def grid_size(self) -> tuple[int, int]:
         return (self._row_span, self._col_span)
 
     @property
-    def grid_position(self):
+    def grid_position(self) -> tuple[int, int]:
         return (self._grid_row, self._grid_col)
 
     def set_grid_position(self, row: int, col: int):
-        """Set the card position in grid cells."""
         self._grid_row = row
         self._grid_col = col
 
     def set_grid_size(self, row_span: int, col_span: int):
-        """Set the card size in grid cells."""
         self._row_span = max(1, row_span)
         self._col_span = max(1, col_span)
         self.grid_size_changed.emit(self._row_span, self._col_span)
@@ -152,37 +187,45 @@ class BaseCard(QFrame):
             self.collapse()
 
     def collapse(self):
-        if not self._collapsed:
-            self._collapsed = True
-            self.update_content_visibility(DisplayState.COMPACT)
-            self._collapse_btn.setText("\u25B2")
-            self.collapse_toggled.emit(True)
-            self.set_grid_size(1, 2)
+        self._apply_collapse_state(
+            collapsed=True,
+            state=DisplayState.COMPACT,
+            grid_size=COMPACT_GRID_SIZE,
+            arrow="\u25B2",
+        )
 
     def expand(self):
-        if self._collapsed:
-            self._collapsed = False
-            self.update_content_visibility(DisplayState.EXPANDED)
-            self._collapse_btn.setText("\u25BC")
-            self.collapse_toggled.emit(False)
-            self.set_grid_size(4, 4)
+        self._apply_collapse_state(
+            collapsed=False,
+            state=DisplayState.EXPANDED,
+            grid_size=EXPANDED_GRID_SIZE,
+            arrow="\u25BC",
+        )
 
-    def _set_display_state(self, state):
+    def set_display_state(self, state: DisplayState):
+        """Set display state without triggering collapse/expand side effects."""
         self._display_state = state
-        if state == DisplayState.COMPACT:
-            self._collapsed = True
-        else:
-            self._collapsed = False
+        self._collapsed = state == DisplayState.COMPACT
         self.update_content_visibility(state)
 
-    def update_content_visibility(self, state):
-        """Switch stack index based on display state."""
-        if state == DisplayState.COMPACT:
-            self._stack.setCurrentIndex(0)
-        else:
-            self._stack.setCurrentIndex(1)
+    def _apply_collapse_state(self, collapsed: bool, state: DisplayState,
+                              grid_size: tuple[int, int], arrow: str):
+        if self._collapsed == collapsed:
+            return
+        self._collapsed = collapsed
+        self._display_state = state
+        self.update_content_visibility(state)
+        self._collapse_btn.setText(arrow)
+        self.collapse_toggled.emit(collapsed)
+        self.set_grid_size(*grid_size)
 
-    def _title_mouse_press(self, event):
+    def update_content_visibility(self, state: DisplayState):
+        """Switch stack index based on display state."""
+        self._display_state = state
+        self._collapsed = state == DisplayState.COMPACT
+        self._stack.setCurrentIndex(0 if state == DisplayState.COMPACT else 1)
+
+    def _title_mouse_press(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.LeftButton:
             self.drag_started.emit()
             drag = QDrag(self)
@@ -191,25 +234,36 @@ class BaseCard(QFrame):
             drag.setMimeData(mime)
             drag.exec(Qt.DropAction.MoveAction)
 
-    def _title_double_click(self, event):
+    def _title_double_click(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.LeftButton:
             self.toggle_collapse()
 
     def resizeEvent(self, event):
+        w = event.size().width()
         if self._in_state_change:
             super().resizeEvent(event)
             self._reposition_grips()
             return
 
-        w = event.size().width()
-        if w < 320 and self._display_state != DisplayState.COMPACT:
+        if w < COMPACT_THRESHOLD and self._display_state != DisplayState.COMPACT:
             self._in_state_change = True
-            self._set_display_state(DisplayState.COMPACT)
+            self._apply_collapse_state(
+                collapsed=True,
+                state=DisplayState.COMPACT,
+                grid_size=COMPACT_GRID_SIZE,
+                arrow="\u25B2",
+            )
             self._in_state_change = False
-        elif w >= 600 and self._display_state != DisplayState.EXPANDED:
+        elif w >= EXPANDED_THRESHOLD and self._display_state != DisplayState.EXPANDED:
             self._in_state_change = True
-            self._set_display_state(DisplayState.EXPANDED)
+            self._apply_collapse_state(
+                collapsed=False,
+                state=DisplayState.EXPANDED,
+                grid_size=EXPANDED_GRID_SIZE,
+                arrow="\u25BC",
+            )
             self._in_state_change = False
+
         super().resizeEvent(event)
         self._reposition_grips()
 
@@ -218,19 +272,13 @@ class BaseCard(QFrame):
         w = self.width()
         h = self.height()
         for grip in self._grips:
-            if grip.edge == Qt.Corner.TopLeftCorner:
-                grip.move(0, 0)
-            elif grip.edge == Qt.Corner.TopRightCorner:
-                grip.move(w - grip.width(), 0)
-            elif grip.edge == Qt.Corner.BottomLeftCorner:
-                grip.move(0, h - grip.height())
-            else:  # BottomRightCorner
-                grip.move(w - grip.width(), h - grip.height())
+            gw, gh = grip.width(), grip.height()
+            pos_fn = _GRIP_POSITIONS.get(grip.edge)
+            if pos_fn:
+                grip.move(*pos_fn(w, h, gw, gh))
 
-    def _grip_mouse_press(self, event, grip):
-        """Handle mouse press on resize grip."""
+    def _grip_mouse_press(self, event: QMouseEvent, grip: QFrame):
         if event.button() == Qt.MouseButton.LeftButton:
-            self._resize_start_geometry = self.geometry()
             self._resize_start_pos = event.globalPosition().toPoint()
             self._resize_edge = grip.edge
             self._resize_start_row_span = self._row_span
@@ -240,8 +288,7 @@ class BaseCard(QFrame):
             self._resizing = True
             grip.grabMouse()
 
-    def _grip_mouse_move(self, event, grip):
-        """Handle mouse move on resize grip - snap to grid cells."""
+    def _grip_mouse_move(self, event: QMouseEvent, grip: QFrame):
         if not self._resizing:
             return
 
@@ -250,37 +297,33 @@ class BaseCard(QFrame):
             return
 
         cell_w, cell_h = cell_size(parent.width(), parent.height())
-
         delta = event.globalPosition().toPoint() - self._resize_start_pos
         edge = self._resize_edge
+
+        delta_cols = round(delta.x() / (cell_w + GRID_GAP))
+        delta_rows = round(delta.y() / (cell_h + GRID_GAP))
 
         new_col_span = self._resize_start_col_span
         new_row_span = self._resize_start_row_span
         new_col = self._resize_start_col
         new_row = self._resize_start_row
 
-        delta_cols = round(delta.x() / (cell_w + GRID_GAP))
-        delta_rows = round(delta.y() / (cell_h + GRID_GAP))
-
         if edge == Qt.Corner.BottomRightCorner:
-            new_col_span = self._resize_start_col_span + delta_cols
-            new_row_span = self._resize_start_row_span + delta_rows
-
+            new_col_span += delta_cols
+            new_row_span += delta_rows
         elif edge == Qt.Corner.TopRightCorner:
-            new_col_span = self._resize_start_col_span + delta_cols
-            new_row_span = self._resize_start_row_span - delta_rows
-            new_row = self._resize_start_row + delta_rows
-
+            new_col_span += delta_cols
+            new_row_span -= delta_rows
+            new_row += delta_rows
         elif edge == Qt.Corner.BottomLeftCorner:
-            new_col_span = self._resize_start_col_span - delta_cols
-            new_col = self._resize_start_col + delta_cols
-            new_row_span = self._resize_start_row_span + delta_rows
-
+            new_col_span -= delta_cols
+            new_col += delta_cols
+            new_row_span += delta_rows
         elif edge == Qt.Corner.TopLeftCorner:
-            new_col_span = self._resize_start_col_span - delta_cols
-            new_col = self._resize_start_col + delta_cols
-            new_row_span = self._resize_start_row_span - delta_rows
-            new_row = self._resize_start_row + delta_rows
+            new_col_span -= delta_cols
+            new_col += delta_cols
+            new_row_span -= delta_rows
+            new_row += delta_rows
 
         new_row = max(0, min(new_row, GRID_ROWS - 1))
         new_col = max(0, min(new_col, GRID_COLS - 1))
@@ -295,47 +338,47 @@ class BaseCard(QFrame):
             self._grid_col = new_col
             self.grid_geometry_changed.emit(new_row, new_col, new_row_span, new_col_span)
 
-    def _grip_mouse_release(self, event, grip):
-        """Handle mouse release on resize grip - clear state."""
+    def _grip_mouse_release(self, event: QMouseEvent, grip: QFrame):
         grip.releaseMouse()
         self._resizing = False
-        attrs_to_clear = ['_resize_start_pos', '_resize_edge', '_resize_start_geometry',
-                         '_resize_start_row_span', '_resize_start_col_span',
-                         '_resize_start_row', '_resize_start_col']
-        for attr in attrs_to_clear:
+        for attr in ('_resize_start_pos', '_resize_edge',
+                     '_resize_start_row_span', '_resize_start_col_span',
+                     '_resize_start_row', '_resize_start_col'):
             if hasattr(self, attr):
                 delattr(self, attr)
 
     def _show_context_menu(self, pos):
         menu = QMenu(self)
-        if self._collapsed:
-            expand_action = menu.addAction("Expand")
-            expand_action.triggered.connect(self.expand)
-            expand_action.setToolTip("Expand card to show full content")
-        else:
-            collapse_action = menu.addAction("Collapse")
-            collapse_action.triggered.connect(self.collapse)
-            collapse_action.setToolTip("Collapse card to compact view")
+        action_text = "Expand" if self._collapsed else "Collapse"
+        action_handler = self.expand if self._collapsed else self.collapse
+        action_tooltip = "Expand card to show full content" if self._collapsed else "Collapse card to compact view"
+        self._add_menu_action(menu, action_text, action_handler, action_tooltip)
+
         menu.addSeparator()
-        reset_action = menu.addAction("Reset Settings")
-        reset_action.triggered.connect(self._on_reset_settings)
-        reset_action.setToolTip("Reset card to default state")
+        self._add_menu_action(menu, "Reset Settings", self._on_reset_settings,
+                              "Reset card to default state")
+
         menu.addSeparator()
-        close_action = menu.addAction("Close")
-        close_action.triggered.connect(self.hide)
-        close_action.setToolTip("Hide this card")
+        self._add_menu_action(menu, "Close", self.hide, "Hide this card")
+
         menu.exec(self.mapToGlobal(pos))
+
+    @staticmethod
+    def _add_menu_action(menu: QMenu, text: str, handler, tooltip: str):
+        action = menu.addAction(text)
+        action.triggered.connect(handler)
+        action.setToolTip(tooltip)
 
     def _on_reset_settings(self):
         """Reset card to default state. Override in subclasses."""
         self.expand()
 
+    def setVisible(self, visible: bool):
+        super().setVisible(visible)
+        self.card_visibility_changed.emit(visible)
+
     def show(self):
-        """Show the card and emit visibility signal."""
         super().show()
-        self.card_visibility_changed.emit(True)
 
     def hide(self):
-        """Hide the card and emit visibility signal."""
         super().hide()
-        self.card_visibility_changed.emit(False)

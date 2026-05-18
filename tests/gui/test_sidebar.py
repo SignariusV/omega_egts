@@ -139,3 +139,16 @@ class TestCardSidebar:
 
         assert sidebar._toggle_btn is not None
         assert sidebar._toggle_btn.objectName() == "sidebarToggle"
+
+    def test_hidden_card_button_unchecked_on_creation(self, qtbot):
+        container = DashboardContainer()
+        qtbot.addWidget(container)
+        card = BaseCard("Test", card_id="test_card")
+        container.add_card(card, 0, 0)
+        container.hide_card("test_card")
+
+        sidebar = CardSidebar(container)
+        qtbot.addWidget(sidebar)
+
+        btn = sidebar._buttons["test_card"]
+        assert btn.isChecked() is False

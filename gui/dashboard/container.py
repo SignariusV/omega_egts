@@ -44,8 +44,16 @@ class DashboardContainer(QWidget):
         
         if not self._is_within_grid(row, col, row_span, col_span):
             row, col = 0, 0
-        
-        card.setParent(self)        
+            row_span = min(row_span, GRID_ROWS)
+            col_span = min(col_span, GRID_COLS)
+
+        if not self._is_area_free(row, col, row_span, col_span):
+            free_spot = self._find_free_spot(row_span, col_span)
+            if free_spot is None:
+                return  # No space available
+            row, col = free_spot
+
+        card.setParent(self)
         self._cards[card_id] = (row, col, row_span, col_span)
         card.set_grid_position(row, col)        
         card.destroyed.connect(lambda: self._on_card_destroyed(card_id))
@@ -126,7 +134,7 @@ class DashboardContainer(QWidget):
         
         for card in self.findChildren(BaseCard):
             if card.card_id == card_id:
-                card.set_grid_position(row, col)
+                card.set_grid_size(row_span, col_span)
                 self._update_card_geometry(card)
                 break
         
@@ -296,6 +304,22 @@ class DashboardContainer(QWidget):
         """Show a specific card by ID."""
         if self._show_card(card_id):
             self.card_visibility_changed.emit(card_id, True)
+
+    def register_hidden_card(self, card: BaseCard, row: int = 0, col: int = 0,
+                              row_span: Optional[int] = None, col_span: Optional[int] = None):
+        """Register a card as hidden (useful when grid is full at startup)."""
+        card_id = card.card_id
+        if card_id in self._cards or card_id in self._hidden_cards:
+            return
+        if row_span is None or col_span is None:
+            row_span, col_span = card.grid_size
+        card.setParent(self)
+        card.setVisible(False)
+        self._hidden_cards[card_id] = (row, col, row_span, col_span)
+        card.destroyed.connect(lambda: self._on_card_destroyed(card_id))
+        card.card_visibility_changed.connect(
+            lambda visible, cid=card_id: self._on_card_visibility_changed(cid, visible)
+        )
 
     def hide_card(self, card_id: str):
         """Hide a specific card by ID."""

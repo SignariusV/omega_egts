@@ -17,6 +17,7 @@ class PersistenceManager:
 
     def save_layout(self, snapshot: list[dict]) -> None:
         try:
+            self.layout_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.layout_path, 'w') as f:
                 json.dump(snapshot, f, indent=2)
         except Exception as e:
@@ -36,6 +37,7 @@ class PersistenceManager:
 
     def save_state(self, states: dict) -> None:
         try:
+            self.state_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.state_path, 'w') as f:
                 json.dump(states, f, indent=2)
         except Exception as e:
@@ -46,7 +48,10 @@ class PersistenceManager:
             return self._load_default(self.default_state, is_layout=False)
         try:
             with open(self.state_path) as f:
-                return json.load(f)
+                data = json.load(f)
+            if not isinstance(data, dict):
+                raise ValueError(f"State must be a dict, got {type(data).__name__}")
+            return data
         except Exception as e:
             logger.warning("Could not load state, using default: %s", e)
             return self._load_default(self.default_state, is_layout=False)
@@ -77,6 +82,12 @@ class PersistenceManager:
             for req in ('row', 'col', 'row_span', 'col_span'):
                 if req not in item:
                     raise ValueError(f"Missing required key: {req}")
+                if not isinstance(item[req], int):
+                    raise ValueError(f"{req} must be an int, got {type(item[req]).__name__}")
+                if item[req] < 1 and req in ('row_span', 'col_span'):
+                    raise ValueError(f"{req} must be >= 1, got {item[req]}")
+                if item[req] < 0 and req in ('row', 'col'):
+                    raise ValueError(f"{req} must be >= 0, got {item[req]}")
 
     def reset_to_defaults(self) -> None:
         """Delete saved layout and state files to reset to defaults."""
