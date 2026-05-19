@@ -111,14 +111,25 @@ class VisaCmw500Driver:
         return self._drv.utilities.query_str_with_opc("FETCh:GSM:SIGN:PSWitched:STATe?").strip()
 
     # def get_ber(self) -> float:
-    #     """Получить BER (Bit Error Rate)."""
-    #     return float(self._drv.utilities.query_str("SENSe:RReport:CSW:MBEP?").strip())
+    #     """Получить BER (Mean Bit Error Probability, CS).
+    #     Правильная команда (из RsCmwGsmSig docs):
+    #         SENSe:RReport:Cswitched:Mbep?
+    #     Альтернативы:
+    #         SENSe:RReport:Cswitched:Cbep?  — Conditional Bit Error Probability
+    #         SENSe:RReport:Gmbep?           — General MBEP
+    #         SENSe:RReport:Embep?           — Enhanced MBEP (GPRS/EDGE)
+    #     """
+    #     return float(self._drv.utilities.query_str("SENSe:RReport:Cswitched:Mbep?").strip())
 
     # def get_rx_level(self) -> float:
-    #     """Получить уровень RX.
-    #     Формат команды необходимо уточнить — SENSe:RReport:RXLevel:SUB? вызывает -113 "Undefined header".
+    #     """Получить уровень RX (substituted).
+    #     Правильная команда (из RsCmwGsmSig docs):
+    #         SENSe:RReport:RxLevel:Sub?
+    #     Альтернативы:
+    #         SENSe:RReport:RxQuality:Sub?  — RX Quality (substituted)
+    #         SENSe:RReport:Cvalue?         — C value
     #     """
-    #     return float(self._drv.utilities.query_str("SENSe:RReport:RXLevel:SUB?").strip())
+    #     return float(self._drv.utilities.query_str("SENSe:RReport:RxLevel:Sub?").strip())
 
     def get_rx_quality(self) -> float:
         """Получить качество RX."""
