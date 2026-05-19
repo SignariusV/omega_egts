@@ -110,13 +110,15 @@ class VisaCmw500Driver:
         """Получить состояние PS (Packet Switched)."""
         return self._drv.utilities.query_str_with_opc("FETCh:GSM:SIGN:PSWitched:STATe?").strip()
 
-    def get_ber(self) -> float:
-        """Получить BER (Bit Error Rate)."""
-        return float(self._drv.utilities.query_str("SENSe:RReport:CSW:MBEP?").strip())
+    # def get_ber(self) -> float:
+    #     """Получить BER (Bit Error Rate)."""
+    #     return float(self._drv.utilities.query_str("SENSe:RReport:CSW:MBEP?").strip())
 
-    def get_rx_level(self) -> float:
-        """Получить уровень RX."""
-        return float(self._drv.utilities.query_str("SENSe:RReport:RXLevel:SUB?").strip())
+    # def get_rx_level(self) -> float:
+    #     """Получить уровень RX.
+    #     Формат команды необходимо уточнить — SENSe:RReport:RXLevel:SUB? вызывает -113 "Undefined header".
+    #     """
+    #     return float(self._drv.utilities.query_str("SENSe:RReport:RXLevel:SUB?").strip())
 
     def get_rx_quality(self) -> float:
         """Получить качество RX."""
@@ -153,10 +155,13 @@ class VisaCmw500Driver:
         return self._drv.utilities.query_str_with_opc("SOURce:GSM:SIGN:CELL:STATe:ALL?").strip()
 
     def get_status(self) -> str:
-        """Получить статус соединения (устаревший метод, используйте get_connection_state)."""
-        result = self._drv.utilities.query_str("CALL:GSM:SIGN1:CONNection:STATe?").strip()
-        status_map = {"0": "DISConnected", "1": "CONNected", "2": "CAMPed", "3": "REGistered"}
-        return status_map.get(result, result)
+        """Получить статус соединения (рекомендуемый метод)."""
+        result = self._drv.utilities.query_str_with_opc("SOURce:GSM:SIGN:CELL:STATe:ALL?").strip()
+        status_map = {"ON": "ON", "OFF": "OFF"}
+        parts = result.split(",")
+        if parts:
+            return status_map.get(parts[0], result)
+        return result
 
     def get_connection_state(self) -> str:
         """Получить состояние соединения (рекомендуемый метод)."""
@@ -176,17 +181,17 @@ class VisaCmw500Driver:
         ps_dl_cscheme: str = "MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9",
     ) -> None:
         """Конфигурация GSM сигналинга."""
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CELL:MCC {mcc}")
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CELL:MNC {mnc}")
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:RFSettings:LEVel:TCH {rf_level_dbm}")
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:SERVice {ps_service}")
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:TLEVel {ps_tlevel}")
-        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:CONNection:PSWitched:CSCHeme:UL {ps_cscheme_ul}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:CELL:MCC {mcc}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:CELL:MNC {mnc}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:RFSettings:LEVel:TCH {rf_level_dbm}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:CONNection:PSWitched:SERVice {ps_service}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:CONNection:PSWitched:TLEVel {ps_tlevel}")
+        self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:CONNection:PSWitched:CSCHeme:UL {ps_cscheme_ul}")
         self._drv.utilities.write_str(
-            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:ENABle:DL:CARRier {ps_dl_carrier}"
+            f"CONFigure:GSM:SIGN1:CONNection:PSWitched:SCONfig:ENABle:DL:CARRier {ps_dl_carrier}"
         )
         self._drv.utilities.write_str(
-            f"CONFigure:GSM:SIGN:CONNection:PSWitched:SCONfig:CSCHeme:DL:CARRier {ps_dl_cscheme}"
+            f"CONFigure:GSM:SIGN1:CONNection:PSWitched:SCONfig:CSCHeme:DL:CARRier {ps_dl_cscheme}"
         )
 
     def configure_sms(self, dcoding: str = "BIT8", pid: int = 1) -> None:
@@ -195,10 +200,12 @@ class VisaCmw500Driver:
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H{pid}")
 
     def configure_dau(self) -> None:
-        """Конфигурация DAU."""
-        self._drv.utilities.write_str("CONFigure:DATA:MEAS:RAN 'GSM Sig1'")
-        self._drv.utilities.write_str("CONFigure:DATA:CONTrol:DNS:PRIMary:STYPe Foreign")
-        self._drv.utilities.write_str("CONFigure:DATA:CONTrol:IPVFour:ADDRess:TYPE DHCPv4")
+        """Конфигурация DAU.
+
+        Примечание: DAU конфигурация не требуется для режима GSM Signaling.
+        Этот метод оставлен для совместимости, но не выполняет никаких команд.
+        """
+        pass
 
     def get_mcc(self) -> str:
         """Получить текущий MCC."""
@@ -565,7 +572,6 @@ class Cmw500Controller:
                 "rssi": "-65",
                 "rssi_range": "INV,INV",
                 "cell_status": "ON,ADJ",
-                "ber": 0.001,
                 "rx_level": -70.0,
                 "imei": "351234567890123",
                 "imsi": "250011234567890",
@@ -594,12 +600,6 @@ class Cmw500Controller:
                 cell_status = await self._execute_with_retry(
                     CmwCommand(name="get_cell_status", func=self._driver.get_cell_status, timeout=3.0, retry_count=1)
                 )
-                ber = await self._execute_with_retry(
-                    CmwCommand(name="get_ber", func=self._driver.get_ber, timeout=3.0, retry_count=1)
-                )
-                rx_level = await self._execute_with_retry(
-                    CmwCommand(name="get_rx_level", func=self._driver.get_rx_level, timeout=3.0, retry_count=1)
-                )
                 serial = await self._execute_with_retry(
                     CmwCommand(
                         name="serial_number", func=lambda: self._driver.serial_number, timeout=2.0, retry_count=1
@@ -624,8 +624,6 @@ class Cmw500Controller:
                     "rssi": rssi,
                     "rssi_range": rssi_range,
                     "cell_status": cell_status,
-                    "ber": ber,
-                    "rx_level": rx_level,
                     "imei": imei,
                     "imsi": imsi,
                     "simulate": False,
@@ -948,8 +946,6 @@ class Cmw500Emulator(Cmw500Controller):
             "rssi": self._mock_driver.get_rssi(),
             "rssi_range": self._mock_driver.get_rssi_range(),
             "cell_status": self._mock_driver.get_cell_status(),
-            "ber": self._mock_driver.get_ber(),
-            "rx_level": self._mock_driver.get_rx_level(),
             "imei": self._mock_driver.get_imei(),
             "imsi": self._mock_driver.get_imsi(),
             "simulate": True,
