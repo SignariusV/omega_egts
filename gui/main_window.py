@@ -232,6 +232,10 @@ class MainWindow(QMainWindow):
         eb.cmw_connected.connect(self._status_card.on_cmw_connected)
         eb.cmw_disconnected.connect(self._status_card.on_cmw_disconnected)
 
+        eb.scenario_started.connect(self._scenario_card.on_scenario_started)
+        eb.scenario_step.connect(self._scenario_card.on_scenario_step)
+        eb.scenario_finished.connect(self._scenario_card.on_scenario_finished)
+
         eb.packet_processed.connect(self._packets_card.on_packet_processed)
         eb.packet_sent.connect(self._packets_card.on_packet_sent)
 
@@ -254,11 +258,14 @@ class MainWindow(QMainWindow):
             status = await self._engine_wrapper.get_status()
             if not status.get("running"):
                 await self._engine_wrapper.start()
-            await self._engine_wrapper.run_scenario(path)
+            result = await self._engine_wrapper.run_scenario(path)
+            if result.get("status") == "error":
+                error_msg = result.get("error", "Unknown error")
+                self._status_bar.showMessage(f"Scenario error: {error_msg}", 5000)
+                QMessageBox.warning(self, "Scenario Error", error_msg)
         except Exception as e:
             error_msg = str(e)
             self._status_bar.showMessage(f"Scenario failed: {error_msg}", 5000)
-            # Show detailed error in message box
             QMessageBox.warning(self, "Scenario Error", error_msg)
             self._scenario_card.on_scenario_stopped()
 
@@ -269,8 +276,6 @@ class MainWindow(QMainWindow):
             await self._engine_wrapper.stop_scenario()
         except Exception as e:
             logger.warning("Could not stop scenario: %s", e)
-        finally:
-            self._scenario_card.on_scenario_stopped()
 
     def _on_settings_changed(self, data: dict):
         """Handle settings save. Notify user that restart is required."""

@@ -51,6 +51,9 @@ class CoreEngine:
     scenario_mgr: Any = field(default=None, init=False, repr=False)
     log_mgr: Any = field(default=None, init=False, repr=False)
 
+    # Background task для выполнения сценария (не блокирует event loop)
+    _scenario_task: asyncio.Task[None] | None = field(default=None, init=False, repr=False)
+
     # Флаг — атомарная проверка «запущен ли CoreEngine».
     # Source of truth для состояния компонентов — их собственные поля,
     # но _started нужен для быстрой проверки без обращения к компонентам.
@@ -232,6 +235,13 @@ class CoreEngine:
         self.log_mgr = None
         self.session_mgr = None
 
+        # Отменяем background task сценария
+        if self._scenario_task is not None and not self._scenario_task.done():
+            self._scenario_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._scenario_task
+        self._scenario_task = None
+
     @property
     def is_running(self) -> bool:
         """Проверка, запущена ли система."""
@@ -268,6 +278,7 @@ class CoreEngine:
             "session_mgr": self.session_mgr is not None,
             "log_mgr": self.log_mgr is not None,
             "scenario_mgr": self.scenario_mgr is not None,
+            "scenario_running": self.scenario_mgr is not None and self.scenario_mgr.is_running,
         }
 
         # Дополнить деталями от CMW-500
@@ -309,7 +320,7 @@ class CoreEngine:
             return {"connected": False, "error": str(exc)}
 
     async def run_scenario(self, scenario_path: str, connection_id: str | None = None) -> dict[str, Any]:
-        """Запустить сценарий для команды ``run-scenario``.
+        """Запустить сценарий как background task.
 
         Параметры:
             scenario_path: путь к директории сценария (scenario.json + HEX).
@@ -324,33 +335,79 @@ class CoreEngine:
         if self.scenario_mgr is None:
             return {"status": "error", "error": "ScenarioManager не инициализирован"}
 
+        if self._scenario_task is not None and not self._scenario_task.done():
+            return {"status": "error", "error": "Сценарий уже выполняется"}
+
         try:
             scenario_path_obj = Path(scenario_path)
-            # Если передана директория — добавляем scenario.json
             if scenario_path_obj.is_dir():
                 scenario_path_obj = scenario_path_obj / "scenario.json"
 
             self.scenario_mgr.load(scenario_path_obj)
-            # Используем таймаут из сценария, если не задан — дефолт 60с
             scenario_timeout = (
                 self.scenario_mgr.metadata.timeout
                 if self.scenario_mgr.metadata and self.scenario_mgr.metadata.timeout
                 else 60.0
             )
-            result = await self.scenario_mgr.execute(
-                bus=self.bus,
-                connection_id=connection_id,
-                timeout=scenario_timeout,
-            )
-            history = self.scenario_mgr.context.history
+
+            async def _run():
+                try:
+                    result = await self.scenario_mgr.execute(
+                        bus=self.bus,
+                        connection_id=connection_id,
+                        timeout=scenario_timeout,
+                    )
+                    await self.bus.emit("scenario.finished", {
+                        "scenario_name": self.scenario_mgr.metadata.name,
+                        "result": result,
+                    })
+                except asyncio.CancelledError:
+                    await self.bus.emit("scenario.finished", {
+                        "scenario_name": self.scenario_mgr.metadata.name,
+                        "result": "CANCELLED",
+                    })
+                except Exception as exc:
+                    await self.bus.emit("scenario.finished", {
+                        "scenario_name": self.scenario_mgr.metadata.name,
+                        "result": "ERROR",
+                        "error": str(exc),
+                    })
+                finally:
+                    self._scenario_task = None
+
+            self._scenario_task = asyncio.create_task(_run())
             return {
                 "name": self.scenario_mgr.metadata.name,
-                "status": result,
-                "steps_total": len(history),
-                "steps_passed": sum(1 for h in history if h.result == "PASS"),
+                "status": "RUNNING",
+                "steps_total": len(self.scenario_mgr.steps),
+                "steps_passed": 0,
             }
         except Exception as exc:
             return {"status": "error", "error": str(exc)}
+
+    async def cancel_scenario(self) -> dict[str, Any]:
+        """Отменить выполнение сценария.
+
+        Возвращает:
+            Словарь с результатом отмены.
+        """
+        if self.scenario_mgr is None:
+            return {"status": "error", "error": "ScenarioManager не инициализирован"}
+
+        if not self.scenario_mgr.is_running:
+            return {"status": "error", "error": "Сценарий не выполняется"}
+
+        self.scenario_mgr.cancel()
+
+        if self._scenario_task is not None and not self._scenario_task.done():
+            self._scenario_task.cancel()
+            try:
+                await self._scenario_task
+            except asyncio.CancelledError:
+                pass
+            self._scenario_task = None
+
+        return {"status": "ok", "result": "CANCELLED"}
 
     async def replay(self, log_path: str, scenario_path: str | None = None) -> dict[str, Any]:
         """Replay JSONL-лога через pipeline для команды ``replay``.

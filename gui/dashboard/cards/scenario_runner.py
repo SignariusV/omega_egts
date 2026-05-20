@@ -5,15 +5,26 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
     QPushButton, QTableView, QHeaderView, QLabel
 )
-from PySide6.QtCore import Signal, Slot, Qt, QAbstractTableModel, QModelIndex
+from PySide6.QtCore import Signal, Slot, Qt, QAbstractTableModel, QModelIndex, QTimer
+from PySide6.QtGui import QColor
 from gui.dashboard.card_base import BaseCard, DisplayState
 from gui.utils.scenario_scanner import scan_scenarios, get_default_scenarios_path, ScenarioInfo
-from gui.widgets.progress_bar import ProgressBarWidget
+from gui.widgets.progress_bar import ProgressBarWidget, STATUS_COLORS
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
-
 logger = logging.getLogger(__name__)
+
+
+STEP_STATUS_COLORS = {
+    "PASS": QColor("#4EC9B0"),
+    "FAIL": QColor("#F44747"),
+    "TIMEOUT": QColor("#DCDCAA"),
+    "ERROR": QColor("#F44747"),
+    "RUNNING": QColor("#569CD6"),
+    "PENDING": QColor("#808080"),
+    "CANCELLED": QColor("#808080"),
+}
 
 
 class StepTableModel(QAbstractTableModel):
@@ -32,7 +43,7 @@ class StepTableModel(QAbstractTableModel):
         if 0 <= index < len(self._steps):
             self._steps[index]["status"] = status
             self._steps[index]["duration"] = duration
-            self.dataChanged.emit(self.index(index, 1), self.index(index, 2))
+            self.dataChanged.emit(self.index(index, 0), self.index(index, 2))
 
     def rowCount(self, parent=QModelIndex()):
         return len(self._steps)
@@ -41,16 +52,22 @@ class StepTableModel(QAbstractTableModel):
         return len(self.COLUMNS)
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
-        if not index.isValid() or role != Qt.ItemDataRole.DisplayRole:
+        if not index.isValid():
             return None
         step = self._steps[index.row()]
         col = index.column()
-        if col == 0:
-            return step.get("name", "")
-        elif col == 1:
-            return step.get("status", "")
-        elif col == 2:
-            return step.get("duration", "")
+        if role == Qt.ItemDataRole.DisplayRole:
+            if col == 0:
+                return step.get("name", "")
+            elif col == 1:
+                return step.get("status", "")
+            elif col == 2:
+                return step.get("duration", "")
+        elif role == Qt.ItemDataRole.BackgroundRole:
+            status = step.get("status", "")
+            color = STEP_STATUS_COLORS.get(status)
+            if color:
+                return color
         return None
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
@@ -69,6 +86,10 @@ class ScenarioRunnerCard(BaseCard):
         self._scenarios: list[ScenarioInfo] = []
         self._selected_path: str = ""
         self._running = False
+        self._steps_total = 0
+        self._timer = QTimer(self)
+        self._timer.timeout.connect(self._on_timer_tick)
+        self._elapsed_seconds = 0
         self._build_widgets()
         self._load_scenarios()
         self.finish_init()
@@ -153,10 +174,6 @@ class ScenarioRunnerCard(BaseCard):
                 path = combo.itemData(idx)
                 if path:
                     self._selected_path = str(path)
-                    self._running = True
-                    self._update_button_state(True)
-                    self._step_model.set_steps([])
-                    self._progress_bar.set_value(0)
                     self.run_requested.emit(self._selected_path)
 
     def _update_button_state(self, running: bool):
@@ -181,41 +198,79 @@ class ScenarioRunnerCard(BaseCard):
     def update_content_visibility(self, state: DisplayState):
         super().update_content_visibility(state)
 
-    @Slot()
-    def on_scenario_step(self, data: dict):
-        step_name = data.get("step", "")
-        status = data.get("status", "")
-        duration = data.get("duration", "")
+    @Slot(dict)
+    def on_scenario_started(self, data: dict):
+        """Инициализировать таблицу и прогресс при старте сценария."""
+        self._running = True
+        self._steps_total = data.get("steps_total", 0)
         steps = data.get("steps", [])
+        self._step_model.set_steps(steps)
+        self._progress_bar.set_segments(self._steps_total)
+        self._progress_bar.set_value(0)
+        self._update_button_state(True)
+        # Запуск таймера
+        self._elapsed_seconds = 0
+        self._timer.start(1000)
+
+    @Slot(dict)
+    def on_scenario_step(self, data: dict):
+        """Обновить шаг и прогресс."""
+        step_index = data.get("step_index", 0)
+        status = data.get("result", "")
+        duration = data.get("duration", 0.0)
+        steps = data.get("steps", [])
+
         if steps:
             self._step_model.set_steps(steps)
-        
-        found = False
-        for i, step in enumerate(self._step_model._steps):
-            if step.get("name") == step_name:
-                if found:
-                    logger.warning(f"Duplicate step name '{step_name}' found in scenario")
-                self._step_model.update_step(i, status, duration)
-                found = True
-                break
-        
-        progress = data.get("progress")
-        if progress is not None:
-            self._progress_bar.set_value(progress)
-        if status in ("PASS", "FAIL"):
+        else:
+            self._step_model.update_step(step_index, status, f"{duration:.2f}s")
+
+        # Подсветка сегмента прогресса
+        self._progress_bar.set_step_status(step_index, status)
+
+        # Обновление прогресса
+        progress = data.get("progress", 0)
+        self._progress_bar.set_value(progress)
+
+        # Если сценарий завершился
+        if status in ("PASS", "FAIL", "ERROR", "TIMEOUT", "CANCELLED"):
             self._running = False
             self._update_button_state(False)
+            self._timer.stop()
+
+    @Slot(dict)
+    def on_scenario_finished(self, data: dict):
+        """Финальное состояние сценария."""
+        self._running = False
+        self._update_button_state(False)
+        self._timer.stop()
 
     @Slot()
     def on_command_error(self, data: dict):
         self._running = False
         self._update_button_state(False)
+        self._timer.stop()
 
     def on_scenario_stopped(self):
         """Call when scenario execution is stopped."""
         self._running = False
         self._update_button_state(False)
-        self._progress_bar.set_value(0)
+        self._progress_bar.reset()
+        self._timer.stop()
+
+    def _on_timer_tick(self):
+        """Обновить duration текущего RUNNING шага каждую секунду."""
+        self._elapsed_seconds += 1
+        for i, step in enumerate(self._step_model._steps):
+            if step.get("status") == "PENDING":
+                # Обновляем первый PENDING шаг как RUNNING
+                self._step_model.update_step(i, "RUNNING", f"{self._elapsed_seconds}s")
+                self._progress_bar.set_step_status(i, "RUNNING")
+                break
+            elif step.get("status") == "RUNNING":
+                # Обновляем duration текущего RUNNING
+                self._step_model.update_step(i, "RUNNING", f"{self._elapsed_seconds}s")
+                break
 
     def get_state(self) -> dict:
         return {

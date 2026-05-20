@@ -15,8 +15,10 @@ class EventBridge(QObject):
     cmw_error = Signal(dict)
     server_started = Signal(dict)
     server_stopped = Signal(dict)
-    connection_changed = Signal(dict)
+    scenario_started = Signal(dict)
     scenario_step = Signal(dict)
+    scenario_finished = Signal(dict)
+    connection_changed = Signal(dict)
     command_sent = Signal(dict)
     command_error = Signal(dict)
 
@@ -39,8 +41,10 @@ class EventBridge(QObject):
         bus.on("cmw.error", self._on_cmw_error)
         bus.on("server.started", self._on_server_started)
         bus.on("server.stopped", self._on_server_stopped)
-        bus.on("connection.changed", self._on_connection_changed)
+        bus.on("scenario.started", self._on_scenario_started)
         bus.on("scenario.step", self._on_scenario_step)
+        bus.on("scenario.finished", self._on_scenario_finished)
+        bus.on("connection.changed", self._on_connection_changed)
         bus.on("command.sent", self._on_command_sent)
         bus.on("command.error", self._on_command_error)
         self._subscribed = True
@@ -59,8 +63,10 @@ class EventBridge(QObject):
         bus.off("cmw.error", self._on_cmw_error)
         bus.off("server.started", self._on_server_started)
         bus.off("server.stopped", self._on_server_stopped)
-        bus.off("connection.changed", self._on_connection_changed)
+        bus.off("scenario.started", self._on_scenario_started)
         bus.off("scenario.step", self._on_scenario_step)
+        bus.off("scenario.finished", self._on_scenario_finished)
+        bus.off("connection.changed", self._on_connection_changed)
         bus.off("command.sent", self._on_command_sent)
         bus.off("command.error", self._on_command_error)
         self._subscribed = False
@@ -91,11 +97,17 @@ class EventBridge(QObject):
     def _on_server_stopped(self, data: dict[str, Any]) -> None:
         self.server_stopped.emit(data)
 
-    def _on_connection_changed(self, data: dict[str, Any]) -> None:
-        self.connection_changed.emit(data)
+    def _on_scenario_started(self, data: dict[str, Any]) -> None:
+        self.scenario_started.emit(data)
 
     def _on_scenario_step(self, data: dict[str, Any]) -> None:
         self.scenario_step.emit(data)
+
+    def _on_scenario_finished(self, data: dict[str, Any]) -> None:
+        self.scenario_finished.emit(data)
+
+    def _on_connection_changed(self, data: dict[str, Any]) -> None:
+        self.connection_changed.emit(data)
 
     def _on_command_sent(self, data: dict[str, Any]) -> None:
         self.command_sent.emit(data)

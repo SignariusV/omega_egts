@@ -53,11 +53,8 @@ class EngineWrapper:
         return await self.engine.run_scenario(scenario_path, connection_id)
 
     async def stop_scenario(self) -> dict[str, Any]:
-        """Stop running scenario. Not yet implemented — see KI-063, KI-064."""
-        raise NotImplementedError(
-            "Остановка сценария пока не реализована. "
-            "Дождитесь завершения или перезапустите engine."
-        )
+        """Stop running scenario."""
+        return await self.engine.cancel_scenario()
 
     async def replay(self, log_path: str, scenario_path: str | None = None) -> dict[str, Any]:
         return await self.engine.replay(log_path, scenario_path)

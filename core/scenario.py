@@ -747,6 +747,17 @@ class ScenarioManager:
         self._steps: list[ExpectStep | SendStep] = []
         self._context = ScenarioContext()
         self._metadata: ScenarioMetadata | None = None
+        self._cancel_requested: bool = False
+        self._running: bool = False
+
+    @property
+    def is_running(self) -> bool:
+        return self._running
+
+    def cancel(self) -> None:
+        """Запросить отмену выполнения сценария."""
+        self._cancel_requested = True
+        logger.info("Scenario: cancel requested")
 
     @property
     def metadata(self) -> ScenarioMetadata:
@@ -830,21 +841,69 @@ class ScenarioManager:
             timeout: Общий таймаут сценария.
 
         Returns:
-            PASS, FAIL, TIMEOUT или ERROR.
+            PASS, FAIL, TIMEOUT, CANCELLED или ERROR.
         """
         if not self._steps:
             raise RuntimeError("No steps loaded — call load() first")
 
         self._context.connection_id = connection_id
+        self._context.history.clear()
+        self._cancel_requested = False
+        self._running = True
+
         eff_timeout = timeout or (self._metadata.timeout if self._metadata else 60.0)
         start_total = time.monotonic()
-
         total_steps = len(self._steps)
+
+        # Emit scenario.started — GUI инициализирует таблицу
+        await bus.emit("scenario.started", {
+            "scenario_name": self._metadata.name,
+            "steps_total": total_steps,
+            "steps": [{"name": s.name, "status": "PENDING", "duration": ""} for s in self._steps],
+        })
+
         for step_idx, step in enumerate(self._steps):
+            # Проверка отмены перед каждым шагом
+            if self._cancel_requested:
+                self._running = False
+                await bus.emit("scenario.step", {
+                    "scenario_name": self._metadata.name,
+                    "step_name": step.name,
+                    "step_type": type(step).__name__,
+                    "step_index": step_idx,
+                    "steps_total": total_steps,
+                    "result": "CANCELLED",
+                    "duration": 0.0,
+                    "progress": round(step_idx / total_steps * 100),
+                    "steps": [
+                        {"name": h.step_name, "status": h.result, "duration": f"{h.duration:.2f}s"}
+                        for h in self._context.history
+                    ],
+                    "timestamp": time.monotonic(),
+                })
+                logger.info("Scenario '%s' cancelled at step %d", self._metadata.name, step_idx + 1)
+                return "CANCELLED"
+
             elapsed = time.monotonic() - start_total
             remaining = eff_timeout - elapsed
             if remaining <= 0:
+                self._running = False
                 self._context.add_history(step.name, "TIMEOUT", 0.0)
+                await bus.emit("scenario.step", {
+                    "scenario_name": self._metadata.name,
+                    "step_name": step.name,
+                    "step_type": type(step).__name__,
+                    "step_index": step_idx,
+                    "steps_total": total_steps,
+                    "result": "TIMEOUT",
+                    "duration": 0.0,
+                    "progress": round(step_idx / total_steps * 100),
+                    "steps": [
+                        {"name": h.step_name, "status": h.result, "duration": f"{h.duration:.2f}s"}
+                        for h in self._context.history
+                    ],
+                    "timestamp": time.monotonic(),
+                })
                 logger.info("Scenario: step '%s' SKIPPED (timeout)", step.name)
                 return "TIMEOUT"
 
@@ -861,11 +920,30 @@ class ScenarioManager:
             self._context.add_history(step.name, result, duration)
             logger.info("Scenario: step '%s' finished with %s (%.2fs)", step.name, result, duration)
 
+            # Emit scenario.step — GUI обновляет таблицу и прогресс
+            await bus.emit("scenario.step", {
+                "scenario_name": self._metadata.name,
+                "step_name": step.name,
+                "step_type": type(step).__name__,
+                "step_index": step_idx,
+                "steps_total": total_steps,
+                "result": result,
+                "duration": duration,
+                "progress": round((step_idx + 1) / total_steps * 100),
+                "steps": [
+                    {"name": h.step_name, "status": h.result, "duration": f"{h.duration:.2f}s"}
+                    for h in self._context.history
+                ],
+                "timestamp": time.monotonic(),
+            })
+
             if result != "PASS":
+                self._running = False
                 logger.warning(
                     "ScenarioManager: step '%s' returned %s", step.name, result
                 )
                 return result
 
+        self._running = False
         logger.info("Scenario '%s' completed PASS", self._metadata.name)
         return "PASS"
