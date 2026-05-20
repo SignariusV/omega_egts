@@ -80,9 +80,8 @@ class LogManager:
         self._bus.on("connection.changed", self._on_connection_changed)
         self._bus.on("scenario.step", self._on_scenario_step)
 
-        # Запуск фоновой задачи автосброса
-        self._running = True
-        self._flush_task = asyncio.create_task(self._auto_flush_loop())
+        # Фоновая задача автосброса запускается через start()
+        # (не в __init__ — чтобы избежать конфликта с qasync)
 
         logger.info(
             "LogManager инициализирован, log_dir=%s, session_id=%s, flush_interval=%.1f, batch_size=%d",
@@ -91,6 +90,17 @@ class LogManager:
             self._flush_interval,
             self._flush_batch_size,
         )
+
+    def start(self) -> None:
+        """Запустить фоновую задачу автосброса.
+
+        Вызывается после полной инициализации engine,
+        чтобы избежать конфликта задач в qasync.
+        """
+        if self._flush_task is not None:
+            return
+        self._running = True
+        self._flush_task = asyncio.create_task(self._auto_flush_loop())
 
     async def stop(self) -> None:
         """Остановить LogManager: сбросить буфер и отписаться от событий."""

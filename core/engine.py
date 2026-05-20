@@ -95,6 +95,7 @@ class CoreEngine:
 
             # Создаём менеджер логирования (подписывается на события EventBus)
             self.log_mgr = LogManager(bus=self.bus, log_dir=BASE_DIR / self.config.logging.dir, session_id=session_id)
+            self.log_mgr.start()
 
             # Создаём менеджер сценариев (парсер + выполнение)
             from core.scenario import ScenarioManager as _ScenarioManager

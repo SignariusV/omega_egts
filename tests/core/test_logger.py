@@ -624,8 +624,8 @@ class TestFileNaming:
                 bus=mock_bus, log_dir=tmp_path,
                 flush_interval=0.1, flush_batch_size=3,
             )
-        # Запускаем авто-sflush вручную (т.к. create_task был замокан)
-        lm._flush_task = asyncio.create_task(lm._auto_flush_loop())
+        # Запускаем авто-sflush через start() (т.к. create_task был замокан в __init__)
+        lm.start()
 
         # Добавляем 3 записи (порог)
         for i in range(3):
@@ -664,6 +664,7 @@ class TestFileNaming:
             bus=mock_bus, log_dir=tmp_path,
             flush_interval=999, flush_batch_size=9999,
         )
+        lm.start()
         assert lm._flush_task is not None
         assert not lm._flush_task.done()
 
