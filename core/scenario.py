@@ -827,6 +827,10 @@ class ScenarioManager:
         )
         self._context.parser = parser
 
+        # Загружаем переменные сценария из секции "variables"
+        for var_name, var_value in data.get("variables", {}).items():
+            self._context.set(var_name, var_value)
+
     async def execute(
         self,
         bus: EventBus,

@@ -1,5 +1,5 @@
 {
-  "name": "Верификация (SMS)",
+  "name": "Верификация (SMS, static)",
   "scenario_version": "1",
   "gost_version": "ГОСТ 33465-2015",
   "timeout": 60,
@@ -140,7 +140,7 @@
                       "act": 4,
                       "sz": 0,
                       "ccd": 0,
-                      "dt": "\x00\x01"
+                      "dt": "\u0000\u0001"
                     }
                   }
                 }
