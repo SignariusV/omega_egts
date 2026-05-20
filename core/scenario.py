@@ -916,7 +916,7 @@ class ScenarioManager:
                 logger.error("ScenarioManager: step '%s' failed: %s", step.name, exc)
                 result = "ERROR"
 
-            duration = time.time() - start_time
+            duration = time.monotonic() - start_time
             self._context.add_history(step.name, result, duration)
             logger.info("Scenario: step '%s' finished with %s (%.2fs)", step.name, result, duration)
 

@@ -102,6 +102,7 @@ class ScenarioRunnerCard(BaseCard):
         self._selected_path: str = ""
         self._running = False
         self._steps_total = 0
+        self._all_step_names: list[str] = []
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._on_timer_tick)
         self._elapsed_seconds = 0
@@ -219,11 +220,11 @@ class ScenarioRunnerCard(BaseCard):
         self._running = True
         self._steps_total = data.get("steps_total", 0)
         steps = data.get("steps", [])
+        self._all_step_names = [s["name"] for s in steps]
         self._step_model.set_steps(steps)
         self._progress_bar.set_segments(self._steps_total)
         self._progress_bar.set_value(0)
         self._update_button_state(True)
-        # Запуск таймера
         self._elapsed_seconds = 0
         self._timer.start(1000)
 
@@ -233,17 +234,14 @@ class ScenarioRunnerCard(BaseCard):
         step_index = data.get("step_index", 0)
         status = data.get("result", "")
         duration = data.get("duration", 0.0)
-        steps = data.get("steps", [])
 
-        if steps:
-            self._step_model.set_steps(steps)
-        else:
-            self._step_model.update_step(step_index, status, f"{duration:.2f}s")
+        # Обновляем строку по индексу — не заменяем всю таблицу
+        self._step_model.update_step(step_index, status, f"{duration:.2f}s")
 
         # Подсветка сегмента прогресса
         self._progress_bar.set_step_status(step_index, status)
 
-        # Обновление прогресса
+        # Обновляем прогресс
         progress = data.get("progress", 0)
         self._progress_bar.set_value(progress)
 
@@ -272,6 +270,11 @@ class ScenarioRunnerCard(BaseCard):
         self._update_button_state(False)
         self._progress_bar.reset()
         self._timer.stop()
+        # Сбросить таблицу к PENDING
+        if self._all_step_names:
+            self._step_model.set_steps([
+                {"name": n, "status": "PENDING", "duration": ""} for n in self._all_step_names
+            ])
 
     def _on_timer_tick(self):
         """Обновить duration текущего RUNNING шага каждую секунду."""

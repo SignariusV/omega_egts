@@ -74,7 +74,7 @@ class TestScenarioRunnerCard:
     def test_compact_mode_shows_combo_and_button(self, qtbot):
         card = ScenarioRunnerCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.COMPACT)
+        card.set_display_state(DisplayState.COMPACT)
         assert card._stack.currentIndex() == 0
         assert card._combo_compact is not None
         assert card._run_btn_compact is not None
@@ -82,7 +82,7 @@ class TestScenarioRunnerCard:
     def test_expanded_mode_shows_table(self, qtbot):
         card = ScenarioRunnerCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
+        card.set_display_state(DisplayState.EXPANDED)
         assert card._stack.currentIndex() == 1
         assert card._step_table is not None
         assert card._progress_bar is not None
@@ -95,28 +95,74 @@ class TestScenarioRunnerCard:
         card._run_btn.click()
         assert len(emitted) == 1
 
-    def test_scenario_step_updates_model(self, qtbot):
+    def test_scenario_started_initializes_table(self, qtbot):
         card = ScenarioRunnerCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
+        card.set_display_state(DisplayState.EXPANDED)
         data = {
-            "step": "Auth",
-            "status": "PASS",
-            "duration": "1.2s",
-            "steps": [{"name": "Auth", "status": "pending", "duration": ""}]
+            "scenario_name": "Test",
+            "steps_total": 3,
+            "steps": [
+                {"name": "Auth", "status": "PENDING", "duration": ""},
+                {"name": "Send", "status": "PENDING", "duration": ""},
+                {"name": "Verify", "status": "PENDING", "duration": ""},
+            ]
         }
-        card.on_scenario_step(data)
-        assert card._step_model.rowCount() == 1
+        card.on_scenario_started(data)
+        assert card._step_model.rowCount() == 3
+        assert card._running is True
+        assert card._progress_bar.get_value() == 0
+
+    def test_scenario_step_updates_by_index(self, qtbot):
+        card = ScenarioRunnerCard()
+        qtbot.addWidget(card)
+        card.set_display_state(DisplayState.EXPANDED)
+        # Сначала инициализируем
+        card.on_scenario_started({
+            "scenario_name": "Test",
+            "steps_total": 2,
+            "steps": [
+                {"name": "Auth", "status": "PENDING", "duration": ""},
+                {"name": "Send", "status": "PENDING", "duration": ""},
+            ]
+        })
+        # Обновляем первый шаг
+        card.on_scenario_step({
+            "step_index": 0,
+            "result": "PASS",
+            "duration": 1.2,
+            "progress": 50,
+        })
+        assert card._step_model.rowCount() == 2
         idx = card._step_model.index(0, 1)
         assert card._step_model.data(idx) == "PASS"
+        assert card._progress_bar.get_value() == 50
 
-    def test_progress_bar_updates(self, qtbot):
+    def test_scenario_stopped_resets_table(self, qtbot):
         card = ScenarioRunnerCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
-        data = {"step": "Step1", "status": "running", "progress": 50, "steps": []}
-        card.on_scenario_step(data)
-        assert card._progress_bar.get_value() == 50
+        card.set_display_state(DisplayState.EXPANDED)
+        card.on_scenario_started({
+            "scenario_name": "Test",
+            "steps_total": 2,
+            "steps": [
+                {"name": "Auth", "status": "PENDING", "duration": ""},
+                {"name": "Send", "status": "PENDING", "duration": ""},
+            ]
+        })
+        card.on_scenario_step({
+            "step_index": 0,
+            "result": "PASS",
+            "duration": 1.0,
+            "progress": 50,
+        })
+        # Останавливаем
+        card.on_scenario_stopped()
+        assert card._running is False
+        assert card._step_model.rowCount() == 2
+        # Все шаги снова PENDING
+        assert card._step_model.data(card._step_model.index(0, 1)) == "PENDING"
+        assert card._step_model.data(card._step_model.index(1, 1)) == "PENDING"
 
     def test_get_set_state(self, qtbot):
         card = ScenarioRunnerCard()
