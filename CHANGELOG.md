@@ -4,6 +4,49 @@
 
 ---
 
+### Рефакторинг Scenario Runner — прогресс, таблица, отмена (завершена)
+
+**Дата:** 20.05.2026
+**Ветка:** `feature/scenario-runner-refactor`
+
+#### Added
+- **Событие `scenario.started`** — публикуется в начале `ScenarioManager.execute()` с полным списком шагов (PENDING) для инициализации GUI-таблицы
+- **Событие `scenario.finished`** — публикуется при завершении/отмене сценария
+- **Событие `scenario.step`** — публикуется после каждого шага с полями: `step_index`, `result`, `duration`, `progress`, `steps` (история), `steps_total`
+- **Механизм отмены сценария** — `ScenarioManager.cancel()`, `CoreEngine.cancel_scenario()`, background task для `run_scenario()`
+- **Цветовая индикация в таблице** — `ForegroundRole` (цветной текст статуса) + `BackgroundRole` (полупрозрачный фон): PASS=#4EC9B0, FAIL=#F44747, TIMEOUT=#DCDCAA, RUNNING=#569CD6
+- **Динамический ProgressBarWidget** — `set_segments(count)` под число шагов, `set_step_status(index, status)` для подсветки текущего сегмента
+- **Таймер выполнения** — `QTimer` обновляет duration текущего RUNNING шага каждую секунду
+- **`scenario_running` в статусе** — `CoreEngine.get_status()` возвращает `scenario_running: bool`
+
+#### Changed
+- **`ScenarioManager.execute()`** — теперь background task, не блокирует event loop; эмитит `scenario.started` → `scenario.step` × N → `scenario.finished`
+- **`CoreEngine.run_scenario()`** — запускает `_scenario_task` через `asyncio.create_task()`, добавлен `cancel_scenario()`
+- **`EngineWrapper.stop_scenario()`** — реализован через `cancel_scenario()` (ранее `NotImplementedError`)
+- **`ScenarioRunnerCard.on_scenario_step()`** — обновляет строку по `step_index`, не заменяет всю таблицу
+- **`ScenarioRunnerCard.on_scenario_started()`** — инициализирует таблицу всеми шагами (PENDING)
+- **`LogManager`** — `create_task()` перенесён из `__init__` в `start()` для совместимости с qasync
+- **`EventBridge`** — добавлены сигналы `scenario_started`, `scenario_finished`
+
+#### Fixed
+- **Таблица сценария сжималась до 1 строки** — `on_scenario_step` теперь вызывает `update_step(index)` вместо `set_steps()`
+- **Время в таблице было абсолютным** — `time.time() - time.monotonic()` заменено на `time.monotonic() - time.monotonic()`
+- **RuntimeError в qasync** — `LogManager.__init__` больше не создаёт `asyncio.create_task()` в синхронном конструкторе
+- **Кнопка Stop не работала** — `stop_scenario()` теперь вызывает `cancel_scenario()` с корректной отменой task
+
+#### Technical Details
+- Duration считается через `time.monotonic()` (относительное время, не зависит от системных часов)
+- `_scenario_task` автоматически сбрасывается в `None` при завершении
+- Отмена: `cancel_requested` флаг + `task.cancel()` — шаг прерывается между выполнением
+- Таблица сохраняет все строки на протяжении выполнения — не сжимается
+
+#### Resolved Issues
+- **KI-047**: `ScenarioManager.execute()` не эмитил `scenario.step` — ✅ исправлено
+- **KI-063**: GUI не мог остановить выполняющийся сценарий — ✅ исправлено
+- **KI-064**: `EngineWrapper.stop_scenario()` не реализован — ✅ исправлено
+
+---
+
 ### Интеграция статуса CMW-500 в EventBus (завершена)
 
 **Дата:** 29.04.2026  

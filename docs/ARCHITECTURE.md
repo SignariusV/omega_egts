@@ -120,7 +120,9 @@ class EventBus:
 | `command.sent` | `connection_id, channel, step_name, packet_bytes` | CommandDispatcher | ScenarioManager, LogManager |
 | `command.error` | `error, step_name` | CommandDispatcher | ScenarioManager, LogManager |
 | `connection.changed` | `usv_id, state, action, reason` | SessionManager | LogManager, CLI/GUI |
-| `scenario.step` | `name, status, error` | ScenarioManager | LogManager, CLI/GUI |
+| `scenario.step` | `scenario_name, step_name, step_type, step_index, steps_total, result, duration, progress, steps, timestamp` | ScenarioManager | LogManager, CLI/GUI |
+| `scenario.started` | `scenario_name, steps_total, steps` | ScenarioManager | GUI |
+| `scenario.finished` | `scenario_name, result, error` | ScenarioManager | GUI |
 | `server.started` | `port` | CoreEngine | CLI/GUI |
 | `server.stopped` | `reason` | CoreEngine | CLI/GUI |
 | `cmw.error` | `error, command` | Cmw500Controller | CLI/GUI |
@@ -518,24 +520,37 @@ class ScenarioParserFactory:
  - `wait` — NotImplementedError (зарезервировано)
  - `check` — NotImplementedError (зарезервировано)
 
- **Важно:** `ScenarioManager` **не парсит JSON напрямую**. Он делегирует парсинг factory:
+  **Важно:** `ScenarioManager` **не парсит JSON напрямую**. Он делегирует парсинг factory:
 
 ```python
 class ScenarioManager:
-    def __init__(self, bus: EventBus, parser_factory: ScenarioParserFactory,
-                 step_factory: StepFactory): ...
+    def __init__(self, parser_factory: ScenarioParserFactory): ...
 
-    def load(self, path: Path) -> None:
-        data = json.loads(path.read_text())
-        parser = self._parser_factory.detect_and_create(data)
-        errors = parser.validate(data)
-        if errors:
-            raise ScenarioValidationError(errors)
-        self._metadata = parser.load(data)
-        self._steps = parser.get_steps()
+    def load(self, path: Path) -> None: ...
 
-    async def execute(self) -> ScenarioResult: ...
+    async def execute(self, bus, connection_id, timeout) -> str:
+        # 1. Emit scenario.started (все шаги PENDING)
+        # 2. For each step: execute → emit scenario.step
+        # 3. Emit scenario.finished
+        # 4. Return PASS/FAIL/TIMEOUT/CANCELLED/ERROR
+
+    def cancel(self) -> None:
+        # Устанавливает _cancel_requested = True
+        # Проверяется между шагами → emit scenario.step(CANCELLED)
 ```
+
+**События при выполнении:**
+
+| Событие | Когда | Данные |
+|---------|-------|--------|
+| `scenario.started` | Перед первым шагом | `scenario_name`, `steps_total`, `steps` (все PENDING) |
+| `scenario.step` | После каждого шага | `step_index`, `result`, `duration`, `progress`, `steps` (история) |
+| `scenario.finished` | После последнего шага / отмены | `scenario_name`, `result`, `error` (если есть) |
+
+**Механизм отмены:**
+- `cancel()` устанавливает `_cancel_requested = True`
+- Проверка между шагами: если флаг установлен → emit `scenario.step(CANCELLED)` → return `"CANCELLED"`
+- `CoreEngine.cancel_scenario()` вызывает `scenario_mgr.cancel()` + `task.cancel()`
 
 **Структура сценария (V1, JSON):**
 

@@ -372,28 +372,43 @@ def get_state(self):
 
 #### `scenario_runner.py` — ScenarioRunnerCard
 
-**Location**: `gui/dashboard/cards/scenario_runner.py` (229 lines)
+**Location**: `gui/dashboard/cards/scenario_runner.py` (297 lines)
 
-**Purpose**: Allows users to select and run test scenarios, with progress tracking.
+**Purpose**: Allows users to select and run test scenarios, with real-time progress tracking and step-by-step status.
 
-**Compact View**: ComboBox + Run button
+**Compact View**: ComboBox + Run/Stop button
 
 **Expanded View**:
 - ComboBox for scenario selection
-- `ProgressBarWidget` for execution progress
-- `QTableView` with `StepTableModel` showing step-by-step status
+- `ProgressBarWidget` with dynamic segments (= number of steps)
+- `QTableView` with `StepTableModel` showing step-by-step status with color coding
 
 **StepTableModel** (inner class):
 - Columns: "Step Name", "Status", "Duration"
-- Methods: `set_steps()`, `update_step()`
+- `data()` returns `ForegroundRole` (color for status text) and `BackgroundRole` (semi-transparent background)
+- Methods: `set_steps()`, `update_step(index, status, duration)`
+
+**Status Colors**:
+| Status | Foreground | Background |
+|--------|-----------|-----------|
+| PASS | #4EC9B0 (green) | 10% green overlay |
+| FAIL | #F44747 (red) | 10% red overlay |
+| TIMEOUT | #DCDCAA (yellow) | 10% yellow overlay |
+| RUNNING | #569CD6 (blue) | 10% blue overlay |
+| PENDING | #808080 (grey) | 10% grey overlay |
+| CANCELLED | #808080 (grey) | 15% grey overlay |
 
 **Signals**:
 - `run_requested(path)` — Emitted when user clicks Run
 - `stop_requested()` — Emitted when user clicks Stop (while running)
 
 **Slots**:
-- `on_scenario_step(data)` — Updates step status, progress bar
+- `on_scenario_started(data)` — Initializes table with all steps (PENDING), sets progress bar segments, starts timer
+- `on_scenario_step(data)` — Updates step by `step_index`, updates progress bar segment color, updates progress value
+- `on_scenario_finished(data)` — Stops timer, updates button state
 - `on_command_error(data)` — Stops scenario on error
+
+**Timer**: `QTimer` (1000ms) updates the current RUNNING step's duration in real-time.
 
 **Scenario Scanning**: Uses `gui.utils.scenario_scanner.scan_scenarios()` to populate ComboBox
 
@@ -511,11 +526,13 @@ def get_state(self):
 | `cmw.status` | `cmw_status(dict)` |
 | `cmw.connected` | `cmw_connected(dict)` |
 | `cmw.disconnected` | `cmw_disconnected(dict)` |
-| `cmw.error` | `cmw_error(str)` |
+| `cmw.error` | `cmw_error(dict)` |
 | `server.started` | `server_started(dict)` |
 | `server.stopped` | `server_stopped(dict)` |
 | `connection.changed` | `connection_changed(dict)` |
+| `scenario.started` | `scenario_started(dict)` |
 | `scenario.step` | `scenario_step(dict)` |
+| `scenario.finished` | `scenario_finished(dict)` |
 | `command.sent` | `command_sent(dict)` |
 | `command.error` | `command_error(dict)` |
 
@@ -535,10 +552,10 @@ bridge.packet_processed.connect(card.on_packet_processed)
 
 **Methods** (all async):
 - `start()` / `stop()` — Start/stop the core engine
-- `get_status()` — Get engine status dict
+- `get_status()` — Get engine status dict (includes `scenario_running`)
 - `cmw_status()` — Get CMW-500 status
-- `run_scenario(path, connection_id)` — Execute a scenario
-- `stop_scenario()` — Stop running scenario
+- `run_scenario(path, connection_id)` — Execute a scenario as background task
+- `stop_scenario()` — Cancel running scenario (delegates to `engine.cancel_scenario()`)
 - `replay(log_path, scenario_path)` — Replay from log
 - `export(data_type, fmt, output_path)` — Export data
 - `load_scenario_info(path)` — Load and validate scenario metadata
@@ -618,14 +635,32 @@ group.set_content_layout(form)
 
 ### `progress_bar.py` — ProgressBarWidget
 
-**Location**: `gui/widgets/progress_bar.py` (49 lines)
+**Location**: `gui/widgets/progress_bar.py` (91 lines)
 
-**Purpose**: Segmented progress bar (10 segments) with percentage label.
+**Purpose**: Segmented progress bar with dynamic segment count and per-segment status coloring.
+
+**Features**:
+- `set_segments(count)` — Dynamically creates segments (= number of scenario steps)
+- `set_value(percent)` — Sets overall progress (0-100%), fills segments accordingly
+- `set_step_status(index, status)` — Colors a specific segment by status (PASS/FAIL/TIMEOUT/RUNNING/PENDING)
+- `reset()` — Resets all segments to PENDING and value to 0
+
+**Status Colors**:
+| Status | Color |
+|--------|-------|
+| PASS | #4EC9B0 (green) |
+| FAIL | #F44747 (red) |
+| TIMEOUT | #DCDCAA (yellow) |
+| RUNNING | #569CD6 (blue) |
+| PENDING | #3E3E42 (dark grey) |
+| CANCELLED | #808080 (grey) |
 
 **Usage in ScenarioRunnerCard**:
 ```python
 bar = ProgressBarWidget()
-bar.set_value(50)  # Shows 5/10 segments filled, "50%" label
+bar.set_segments(5)        # 5 segments for 5 steps
+bar.set_step_status(0, "PASS")  # First segment green
+bar.set_value(20)          # 20% progress
 ```
 
 ---
@@ -876,13 +911,30 @@ TableView displays new row
 3. `ScenarioRunnerCard._on_toggle_clicked()` emits `run_requested(path)`
 4. `MainWindow._on_run_scenario(path)`:
    - Checks if engine is running, starts if not
-   - Calls `await engine_wrapper.run_scenario(path)`
-5. Core engine executes scenario, emits "scenario.step" events
-6. `EventBridge.scenario_step.emit(data)`
-7. `ScenarioRunnerCard.on_scenario_step(data)`:
-   - Updates `StepTableModel`
-   - Updates `ProgressBarWidget`
-   - If step status is "PASS" or "FAIL", stops the running state
+   - Calls `await engine_wrapper.run_scenario(path)` (background task)
+5. Core engine emits `scenario.started` with all steps (PENDING)
+6. `EventBridge.scenario_started.emit(data)` → `ScenarioRunnerCard.on_scenario_started()`
+   - Initializes table with all steps
+   - Sets progress bar segments
+   - Starts 1s timer for duration updates
+7. Core engine executes each step, emits `scenario.step` after each:
+   - `EventBridge.scenario_step.emit(data)` → `ScenarioRunnerCard.on_scenario_step()`
+   - Updates step row by `step_index`
+   - Colors progress bar segment
+   - Updates progress percentage
+8. On completion/cancellation, emits `scenario.finished`:
+   - `EventBridge.scenario_finished.emit(data)` → `ScenarioRunnerCard.on_scenario_finished()`
+   - Stops timer, updates button to "Run"
+
+### User Interaction Flow (Stop Scenario)
+
+1. User clicks "Stop" button while scenario is running
+2. `ScenarioRunnerCard._on_toggle_clicked()` emits `stop_requested()`
+3. `MainWindow._on_stop_scenario()`:
+   - Calls `await engine_wrapper.stop_scenario()`
+   - Engine calls `scenario_mgr.cancel()` + cancels background task
+4. Core engine emits `scenario.step(CANCELLED)` → `scenario.finished`
+5. GUI updates table, resets button to "Run"
 
 ### Shutdown Sequence
 
