@@ -1,4 +1,5 @@
 # OMEGA_EGTS GUI
+import asyncio
 import json
 import pytest
 import tempfile
@@ -102,8 +103,21 @@ async def test_start_idempotent(config, bus):
 
 
 @pytest.mark.asyncio
-async def test_stop_scenario_not_implemented(config, bus):
-    """stop_scenario() should raise NotImplementedError with clear message."""
+async def test_stop_scenario_cancels_running_scenario(config, bus):
+    """stop_scenario() should cancel a running scenario and return ok status."""
     wrapper = EngineWrapper(config, bus)
-    with pytest.raises(NotImplementedError, match="Остановка сценария пока не реализована"):
-        await wrapper.stop_scenario()
+    await wrapper.start()
+
+    # Simulate a running scenario by setting up the scenario_mgr
+    from unittest.mock import MagicMock, AsyncMock
+    wrapper.engine._scenario_task = asyncio.create_task(asyncio.sleep(10))
+    wrapper.engine.scenario_mgr = MagicMock()
+    wrapper.engine.scenario_mgr.is_running = True
+    wrapper.engine.scenario_mgr.cancel = MagicMock()
+
+    result = await wrapper.stop_scenario()
+    assert result["status"] == "ok"
+    assert result["result"] == "CANCELLED"
+    wrapper.engine.scenario_mgr.cancel.assert_called_once()
+
+    await wrapper.stop()
