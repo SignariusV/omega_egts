@@ -224,6 +224,18 @@ _Проект на стадии реализации. Ниже — архите�
 
 ---
 
+### По итогам review merge `feature/scenario-runner-refactor` → `master` (20.05.2026)
+
+| ID | Описание | Статус | Планируемое решение |
+|----|----------|--------|---------------------|
+| KI-069 | **Race condition в `_scenario_task` cleanup** (`engine.py:389`) | Открыто | `finally: self._scenario_task = None` может выполниться ДО `cancel_scenario()`. Если `cancel_scenario()` вызван между `task.cancel()` и `finally`, `_scenario_task` уже `None` и отмена не сработает. Использовать `asyncio.shield()` или проверять `_cancel_requested` внутри `_run()` |
+| KI-070 | **`_elapsed_seconds` не синхронизирован с реальным временем шага** (`scenario_runner.py:280`) | Открыто | Таймер `QTimer(1000ms)` использует счётчик `self._elapsed_seconds += 1`, который не учитывает фазу относительно старта шага. Если шаг выполняется 3.7s, таймер покажет 3s или 4s. Заменить на `time.monotonic() - step_start_time` |
+| KI-071 | **`on_scenario_stopped()` не сбрасывает таблицу при первом вызове** (`scenario_runner.py:255`) | Открыто | Если `on_scenario_stopped()` вызван до `on_scenario_started()`, `_all_step_names = []` и таблица не сбросится к PENDING. Добавить guard или инициализировать `_all_step_names` по умолчанию |
+| KI-072 | **Магические числа в alpha-канале цветов** (`scenario_runner.py:30-37`) | Открыто | `QColor(78, 201, 176, 25)` — alpha=25 неочевиден. Заменить на `QColor("#4EC9B0").withAlpha(25)` или вынести в именованные константы |
+| KI-073 | **Тест `test_stop_scenario_cancels_running_scenario` использует MagicMock** (`test_engine_wrapper.py:113-116`) | Открыто | `wrapper.engine.scenario_mgr = MagicMock()` — тест не проверяет реальное взаимодействие с `ScenarioManager`. Заменить на реальный `ScenarioManager` с замоканым `execute()` для более реалистичного теста |
+
+---
+
 ## ✅ Решено в итерации 5
 
 | ID | Описание | Решение |
