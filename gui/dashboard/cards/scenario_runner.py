@@ -9,14 +9,14 @@ from PySide6.QtCore import Signal, Slot, Qt, QAbstractTableModel, QModelIndex, Q
 from PySide6.QtGui import QColor
 from gui.dashboard.card_base import BaseCard, DisplayState
 from gui.utils.scenario_scanner import scan_scenarios, get_default_scenarios_path, ScenarioInfo
-from gui.widgets.progress_bar import ProgressBarWidget, STATUS_COLORS
+from gui.widgets.progress_bar import ProgressBarWidget
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 logger = logging.getLogger(__name__)
 
 
-STEP_STATUS_COLORS = {
+STEP_TEXT_COLORS = {
     "PASS": QColor("#4EC9B0"),
     "FAIL": QColor("#F44747"),
     "TIMEOUT": QColor("#DCDCAA"),
@@ -24,6 +24,16 @@ STEP_STATUS_COLORS = {
     "RUNNING": QColor("#569CD6"),
     "PENDING": QColor("#808080"),
     "CANCELLED": QColor("#808080"),
+}
+
+STEP_BG_COLORS = {
+    "PASS": QColor(78, 201, 176, 25),
+    "FAIL": QColor(244, 71, 71, 25),
+    "TIMEOUT": QColor(220, 220, 170, 25),
+    "ERROR": QColor(244, 71, 71, 25),
+    "RUNNING": QColor(86, 156, 214, 25),
+    "PENDING": QColor(128, 128, 128, 10),
+    "CANCELLED": QColor(128, 128, 128, 15),
 }
 
 
@@ -56,16 +66,21 @@ class StepTableModel(QAbstractTableModel):
             return None
         step = self._steps[index.row()]
         col = index.column()
+        status = step.get("status", "")
         if role == Qt.ItemDataRole.DisplayRole:
             if col == 0:
                 return step.get("name", "")
             elif col == 1:
-                return step.get("status", "")
+                return status
             elif col == 2:
                 return step.get("duration", "")
+        elif role == Qt.ItemDataRole.ForegroundRole:
+            if col == 1:
+                color = STEP_TEXT_COLORS.get(status)
+                if color:
+                    return color
         elif role == Qt.ItemDataRole.BackgroundRole:
-            status = step.get("status", "")
-            color = STEP_STATUS_COLORS.get(status)
+            color = STEP_BG_COLORS.get(status)
             if color:
                 return color
         return None
