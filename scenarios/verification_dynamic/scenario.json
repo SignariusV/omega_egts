@@ -9,7 +9,8 @@
     "packet_id": 27,
     "record_id": 42,
     "service_type": 4,
-    "recipient_service_type": 4
+    "recipient_service_type": 4,
+    "unit_id": 12345
   },
   "steps": [
     {
@@ -119,7 +120,7 @@
       "description": "УСВ подтверждает приём адреса сервера"
     },
     {
-      "name": "Запрос UNIT_ID",
+      "name": "Назначение UNIT_ID",
       "type": "send",
       "channel": "sms",
       "build": {
@@ -143,10 +144,10 @@
                     "sid": 0,
                     "cd": {
                       "adr": 0,
-                      "act": 1,
+                      "act": 2,
                       "sz": 0,
                       "ccd": 1028,
-                      "dt": ""
+                      "dt": "{{unit_id}}"
                     }
                   }
                 }
@@ -156,7 +157,7 @@
         }
       },
       "timeout": 5,
-      "description": "Запрос идентификатора устройства"
+      "description": "Назначение уникального идентификатора УСВ (EGTS_UNIT_ID)"
     },
     {
       "name": "Ответ с UNIT_ID",

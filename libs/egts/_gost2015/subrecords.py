@@ -961,11 +961,12 @@ class CommandDataParser:
 
         dt = cd.get("dt", b"")
         if isinstance(dt, str):
-            # Автоматически определяем кодировку и кодируем
             dt_bytes = dt.encode("cp1251")
             result += dt_bytes
         elif isinstance(dt, bytes):
             result += dt
+        elif isinstance(dt, int):
+            result += dt.to_bytes(4, "little")
 
         return result
 
@@ -980,6 +981,8 @@ class CommandDataParser:
             result += dt_bytes
         elif isinstance(dt, bytes):
             result += dt
+        elif isinstance(dt, int):
+            result += dt.to_bytes(4, "little")
 
         return result
 
