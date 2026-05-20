@@ -69,6 +69,10 @@ class VisaCmw500Driver:
 
     def close(self) -> None:
         if self._driver is not None:
+            try:
+                self._driver.utilities.visa_timeout = 2000  # 2s timeout for faster shutdown
+            except Exception:
+                pass
             self._driver.close()
             self._driver = None
 

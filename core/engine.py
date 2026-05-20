@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import suppress
 from dataclasses import dataclass, field
@@ -206,7 +207,7 @@ class CoreEngine:
 
         if self.cmw500 is not None:
             with suppress(Exception):
-                await self.cmw500.disconnect()
+                await asyncio.wait_for(self.cmw500.disconnect(), timeout=10.0)
             self.cmw500 = None
 
         if self.tcp_server is not None:

@@ -175,6 +175,7 @@ class MainWindow(QMainWindow):
         if self._status_card.is_server_running():
             try:
                 await self._engine_wrapper.stop()
+                self._status_card.on_server_stopped()
                 self._status_bar.showMessage("Server stopped", 3000)
             except Exception as e:
                 error_msg = str(e)
