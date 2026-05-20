@@ -10,7 +10,7 @@
     "record_id": 42,
     "service_type": 4,
     "recipient_service_type": 4,
-    "unit_id": 12345
+    "unit_id": 1
   },
   "steps": [
     {
@@ -93,7 +93,7 @@
                       "adr": 0,
                       "act": 2,
                       "sz": 0,
-                      "ccd": 258,
+                      "ccd": 1026,
                       "dt": "200.20.2.171:9090"
                     }
                   }
