@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
 from core.event_bus import EventBus
-from core.scenario_aliases import resolve_aliases_recursive
 from core.scenario_parser import (
     IScenarioParser,
     ScenarioMetadata,
@@ -434,8 +433,6 @@ class SendStep:
             return obj
 
         result: dict[str, Any] = _substitute(self.build)
-        # Резолвим строковые алиасы в числовые значения
-        result = resolve_aliases_recursive(result)
         return result
 
     def _dict_to_packet(self, data: dict[str, Any]) -> "Packet":
@@ -571,8 +568,6 @@ class SendStep:
             return obj
 
         template_data: dict[str, Any] = _substitute(self.build)
-        # Резолвим строковые алиасы в числовые значения
-        template_data = resolve_aliases_recursive(template_data)
 
         # Старый формат (обратная совместимость)
         packet_bytes_val = template_data.get("packet_bytes")

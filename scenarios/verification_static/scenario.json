@@ -14,26 +14,26 @@
         "gost_version": "2015",
         "packet": {
           "packet_id": 27,
-          "packet_type": "APPDATA",
+          "packet_type": 1,
           "records": [
             {
               "record_id": 1,
-              "service_type": "COMMANDS",
-              "recipient_service_type": "COMMANDS",
+              "service_type": 4,
+              "recipient_service_type": 4,
               "rsod": true,
               "subrecords": [
                 {
-                  "subrecord_type": "COMMAND_DATA",
+                  "subrecord_type": 51,
                   "data": {
-                    "ct": "COM",
-                    "cct": "OK",
+                    "ct": 5,
+                    "cct": 0,
                     "cid": 0,
                     "sid": 0,
                     "cd": {
                       "adr": 0,
-                      "act": "SET",
+                      "act": 2,
                       "sz": 0,
-                      "ccd": "EGTS_GPRS_APN",
+                      "ccd": 257,
                       "dt": "internet"
                     }
                   }
@@ -67,26 +67,26 @@
         "gost_version": "2015",
         "packet": {
           "packet_id": 28,
-          "packet_type": "APPDATA",
+          "packet_type": 1,
           "records": [
             {
               "record_id": 2,
-              "service_type": "COMMANDS",
-              "recipient_service_type": "COMMANDS",
+              "service_type": 4,
+              "recipient_service_type": 4,
               "rsod": true,
               "subrecords": [
                 {
-                  "subrecord_type": "COMMAND_DATA",
+                  "subrecord_type": 51,
                   "data": {
-                    "ct": "COM",
-                    "cct": "OK",
+                    "ct": 5,
+                    "cct": 0,
                     "cid": 1,
                     "sid": 0,
                     "cd": {
                       "adr": 0,
-                      "act": "SET",
+                      "act": 2,
                       "sz": 0,
-                      "ccd": "EGTS_SET_SERVER_ADDRESS_V2",
+                      "ccd": 1026,
                       "dt": "200.20.2.171:9090"
                     }
                   }
@@ -120,26 +120,26 @@
         "gost_version": "2015",
         "packet": {
           "packet_id": 29,
-          "packet_type": "APPDATA",
+          "packet_type": 1,
           "records": [
             {
               "record_id": 3,
-              "service_type": "COMMANDS",
-              "recipient_service_type": "COMMANDS",
+              "service_type": 4,
+              "recipient_service_type": 4,
               "rsod": true,
               "subrecords": [
                 {
-                  "subrecord_type": "COMMAND_DATA",
+                  "subrecord_type": 51,
                   "data": {
-                    "ct": "COM",
-                    "cct": "OK",
+                    "ct": 5,
+                    "cct": 0,
                     "cid": 2,
                     "sid": 0,
                     "cd": {
                       "adr": 0,
-                      "act": "SET",
+                      "act": 2,
                       "sz": 0,
-                      "ccd": "EGTS_UNIT_ID",
+                      "ccd": 1028,
                       "dt": 1
                     }
                   }
