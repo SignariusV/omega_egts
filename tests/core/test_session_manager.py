@@ -185,3 +185,84 @@ class TestSessionManager:
         call_args = mock_event_bus.on.call_args
         assert call_args[0][0] == "packet.processed"
         assert call_args[1].get("ordered") is True
+
+    # =========================================================================
+    # CR-013: get_or_create_session / ensure_sms_session
+    # =========================================================================
+
+    def test_get_or_create_session_creates_new(self, mock_event_bus: AsyncMock) -> None:
+        """get_or_create_session создаёт новую сессию если её нет."""
+        mgr = SessionManager(bus=mock_event_bus)
+
+        conn = mgr.get_or_create_session(
+            connection_id="test-1",
+            protocol=MagicMock(),
+        )
+
+        assert conn.connection_id == "test-1"
+        assert "test-1" in mgr.connections
+
+    def test_get_or_create_session_returns_existing(
+        self, mock_event_bus: AsyncMock
+    ) -> None:
+        """get_or_create_session возвращает существующую сессию, не создавая дубликат."""
+        mgr = SessionManager(bus=mock_event_bus)
+        conn1 = mgr.get_or_create_session(
+            connection_id="test-1",
+            protocol=MagicMock(),
+        )
+
+        conn2 = mgr.get_or_create_session(
+            connection_id="test-1",
+            protocol=MagicMock(),
+        )
+
+        assert conn1 is conn2  # Один и тот же объект
+        assert len(mgr.connections) == 1
+
+    def test_ensure_sms_session_creates_default(self, mock_event_bus: AsyncMock) -> None:
+        """ensure_sms_session создаёт сессию с SMS_DEFAULT_CONNECTION_ID."""
+        from core.session import SMS_DEFAULT_CONNECTION_ID
+
+        mgr = SessionManager(bus=mock_event_bus)
+
+        conn = mgr.ensure_sms_session()
+
+        assert conn.connection_id == SMS_DEFAULT_CONNECTION_ID
+        assert conn.protocol is not None
+
+    def test_ensure_sms_session_uses_gost_version(
+        self, mock_event_bus: AsyncMock
+    ) -> None:
+        """ensure_sms_session использует gost_version из SessionManager."""
+        mgr = SessionManager(bus=mock_event_bus, gost_version="2015")
+
+        conn = mgr.ensure_sms_session()
+
+        assert conn.protocol is not None
+        # Протокол создан из gost_version, не хардкод "2015"
+
+    def test_ensure_sms_session_idempotent(self, mock_event_bus: AsyncMock) -> None:
+        """Многократный вызов ensure_sms_session возвращает ту же сессию (без ошибок)."""
+        from core.session import SMS_DEFAULT_CONNECTION_ID
+
+        mgr = SessionManager(bus=mock_event_bus)
+
+        conn1 = mgr.ensure_sms_session()
+        conn2 = mgr.ensure_sms_session()
+        conn3 = mgr.ensure_sms_session()
+
+        assert conn1 is conn2
+        assert conn2 is conn3
+        assert len(mgr.connections) == 1
+        assert SMS_DEFAULT_CONNECTION_ID in mgr.connections
+
+    def test_create_session_still_raises_on_duplicate(
+        self, mock_event_bus: AsyncMock
+    ) -> None:
+        """Regression: create_session всё ещё бросает ValueError (R-061 не сломан)."""
+        mgr = SessionManager(bus=mock_event_bus)
+        mgr.create_session(connection_id="test-1")
+
+        with pytest.raises(ValueError, match="уже существует"):
+            mgr.create_session(connection_id="test-1")

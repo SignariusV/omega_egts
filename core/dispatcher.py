@@ -16,7 +16,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from libs.egts.registry import get_protocol
 from core.event_bus import EventBus
 from core.pipeline import (
     AutoResponseMiddleware,
@@ -32,12 +31,10 @@ if TYPE_CHECKING:
     from core.cmw500 import Cmw500Controller
     from core.event_bus import EventBus
     from core.session import SessionManager
-    from libs.egts.protocol import IEgtsProtocol
+
+from core.session import SMS_DEFAULT_CONNECTION_ID
 
 logger = logging.getLogger(__name__)
-
-# Идентификатор SMS-сессии, создаваемой автоматически
-_SMS_DEFAULT_CONNECTION_ID = "packet_dispatcher_sms"
 
 
 def _is_writer_closing(writer: object) -> bool:
@@ -79,7 +76,6 @@ class PacketDispatcher:
         bus: EventBus для подписки на события
         session_mgr: SessionManager для получения сессий и протокола
         pipeline: PacketPipeline для обработки пакетов
-        protocol: Протокол EGTS (используется для SMS если нет сессии)
     """
 
     def __init__(
@@ -87,12 +83,10 @@ class PacketDispatcher:
         bus: EventBus,
         session_mgr: SessionManager,
         pipeline: PacketPipeline | None = None,
-        protocol: IEgtsProtocol | None = None,
     ) -> None:
         self.bus = bus
         self.session_mgr = session_mgr
         self.pipeline = pipeline if pipeline is not None else self._build_pipeline()
-        self.protocol = protocol
 
         # Подписка на raw.packet.received
         self.bus.on("raw.packet.received", self._on_raw_packet)
@@ -144,8 +138,8 @@ class PacketDispatcher:
         # Если connection_id=None (SMS без привязки к сессии) —
         # создаём/используем SMS-сессию с внутренним ID
         if connection_id is None:
-            self._ensure_sms_session()
-            effective_conn_id = _SMS_DEFAULT_CONNECTION_ID
+            self.session_mgr.ensure_sms_session()
+            effective_conn_id = SMS_DEFAULT_CONNECTION_ID
         else:
             effective_conn_id = connection_id
 
@@ -244,29 +238,6 @@ class PacketDispatcher:
                 e,
             )
 
-    def _ensure_sms_session(self) -> None:
-        """Создать сессию для SMS если ещё не существует.
-
-        Использует protocol из dispatcher если не задан в session_mgr.
-        """
-        if _SMS_DEFAULT_CONNECTION_ID in self.session_mgr.connections:
-            return
-
-        protocol = self.protocol
-        if protocol is None:
-            logger.warning(
-                "PacketDispatcher: protocol=None для SMS-сессии, "
-                "использую ГОСТ 2015 по умолчанию"
-            )
-            protocol = get_protocol("2015")
-
-        self.session_mgr.create_session(
-            connection_id=_SMS_DEFAULT_CONNECTION_ID,
-            protocol=protocol,
-        )
-        logger.debug("PacketDispatcher: создана SMS-сессия по умолчанию")
-
-
 # =============================================================================
 # CommandDispatcher
 # =============================================================================
@@ -305,22 +276,6 @@ class CommandDispatcher:
         """Отписаться от событий EventBus."""
         self.bus.off("command.send", self._on_command)
         logger.info("CommandDispatcher: отписался от событий")
-
-    def _ensure_sms_session_for_txn(self) -> None:
-        """Создать SMS-сессию если ещё не существует (для транзакций)."""
-        if _SMS_DEFAULT_CONNECTION_ID in self.session_mgr.connections:
-            return
-
-        protocol = self._get_sms_protocol()
-        self.session_mgr.create_session(
-            connection_id=_SMS_DEFAULT_CONNECTION_ID,
-            protocol=protocol,
-        )
-        logger.debug("CommandDispatcher: создана SMS-сессия для транзакции")
-
-    def _get_sms_protocol(self) -> IEgtsProtocol:
-        """Получить протокол для SMS-сессии."""
-        return get_protocol("2015")
 
     async def _on_command(self, data: dict[str, Any]) -> None:
         """Обработать команду отправки.
@@ -542,8 +497,7 @@ class CommandDispatcher:
 
         # Регистрация транзакции для SMS-канала
         if pid is not None or rn is not None:
-            self._ensure_sms_session_for_txn()
-            conn = self.session_mgr.get_session(_SMS_DEFAULT_CONNECTION_ID)
+            conn = self.session_mgr.ensure_sms_session()
             if conn is not None and conn.transaction_mgr is not None:
                 conn.transaction_mgr.register(
                     pid=pid,
@@ -560,7 +514,7 @@ class CommandDispatcher:
         await self.bus.emit(
             "packet.sent",
             {
-                "connection_id": _SMS_DEFAULT_CONNECTION_ID,
+                "connection_id": SMS_DEFAULT_CONNECTION_ID,
                 "step_name": step_name,
                 "packet_bytes": packet_bytes,
                 "channel": "sms",
@@ -572,7 +526,7 @@ class CommandDispatcher:
         await self.bus.emit(
             "command.sent",
             {
-                "connection_id": _SMS_DEFAULT_CONNECTION_ID,
+                "connection_id": SMS_DEFAULT_CONNECTION_ID,
                 "step_name": step_name,
                 "packet_bytes": packet_bytes,
                 "channel": "sms",

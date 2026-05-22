@@ -25,6 +25,9 @@ from libs.egts.protocol import IEgtsProtocol
 
 logger = logging.getLogger(__name__)
 
+# Идентификатор SMS-сессии по умолчанию (единый для всех диспетчеров)
+SMS_DEFAULT_CONNECTION_ID = "packet_dispatcher_sms"
+
 # =============================================================================
 # Состояния FSM
 # =============================================================================
@@ -717,6 +720,71 @@ class SessionManager:
             UsvConnection или None
         """
         return self.connections.get(connection_id)
+
+    def get_or_create_session(
+        self,
+        connection_id: str,
+        remote_ip: str = "",
+        remote_port: int = 0,
+        reader: asyncio.StreamReader | None = None,
+        writer: asyncio.StreamWriter | None = None,
+        protocol: IEgtsProtocol | None = None,
+        is_std_usv: bool = False,
+    ) -> UsvConnection:
+        """Получить существующую сессию или создать новую (атомарно, sync).
+
+        В отличие от create_session(), НЕ бросает ValueError при дубликате —
+        возвращает существующую сессию. Безопасен для конкурентного вызова
+        в рамках asyncio (нет await-точек между check и create).
+
+        Args:
+            connection_id: Уникальный идентификатор
+            remote_ip: IP клиента
+            remote_port: Порт клиента
+            reader: StreamReader
+            writer: StreamWriter
+            protocol: EGTS-протокол
+            is_std_usv: Штатное УСВ (eCall-only)
+
+        Returns:
+            Существующий или новый объект UsvConnection
+        """
+        existing = self.connections.get(connection_id)
+        if existing is not None:
+            return existing
+        return self.create_session(
+            connection_id=connection_id,
+            remote_ip=remote_ip,
+            remote_port=remote_port,
+            reader=reader,
+            writer=writer,
+            protocol=protocol,
+            is_std_usv=is_std_usv,
+        )
+
+    def ensure_sms_session(
+        self,
+        protocol: IEgtsProtocol | None = None,
+    ) -> UsvConnection:
+        """Создать/получить SMS-сессию по умолчанию.
+
+        Протокол создаётся из self.gost_version, если не передан явно.
+        Единая точка создания SMS-сессии для PacketDispatcher и CommandDispatcher.
+
+        Args:
+            protocol: EGTS-протокол (если None — создаётся из gost_version)
+
+        Returns:
+            UsvConnection для SMS-канала
+        """
+        if protocol is None:
+            from libs.egts.registry import get_protocol
+
+            protocol = get_protocol(self.gost_version)
+        return self.get_or_create_session(
+            connection_id=SMS_DEFAULT_CONNECTION_ID,
+            protocol=protocol,
+        )
 
     async def close_session(self, connection_id: str) -> None:
         """Закрыть сессию, дождаться закрытия writer, эмитить событие.
