@@ -4,6 +4,38 @@
 
 ---
 
+### Централизация SMS-сессии — SessionManager (завершена)
+
+**Дата:** 22.05.2026
+**Ветка:** `master` | **Коммит:** `9593132`
+
+#### Added
+- **`SessionManager.get_or_create_session()`** — атомарная (sync) проверка + создание сессии. Не бросает `ValueError` при дубликате (в отличие от `create_session()`).
+- **`SessionManager.ensure_sms_session()`** — единая фабрика SMS-сессии. Протокол создаётся из `self.gost_version` (не хардкод `"2015"`).
+- **`SMS_DEFAULT_CONNECTION_ID`** — константа вынесена в `core/session.py`
+
+#### Changed
+- **`PacketDispatcher._ensure_sms_session()`** → `session_mgr.ensure_sms_session()`
+- **`CommandDispatcher._ensure_sms_session_for_txn()` / `_get_sms_protocol()`** → `session_mgr.ensure_sms_session()`
+
+#### Removed
+- `PacketDispatcher._ensure_sms_session()` — дублирующий метод
+- `CommandDispatcher._ensure_sms_session_for_txn()` — дублирующий метод
+- `CommandDispatcher._get_sms_protocol()` — хардкод `"2015"`
+- `protocol` параметр из `PacketDispatcher.__init__()` — не использовался
+- `from libs.egts.registry import get_protocol` из `dispatcher.py` — больше не нужен
+- `IEgtsProtocol` TYPE_CHECKING импорт из `dispatcher.py`
+- Локальная константа `_SMS_DEFAULT_CONNECTION_ID` из `dispatcher.py`
+
+#### Fixed
+- **CR-013**: Дублирующее создание SMS-сессии — ✅ решено (R-101)
+- **KI-039**: Повторное создание SMS-сессии в двух местах — ✅ решено (R-101)
+
+#### Tests
+- 6 новых тестов: `get_or_create_session_creates_new`, `get_or_create_session_returns_existing`, `ensure_sms_session_creates_default`, `ensure_sms_session_uses_gost_version`, `ensure_sms_session_idempotent`, `create_session_still_raises_on_duplicate` (regression R-061)
+
+---
+
 ### Рефакторинг Scenario Runner — прогресс, таблица, отмена (завершена)
 
 **Дата:** 20.05.2026
@@ -366,6 +398,7 @@ def build_response(
 - CR-014: Порядок middleware исправлен (R-084)
 - CR-015: Версионирование сценариев — IScenarioParser (R-079)
 - 80+ исправлений внешнего аудита (R-024–R-075, R-085–R-100)
+- CR-013: Дублирующее создание SMS-сессии — SessionManager.ensure_sms_session() (R-101)
 
 ---
 
