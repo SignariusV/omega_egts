@@ -67,14 +67,14 @@ class TestLivePacketsCard:
     def test_compact_mode_shows_mini_table(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.COMPACT)
+        card.set_display_state(DisplayState.COMPACT)
         assert card._stack.currentIndex() == 0
         assert card._compact_table is not None
 
     def test_expanded_mode_shows_full_table(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
+        card.set_display_state(DisplayState.EXPANDED)
         assert card._stack.currentIndex() == 1
         assert card._table is not None
 

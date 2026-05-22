@@ -12,6 +12,30 @@
         <Execute>
           <option name="pattern" value="cd C:/Users/verta/PycharmProjects/OMEGA_EGTS &amp;&amp; git status" />
         </Execute>
+        <Execute>
+          <option name="pattern" value="git log --since=&quot;1 day ago&quot; --oneline" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="git log --since=&quot;1 day ago&quot; --pretty=format:&quot;%h - %an, %ar : %s&quot;" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="git log --since=&quot;2 days ago&quot; --oneline" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="git log --oneline -n 5" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="git show 05d39c0" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="git show bc96074" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="git show 54408dc" />
+        </Execute>
+        <Execute>
+          <option name="pattern" value="git log --since=&quot;2026-05-17&quot; --pretty=format:&quot;%h - %an, %ar : %s&quot;" />
+        </Execute>
       </list>
     </option>
   </component>

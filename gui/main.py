@@ -22,6 +22,7 @@ def main():
     app = QApplication(sys.argv)
     apply_theme(app)
     window = MainWindow()
+
     window.show()
     loop = qasync.QEventLoop(app)
     asyncio.set_event_loop(loop)

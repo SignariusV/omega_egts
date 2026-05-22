@@ -21,7 +21,7 @@ class TestSystemStatusCard:
     def test_compact_mode_shows_indicators(self, qtbot):
         card = SystemStatusCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.COMPACT)
+        card.set_display_state(DisplayState.COMPACT)
         assert card._display_state == DisplayState.COMPACT
         assert card._stack.currentIndex() == 0
         assert card._compact_widget._server_indicator.get_color() == "#F44747"

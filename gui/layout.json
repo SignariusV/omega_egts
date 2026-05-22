@@ -1,28 +1,28 @@
 [
   {
-    "card_id": "scenario_runner",
-    "row": 0,
+    "card_id": "system_logs",
+    "row": 4,
     "col": 4,
-    "row_span": 2,
+    "row_span": 4,
     "col_span": 4
   },
   {
     "card_id": "live_packets",
-    "row": 0,
+    "row": 4,
     "col": 0,
     "row_span": 4,
     "col_span": 4
   },
   {
-    "card_id": "system_logs",
-    "row": 2,
+    "card_id": "scenario_runner",
+    "row": 0,
     "col": 4,
-    "row_span": 6,
+    "row_span": 4,
     "col_span": 4
   },
   {
     "card_id": "system_status",
-    "row": 4,
+    "row": 0,
     "col": 0,
     "row_span": 4,
     "col_span": 4

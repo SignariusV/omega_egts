@@ -236,6 +236,16 @@ _Проект на стадии реализации. Ниже — архите�
 
 ---
 
+### По итогам code review ExpectStep/ScenarioManager (22.05.2026)
+
+| ID | Описание | Статус | Планируемое решение |
+|----|----------|--------|---------------------|
+| KI-074 | **ExpectStep._matches() не поддерживает `{{var}}` подстановку** | Открыто | Checks в ExpectStep сравниваются как статические значения из JSON. Нельзя написать `"checks": {"packet_id": "{{sent_pid}}"}` — будет искаться literal `"{{sent_pid}}"`. Это блокирует сценарии, где нужно сверить поле ответа с отправленным значением (PID, UNIT_ID, TID и т.д.). Решение: добавить `ctx.substitute(expected)` в `_matches()`, передав `ctx` как параметр |
+| KI-075 | **В extra не извлекаются response_packet_id, processing_result, record_id, subrecord_type** | Открыто | При построении `extra` из parsed-пакета не извлекаются: `packet.response_packet_id` (RPID), `packet.processing_result` (PR), `record.record_id` (RN), `subrecord.subrecord_type` (SRT). Сейчас `extra.update(sr.data)` берёт только data из subrecord, а SRT лежит на самом Subrecord. `checks: {"subrecord_type": "EGTS_SR_COMMAND_DATA"}` не работает — SRT отсутствует в extra. Решение: добавить извлечение этих полей из Packet/Record/Subrecord после цикла `extra.update()` |
+| KI-076 | **ScenarioManager.execute() возвращает только строку, captured-данные теряются** | Открыто | Все capture-переменные, сохранённые в ScenarioContext, умирают после выполнения сценария. execute() возвращает `"PASS"/"FAIL"/...` вместо структуры с захваченными данными. Невозможно получить IMEI, UNIT_ID, TID, imsi и т.д. после завершения сценария ни через CLI, ни через GUI. Решение: возвращать `ScenarioResult` с полями status, captured, steps, duration |
+
+---
+
 ## ✅ Решено в итерации 5
 
 | ID | Описание | Решение |

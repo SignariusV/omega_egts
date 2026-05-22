@@ -67,14 +67,14 @@ class TestSystemLogsCard:
     def test_compact_mode_shows_edit(self, qtbot):
         card = SystemLogsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.COMPACT)
+        card.set_display_state(DisplayState.COMPACT)
         assert card._stack.currentIndex() == 0
         assert card._compact_edit is not None
 
     def test_expanded_mode_shows_viewer(self, qtbot):
         card = SystemLogsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
+        card.set_display_state(DisplayState.EXPANDED)
         assert card._stack.currentIndex() == 1
         assert card._log_viewer is not None
 
@@ -88,7 +88,7 @@ class TestSystemLogsCard:
     def test_log_handler_updates_compact(self, qtbot):
         card = SystemLogsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.COMPACT)
+        card.set_display_state(DisplayState.COMPACT)
         logging.warning("Compact test")
         qtbot.wait(50)
         content = card._compact_edit.toPlainText()
@@ -97,7 +97,7 @@ class TestSystemLogsCard:
     def test_clear_button(self, qtbot):
         card = SystemLogsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
+        card.set_display_state(DisplayState.EXPANDED)
         logging.info("Test")
         qtbot.wait(50)
         card._clear_btn.click()
@@ -106,7 +106,7 @@ class TestSystemLogsCard:
     def test_level_filter(self, qtbot):
         card = SystemLogsCard()
         qtbot.addWidget(card)
-        card._set_display_state(DisplayState.EXPANDED)
+        card.set_display_state(DisplayState.EXPANDED)
         card._source_combo.setCurrentText("Python")
         card._level_combo.setCurrentText("ERROR")
         logging.info("Should not appear")
