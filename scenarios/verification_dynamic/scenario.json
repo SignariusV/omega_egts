@@ -13,7 +13,10 @@
     "record_id_2": 43,
     "record_id_3": 44,
     "service_type": 4,
-    "recipient_service_type": 4
+    "recipient_service_type": 4,
+    "unit_id_hex": "00000001",
+    "gprs_apn_dt": "internet",
+    "server_address_dt": "200.20.2.171:9090"
   },
   "steps": [
     {
@@ -44,7 +47,7 @@
                       "act": 2,
                       "sz": 0,
                       "ccd": 515,
-                      "dt": "internet"
+                      "dt": "{{gprs_apn_dt}}"
                     }
                   }
                 }
@@ -97,7 +100,7 @@
                       "act": 2,
                       "sz": 0,
                       "ccd": 516,
-                      "dt": "200.20.2.171:9090"
+                      "dt": "{{server_address_dt}}"
                     }
                   }
                 }
@@ -150,7 +153,7 @@
                       "act": 2,
                       "sz": 0,
                       "ccd": 1028,
-                      "dt_hex": "00000001"
+                      "dt_hex": "{{unit_id_hex}}"
                     }
                   }
                 }

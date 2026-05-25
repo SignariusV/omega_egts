@@ -5,7 +5,7 @@
     "cmw_connected": true
   },
   "scenario_card": {
-    "selected_index": 0
+    "selected_index": 12
   },
   "packets_card": {
     "filter_text": "",
@@ -13,6 +13,6 @@
   },
   "logs_card": {
     "source_filter": "All",
-    "level_filter": "All"
+    "level_filter": "INFO"
   }
 }
