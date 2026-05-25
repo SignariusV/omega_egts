@@ -6,11 +6,14 @@
   "description": "Первоначальная настройка УСВ через SMS с динамической генерацией пакетов",
   "channels": ["sms"],
   "variables": {
-    "packet_id": 27,
-    "record_id": 42,
+    "packet_id_1": 27,
+    "packet_id_2": 28,
+    "packet_id_3": 29,
+    "record_id_1": 42,
+    "record_id_2": 43,
+    "record_id_3": 44,
     "service_type": 4,
-    "recipient_service_type": 4,
-    "unit_id": 1
+    "recipient_service_type": 4
   },
   "steps": [
     {
@@ -20,11 +23,11 @@
       "build": {
         "gost_version": "2015",
         "packet": {
-          "packet_id": "{{packet_id}}",
+          "packet_id": "{{packet_id_1}}",
           "packet_type": 1,
           "records": [
             {
-              "record_id": "{{record_id}}",
+              "record_id": "{{record_id_1}}",
               "service_type": "{{service_type}}",
               "recipient_service_type": "{{recipient_service_type}}",
               "rsod": true,
@@ -40,7 +43,7 @@
                       "adr": 0,
                       "act": 2,
                       "sz": 0,
-                      "ccd": 257,
+                      "ccd": 515,
                       "dt": "internet"
                     }
                   }
@@ -73,11 +76,11 @@
       "build": {
         "gost_version": "2015",
         "packet": {
-          "packet_id": "{{packet_id}}",
+          "packet_id": "{{packet_id_2}}",
           "packet_type": 1,
           "records": [
             {
-              "record_id": "{{record_id}}",
+              "record_id": "{{record_id_2}}",
               "service_type": "{{service_type}}",
               "recipient_service_type": "{{recipient_service_type}}",
               "rsod": true,
@@ -93,7 +96,7 @@
                       "adr": 0,
                       "act": 2,
                       "sz": 0,
-                      "ccd": 1026,
+                      "ccd": 516,
                       "dt": "200.20.2.171:9090"
                     }
                   }
@@ -126,11 +129,11 @@
       "build": {
         "gost_version": "2015",
         "packet": {
-          "packet_id": "{{packet_id}}",
+          "packet_id": "{{packet_id_3}}",
           "packet_type": 1,
           "records": [
             {
-              "record_id": "{{record_id}}",
+              "record_id": "{{record_id_3}}",
               "service_type": "{{service_type}}",
               "recipient_service_type": "{{recipient_service_type}}",
               "rsod": true,
@@ -147,7 +150,7 @@
                       "act": 2,
                       "sz": 0,
                       "ccd": 1028,
-                      "dt": "{{unit_id}}"
+                      "dt_hex": "00000001"
                     }
                   }
                 }
