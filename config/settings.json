@@ -4,8 +4,8 @@
   "tcp_port": 8054,
   "cmw500": {
     "ip": "192.168.2.2",
-    "simulate": true,
-    "timeout": 5.0,
+    "simulate": false,
+    "timeout": 4.0,
     "retries": 3,
     "sms_send_timeout": 10.0,
     "status_poll_interval": 2.0,

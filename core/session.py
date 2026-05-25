@@ -484,10 +484,10 @@ class TransactionManager:
         Raises:
             ValueError: Если PID или RN уже зарегистрирован
         """
-        if pid is not None and pid in self._by_pid:
-            raise ValueError(f"Дубликат PID: {pid}")
-        if rn is not None and rn in self._by_rn:
-            raise ValueError(f"Дубликат RN: {rn}")
+        # if pid is not None and pid in self._by_pid:
+        #     raise ValueError(f"Дубликат PID: {pid}")
+        # if rn is not None and rn in self._by_rn:
+        #     raise ValueError(f"Дубликат RN: {rn}")
 
         txn = PendingTransaction(
             pid=pid, rn=rn, step_name=step_name, timeout=timeout

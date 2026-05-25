@@ -7,6 +7,34 @@ from gui.dashboard.cards.live_packets import LivePacketsCard
 from gui.dashboard.cards.packet_detail import PacketDetailCard
 from gui.widgets.packet_table import PacketTableModel
 from gui.dashboard.card_base import DisplayState
+from core.pipeline import PacketContext
+from libs.egts.models import ParseResult, Packet, Record
+
+
+def _make_processed_event(packet_id: int, channel: str = "EGTS") -> dict:
+    """Build a realistic packet.processed event."""
+    pkt = Packet(
+        packet_id=packet_id,
+        packet_type=1,
+        records=[Record(record_id=1, service_type=1)],
+    )
+    ctx = PacketContext(
+        raw=bytes([0x01, 0x18, 0x00, packet_id & 0xFF]),
+        connection_id="test",
+        channel=channel,
+        parsed=ParseResult(packet=pkt),
+        crc_valid=True,
+        is_duplicate=False,
+    )
+    return {
+        "ctx": ctx,
+        "connection_id": "test",
+        "channel": channel,
+        "parsed": ctx.parsed,
+        "crc_valid": True,
+        "is_duplicate": False,
+        "terminated": False,
+    }
 
 
 @pytest.fixture
@@ -81,7 +109,7 @@ class TestLivePacketsCard:
     def test_packet_processed_updates_model(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card.on_packet_processed({"pid": "123", "service": "EGTS", "length": "100", "channel": "EGTS"})
+        card.on_packet_processed(_make_processed_event(packet_id=123))
         qtbot.wait(150)
         assert card._packet_model.rowCount() == 1
         assert card._stats_label.text() != "Rx: 0 | Tx: 0"
@@ -89,7 +117,11 @@ class TestLivePacketsCard:
     def test_packet_sent_updates_model(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card.on_packet_sent({"pid": "456", "service": "SRVC", "length": "50", "channel": "SRTC"})
+        card.on_packet_sent({
+            "packet_bytes": b"\x01\x18\x00\x01",
+            "pid": 456,
+            "channel": "SRTC",
+        })
         qtbot.wait(150)
         assert card._packet_model.rowCount() == 1
         assert "Tx: 1" in card._stats_label.text()
@@ -97,8 +129,8 @@ class TestLivePacketsCard:
     def test_filter(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card.on_packet_processed({"pid": "123", "service": "EGTS", "length": "100", "channel": "EGTS"})
-        card.on_packet_processed({"pid": "456", "service": "SRVC", "length": "50", "channel": "SRTC"})
+        card.on_packet_processed(_make_processed_event(packet_id=123))
+        card.on_packet_processed(_make_processed_event(packet_id=456))
         qtbot.wait(150)
         card._filter_input.setText("123")
         assert card._proxy.rowCount() == 1
@@ -106,7 +138,7 @@ class TestLivePacketsCard:
     def test_clear_button(self, qtbot):
         card = LivePacketsCard()
         qtbot.addWidget(card)
-        card.on_packet_processed({"pid": "123"})
+        card.on_packet_processed(_make_processed_event(packet_id=999))
         card._clear_btn.click()
         assert card._packet_model.rowCount() == 0
         assert card._stats_label.text() == "Rx: 0 | Tx: 0"

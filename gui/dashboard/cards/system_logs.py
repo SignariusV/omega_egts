@@ -182,11 +182,12 @@ class SystemLogsCard(BaseCard):
         ctx = data.get("ctx")
         if ctx is None:
             return
-        hex_str = ctx.get("raw", b"").hex().upper() if ctx.get("raw") else ""
-        service = ctx.get("parsed", {}).get("service", "?") if ctx.get("parsed") else "?"
-        crc = "OK" if ctx.get("crc_valid") else "FAIL"
+        hex_str = ctx.raw.hex().upper()[:32] if ctx.raw else ""
+        parsed = ctx.parsed
+        service = parsed.packet.records[0].service_type if parsed and parsed.packet and parsed.packet.records else "?"
+        crc = "OK" if ctx.crc_valid else "FAIL"
         message = f"PACKET RECV | hex={hex_str[:32]}... | service={service} | crc={crc}"
-        self._add_entry(FILTER_PACKETS, "INFO", message, ctx.get("timestamp"))
+        self._add_entry(FILTER_PACKETS, "INFO", message, ctx.timestamp)
 
     @Slot(dict)
     def _on_packet_sent(self, data: dict):
