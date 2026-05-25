@@ -491,17 +491,31 @@ class CommandDispatcher:
                 "CommandDispatcher: CMW-500 контроллер не подключён (cmw=None)"
             )
 
+        # Извлечение PID/RN из packet_bytes если не переданы явно (KI-077)
+        effective_pid: int | None = pid
+        effective_rn: int | None = rn
+
+        if effective_pid is None or effective_rn is None:
+            conn = self.session_mgr.ensure_sms_session()
+            if conn is not None:
+                parsed = self._parse_packet_bytes(conn, packet_bytes)
+                if parsed is not None:
+                    if effective_pid is None:
+                        effective_pid = parsed.get("packet_id")
+                    if effective_rn is None:
+                        effective_rn = parsed.get("record_id")
+
         success = await self.cmw.send_sms(packet_bytes)
         if not success:
             raise RuntimeError("CMW-500: send_sms вернул False")
 
         # Регистрация транзакции для SMS-канала
-        if pid is not None or rn is not None:
+        if effective_pid is not None or effective_rn is not None:
             conn = self.session_mgr.ensure_sms_session()
             if conn is not None and conn.transaction_mgr is not None:
                 conn.transaction_mgr.register(
-                    pid=pid,
-                    rn=rn,
+                    pid=effective_pid,
+                    rn=effective_rn,
                     step_name=step_name or "",
                     timeout=timeout,
                 )
@@ -518,8 +532,8 @@ class CommandDispatcher:
                 "step_name": step_name,
                 "packet_bytes": packet_bytes,
                 "channel": "sms",
-                "pid": pid,
-                "rn": rn,
+                "pid": effective_pid,
+                "rn": effective_rn,
             },
         )
 

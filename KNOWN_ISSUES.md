@@ -243,7 +243,7 @@ _Проект на стадии реализации. Ниже — архите�
 | KI-074 | **ExpectStep._matches() не поддерживает `{{var}}` подстановку** | Открыто | Checks в ExpectStep сравниваются как статические значения из JSON. Нельзя написать `"checks": {"packet_id": "{{sent_pid}}"}` — будет искаться literal `"{{sent_pid}}"`. Это блокирует сценарии, где нужно сверить поле ответа с отправленным значением (PID, UNIT_ID, TID и т.д.). Решение: добавить `ctx.substitute(expected)` в `_matches()`, передав `ctx` как параметр |
 | KI-075 | **В extra не извлекаются response_packet_id, processing_result, record_id, subrecord_type** | Открыто | При построении `extra` из parsed-пакета не извлекаются: `packet.response_packet_id` (RPID), `packet.processing_result` (PR), `record.record_id` (RN), `subrecord.subrecord_type` (SRT). Сейчас `extra.update(sr.data)` берёт только data из subrecord, а SRT лежит на самом Subrecord. `checks: {"subrecord_type": "EGTS_SR_COMMAND_DATA"}` не работает — SRT отсутствует в extra. Решение: добавить извлечение этих полей из Packet/Record/Subrecord после цикла `extra.update()` |
 | KI-076 | **ScenarioManager.execute() возвращает только строку, captured-данные теряются** | Открыто | Все capture-переменные, сохранённые в ScenarioContext, умирают после выполнения сценария. execute() возвращает `"PASS"/"FAIL"/...` вместо структуры с захваченными данными. Невозможно получить IMEI, UNIT_ID, TID, imsi и т.д. после завершения сценария ни через CLI, ни через GUI. Решение: возвращать `ScenarioResult` с полями status, captured, steps, duration |
-| KI-077 | **`_send_sms()` не извлекает pid/rn из packet_bytes** | Открыто | `_send_sms()` (dispatcher.py:494) не вызывает `_parse_packet_bytes()` в отличие от `_send_tcp()` (dispatcher.py:427-433). Если `command.send` не содержит `pid`/`rn`, транзакция SMS не регистрируется → `ensure_sms_session()` не вызывается → ExpectStep не может сопоставить ответ с отправленным пакетом. Подтверждено логом: `command.send` имеет `data_keys=['packet_bytes', 'channel', 'step_name']` — без `pid`, `rn`, `connection_id`. | Добавить извлечение pid/rn из packet_bytes в `_send_sms()` по аналогии с `_send_tcp()` |
+
 
 ---
 
@@ -268,6 +268,7 @@ _Проект на стадии реализации. Ниже — архите�
 | R-099 | `_default_protocol` в тестах — мёртвый код | Удалено — SessionManager создаёт protocol из `gost_version` |
 | R-100 | `test_start_emits_server_started` — не проверял событие | Теперь подписывается на `server.started` и верифицирует порт |
 | R-101 | CR-013 / KI-039: Дублирующее создание SMS-сессии | `SessionManager.get_or_create_session()` + `ensure_sms_session()` — единая фабрика. `PacketDispatcher` и `CommandDispatcher` вызывают `session_mgr.ensure_sms_session()`. Протокол из `self.gost_version` (не хардкод "2015"). Удалены дублирующиеся методы. 6 тестов. |
+| R-102 | KI-077: `_send_sms()` не извлекал pid/rn из packet_bytes | Добавлено извлечение pid/rn через `_parse_packet_bytes()` по аналогии с `_send_tcp()` |
 
 ---
 
