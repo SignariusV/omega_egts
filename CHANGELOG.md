@@ -4,6 +4,61 @@
 
 ---
 
+### Универсальный механизм резолверов для динамических переменных
+
+**Дата:** 26.05.2026
+
+#### Added
+- **`core/network.py`** — модуль утилит для определения сетевых параметров локальной машины: `get_wifi_ip()` (ранее в `examples/wifi_ip.py`)
+- **`ScenarioManager.register_resolver(name, func)`** — механизм динамического вычисления переменных сценария через зарегистрированные callable
+- **Новый формат JSON** — `{"var": {"resolver": "name"}}` — переменная вычисляется через резолвер при `load()`
+- **`server_address` резолвер** — в `CoreEngine.start()` регистрируется резолвер, который комбинирует Wi-Fi IP (`get_wifi_ip()`) и порт из `config.settings.tcp_port`
+- **6 новых тестов** для резолверов в `test_scenario_context.py`
+
+#### Changed
+- **`scenarios/verification_dynamic/scenario.json`** — `server_address_dt` заменён с хардкода на `{"resolver": "server_address"}`
+- **`core/engine.py`** — после создания `ScenarioManager` регистрируется `server_address` резолвер
+
+#### Пример использования
+```json
+{
+  "variables": {
+    "server_address_dt": {"resolver": "server_address"}
+  }
+}
+```
+```python
+mgr = ScenarioManager(parser_factory)
+mgr.register_resolver("server_address", lambda: f"{get_wifi_ip()}:{config.tcp_port}")
+mgr.load("scenario.json")
+```
+
+---
+
+### Автоинкремент переменных packet_id / record_id
+
+**Дата:** 26.05.2026
+
+#### Added
+- **`Variable.auto_increment: bool`** — флаг автоинкремента при каждом чтении переменной
+- **`ScenarioContext.set(auto_increment=...)`** — параметр для включения автоинкремента
+- **`ScenarioContext.get()`** — инкрементирует значение на +1 при каждом вызове, если `auto_increment=True`
+- **`substitute()`** — прозрачно подхватывает автоинкремент через `get()`
+- **8 новых тестов** для `test_scenario_context.py`
+
+#### Changed
+- **`ScenarioManager.load()`** — поддержка формата `{"start": N, "auto": bool}` в JSON
+- **`scenarios/verification_dynamic/scenario.json`** — 6 ручных переменных (`packet_id_{1..3}`, `record_id_{1..3}`) заменены на 2 автоинкремента (`packet_id`, `record_id`)
+- **`tests/core/test_verification_dynamic_debug.py`** — адаптирован под новый формат
+
+#### Fixed
+- **KI-075**: Проверка дубликатов PID отключена — теперь сценарии используют автоинкремент PID, необходимость ручного управления PID/RN отпала
+
+#### KNOWN_ISSUES
+- **KI-075**: Проверка дубликатов PID в `TransactionManager` остаётся отключённой (закомментирована). С автоинкрементом в сценариях коллизии PID маловероятны, но `TransactionManager` не защищает от повторного использования PID при прямых вызовах API.
+
+---
+
 ### Временно отключена проверка дубликатов PID в TransactionManager
 
 **Дата:** 25.05.2026

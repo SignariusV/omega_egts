@@ -2,7 +2,7 @@
 
 Известные проблемы, ограничения и плановые задачи.
 
-**Обновлено:** 22.05.2026 | **ТЗ:** v7.0 | **Итерации 1–14:** 1000+ тестов | **Аудит + исправления:** R-001–R-101
+**Обновлено:** 26.05.2026 | **ТЗ:** v7.0 | **Итерации 1–14:** 1000+ тестов | **Аудит + исправления:** R-001–R-101
 
 ---
 
@@ -244,7 +244,7 @@ _Проект на стадии реализации. Ниже — архите�
 | KI-075 | **В extra не извлекаются response_packet_id, processing_result, record_id, subrecord_type** | Открыто | При построении `extra` из parsed-пакета не извлекаются: `packet.response_packet_id` (RPID), `packet.processing_result` (PR), `record.record_id` (RN), `subrecord.subrecord_type` (SRT). Сейчас `extra.update(sr.data)` берёт только data из subrecord, а SRT лежит на самом Subrecord. `checks: {"subrecord_type": "EGTS_SR_COMMAND_DATA"}` не работает — SRT отсутствует в extra. Решение: добавить извлечение этих полей из Packet/Record/Subrecord после цикла `extra.update()` |
 | KI-076 | **ScenarioManager.execute() возвращает только строку, captured-данные теряются** | Открыто | Все capture-переменные, сохранённые в ScenarioContext, умирают после выполнения сценария. execute() возвращает `"PASS"/"FAIL"/...` вместо структуры с захваченными данными. Невозможно получить IMEI, UNIT_ID, TID, imsi и т.д. после завершения сценария ни через CLI, ни через GUI. Решение: возвращать `ScenarioResult` с полями status, captured, steps, duration |
 | ~~KI-077~~ | ~~**TransactionManager.register() не извлекал pid/rn из packet_bytes для SMS**~~ | ~~Открыто~~ | **Решено (R-102)**: `_send_sms()` теперь извлекает pid/rn через `_parse_packet_bytes()` по аналогии с `_send_tcp()`. |
-| KI-078 | **Проверка дубликатов PID отключена** `(core/session.py:487-490)` | **Временно отключено** | В hex-файлах пакетов `gprs_apn.hex` и `server_address.hex` используется одинаковый PID=27. TransactionManager.register() перезаписывает старую транзакцию новой без проверки. **Риск**: потеря транзакции первого шага при ответе — `match_response()` может не найти PID, т.к. словарь `_by_pid` содержит только последнюю запись. **Решение**: реализовать автоинкремент PID в SendStep или исправить hex-файлы. |
+| KI-078 | **Проверка дубликатов PID отключена** `(core/session.py:487-490)` | **Частично решено** | Автоинкремент PID/RN реализован в сценариях (`{"start": N, "auto": true}`). Динамические сценарии больше не используют одинаковые PID. Однако `TransactionManager.register()` по-прежнему перезаписывает дубликаты (проверка закомментирована) — риск сохраняется при прямых вызовах API или сценариях с `packet_file`. |
 
 
 ---

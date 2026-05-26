@@ -46,9 +46,13 @@
 │ │ Dedup→EventEmit)    │  │(TCP + SMS)   │  │+ Registry    │   │
 │ └─────────────────────┘  └──────────────┘  └──────────────┘   │
 │ ┌─────────────┐ ┌─────────────┐ ┌────────────┐ ┌───────────┐  │
-│ │LogManager   │ │Credentials  │ │ReplaySource│ │Export     │  │
-│ │             │ │Repository   │ │            │ │(функции)  │  │
-│ └─────────────┘ └─────────────┘ └────────────┘ └───────────┘  │
+│ │LogManager   │ │Credentials  │ │NetworkUtils │ │Export     │  │
+│ │             │ │Repository   │ │(get_wifi_ip)│ │(функции)  │  │
+│ └─────────────┘ └─────────────┘ └─────────────┘ └───────────┘  │
+│ ┌─────────────┐                                                 │
+│ │ReplaySource │                                                 │
+│ │             │                                                 │
+│ └─────────────┘                                                 │
 └─────────────────────────────────────────────────────────────────┘
                            │
               ┌────────────▼────────────┐
@@ -528,6 +532,9 @@ class ScenarioManager:
 
     def load(self, path: Path) -> None: ...
 
+    def register_resolver(self, name: str, func: Callable[[], Any]) -> None:
+        # Регистрация резолвера для динамического вычисления переменной
+
     async def execute(self, bus, connection_id, timeout) -> str:
         # 1. Emit scenario.started (все шаги PENDING)
         # 2. For each step: execute → emit scenario.step
@@ -657,13 +664,31 @@ SendStep поддерживает **3 способа** генерации EGTS-�
 
 #### Переменные и подстановка
 
-В `packet dict` можно использовать подстановку переменных:
+В `packet dict` можно использовать подстановку переменных. Секция `variables` поддерживает три формата:
+
+**1. Простое значение (базовый формат):**
+```json
+"var_name": value
+```
+
+**2. Автоинкремент (значение увеличивается на 1 при каждом чтении):**
+```json
+"packet_id": {"start": 27, "auto": true}
+```
+
+**3. Резолвер (значение вычисляется динамически через зарегистрированную функцию):**
+```json
+"server_address_dt": {"resolver": "server_address"}
+```
+
+Переменные подставляются в `build.packet` через синтаксис `{{var_name}}`:
 
 ```json
 {
   "variables": {
-    "packet_id": 27,
-    "record_id": 42
+    "packet_id": {"start": 27, "auto": true},
+    "record_id": {"start": 42, "auto": true},
+    "server_address_dt": {"resolver": "server_address"}
   },
   "build": {
     "gost_version": "2015",
@@ -674,7 +699,7 @@ SendStep поддерживает **3 способа** генерации EGTS-�
         {
           "record_id": "{{record_id}}",
           "service_type": 4,
-          ...
+          "subrecords": [...]
         }
       ]
     }
@@ -682,7 +707,7 @@ SendStep поддерживает **3 способа** генерации EGTS-�
 }
 ```
 
-Переменные задаются в секции `variables` и подставляются через синтаксис `{{var_name}}`.
+Все три формата можно комбинировать в одном сценарии.
 
 #### Примеры
 
@@ -703,6 +728,29 @@ class StepFactory:
         # type="wait" → WaitStep
         # type="check" → CheckStep
 ```
+
+#### Резолверы переменных
+
+Для динамического вычисления значений переменных (например, IP-адрес сервера) используется механизм **резолверов**:
+
+```python
+# Регистрация
+mgr.register_resolver("server_address", lambda: f"{get_wifi_ip()}:{port}")
+
+# JSON-сценарий
+{ "server_address_dt": {"resolver": "server_address"} }
+```
+
+**Правила:**
+- Резолвер — это `Callable[[], Any]` без аргументов
+- Вызывается в `load()` при разборе секции `variables`
+- Если резолвер не зарегистрирован — `ValueError` при загрузке
+- Резолверы регистрируются кодом (engine.py), не указываются в JSON
+
+**Встроенные резолверы:**
+| Имя | Где регистрируется | Что возвращает |
+|-----|-------------------|----------------|
+| `server_address` | `CoreEngine.start()` | `"{WiFi_IP}:{tcp_port}"` через `get_wifi_ip()` |
 
 **Добавление новой версии формата (V2):**
 1. Создать `ScenarioParserV2(IScenarioParser)`
@@ -875,6 +923,30 @@ class CredentialsRepository:
 - Без ORM — прямой JSON-файл (`config/credentials.json`)
 - Защита файла: `chmod 600` на Unix, ACL warning на Windows
 - `save()` использует `creds.device_id` как ключ (без рассинхронизации)
+
+---
+
+### NetworkUtils
+
+**Файл:** `core/network.py` | **Статус:** ✅ Реализован (итерация 15.0)
+
+Утилиты для определения сетевых параметров локальной машины.
+
+```python
+def get_wifi_ip() -> str | None:
+    """Определить IPv4-адрес Wi-Fi интерфейса через ipconfig.
+    Returns None, если Wi-Fi не подключён."""
+```
+
+**Использование:**
+- Регистрируется как резолвер `server_address` в `CoreEngine.start()`:
+  ```python
+  mgr.register_resolver(
+      "server_address",
+      lambda: f"{get_wifi_ip() or '127.0.0.1'}:{config.tcp_port}",
+  )
+  ```
+- Ранее находился в `examples/wifi_ip.py` — перенесён в ядро.
 
 ---
 
