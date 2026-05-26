@@ -1,9 +1,14 @@
 """Tests for ScenarioContext — variables, TTL, substitution, connection_id resolution."""
 
+import json
 import time
+from pathlib import Path
 from unittest.mock import MagicMock
 
-from core.scenario import ScenarioContext, Variable
+import pytest
+
+from core.scenario import ScenarioContext, ScenarioManager, Variable
+from core.scenario_parser import ScenarioParserFactory, ScenarioParserRegistry, ScenarioParserV1
 
 
 class TestVariable:
@@ -168,3 +173,120 @@ class TestScenarioContextMetadata:
         mock_parser = MagicMock()
         ctx.parser = mock_parser
         assert ctx.parser is mock_parser
+
+
+class TestScenarioContextAutoIncrement:
+    """ScenarioContext auto-increment variables."""
+
+    def test_simple_variable_not_auto_incremented(self) -> None:
+        """Обычная переменная не инкрементится."""
+        ctx = ScenarioContext()
+        ctx.set("pid", 100)
+        assert ctx.get("pid") == 100
+        assert ctx.get("pid") == 100
+
+    def test_auto_increment_increases_on_each_get(self) -> None:
+        """auto_increment=True: каждое чтение увеличивает на 1."""
+        ctx = ScenarioContext()
+        ctx.set("pid", 100, auto_increment=True)
+        assert ctx.get("pid") == 100
+        assert ctx.get("pid") == 101
+        assert ctx.get("pid") == 102
+
+    def test_auto_increment_substitute(self) -> None:
+        """Подстановка auto-increment переменной через шаблон."""
+        ctx = ScenarioContext()
+        ctx.set("pid", 100, auto_increment=True)
+        assert ctx.substitute("{{pid}}") == "100"
+        assert ctx.substitute("{{pid}}") == "101"
+        assert ctx.substitute("{{pid}}") == "102"
+
+    def test_multiple_auto_increment_variables(self) -> None:
+        """Несколько auto-increment переменных независимы."""
+        ctx = ScenarioContext()
+        ctx.set("pid", 100, auto_increment=True)
+        ctx.set("rid", 200, auto_increment=True)
+        assert ctx.get("pid") == 100
+        assert ctx.get("rid") == 200
+        assert ctx.get("pid") == 101
+        assert ctx.get("rid") == 201
+
+    def test_auto_increment_mixed_with_static(self) -> None:
+        """auto-increment и статические переменные вместе."""
+        ctx = ScenarioContext()
+        ctx.set("pid", 100, auto_increment=True)
+        ctx.set("service", 4)
+        assert ctx.get("pid") == 100
+        assert ctx.get("service") == 4
+        assert ctx.get("pid") == 101
+        assert ctx.get("service") == 4
+
+
+class TestScenarioManagerVariables:
+    """ScenarioManager.load — загрузка variables с auto_increment."""
+
+    @pytest.fixture
+    def factory(self) -> ScenarioParserFactory:
+        registry = ScenarioParserRegistry()
+        registry.register("1", ScenarioParserV1)
+        return ScenarioParserFactory(registry)
+
+    def _make_scenario(self, tmp_path: Path, data: dict) -> Path:
+        scenario_file = tmp_path / "scenario.json"
+        scenario_file.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        return scenario_file
+
+    def test_load_simple_variables(self, tmp_path: Path, factory: ScenarioParserFactory) -> None:
+        """Загрузка простых переменных (старый формат)."""
+        data = {
+            "scenario_version": "1",
+            "name": "Test",
+            "steps": [{"name": "s1", "type": "send", "channel": "tcp", "timeout": 5}],
+            "variables": {"tid": 123, "imei": "abc"},
+        }
+        mgr = ScenarioManager(parser_factory=factory)
+        mgr.load(self._make_scenario(tmp_path, data))
+        assert mgr.context.get("tid") == 123
+        assert mgr.context.get("imei") == "abc"
+
+    def test_load_auto_increment_variables(self, tmp_path: Path, factory: ScenarioParserFactory) -> None:
+        """Загрузка переменных с auto_increment (новый формат)."""
+        data = {
+            "scenario_version": "1",
+            "name": "Test",
+            "steps": [{"name": "s1", "type": "send", "channel": "tcp", "timeout": 5}],
+            "variables": {
+                "pid": {"start": 100, "auto": True},
+                "rid": {"start": 200, "auto": True},
+            },
+        }
+        mgr = ScenarioManager(parser_factory=factory)
+        mgr.load(self._make_scenario(tmp_path, data))
+
+        assert mgr.context.get("pid") == 100
+        assert mgr.context.get("pid") == 101
+        assert mgr.context.get("rid") == 200
+        assert mgr.context.get("rid") == 201
+
+    def test_load_mixed_variables(self, tmp_path: Path, factory: ScenarioParserFactory) -> None:
+        """Смешанный формат: простые и auto-increment переменные."""
+        data = {
+            "scenario_version": "1",
+            "name": "Test",
+            "steps": [{"name": "s1", "type": "send", "channel": "tcp", "timeout": 5}],
+            "variables": {
+                "pid": {"start": 27, "auto": True},
+                "rid": {"start": 42, "auto": True},
+                "service_type": 4,
+                "unit_id_hex": "00000001",
+            },
+        }
+        mgr = ScenarioManager(parser_factory=factory)
+        mgr.load(self._make_scenario(tmp_path, data))
+
+        assert mgr.context.get("pid") == 27
+        assert mgr.context.get("rid") == 42
+        assert mgr.context.get("service_type") == 4
+        assert mgr.context.get("unit_id_hex") == "00000001"
+        assert mgr.context.get("pid") == 28
+        assert mgr.context.get("rid") == 43

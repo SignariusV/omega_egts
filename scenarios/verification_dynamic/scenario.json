@@ -5,19 +5,15 @@
   "timeout": 60,
   "description": "Первоначальная настройка УСВ через SMS с динамической генерацией пакетов",
   "channels": ["sms"],
-  "variables": {
-    "packet_id_1": 27,
-    "packet_id_2": 28,
-    "packet_id_3": 29,
-    "record_id_1": 42,
-    "record_id_2": 43,
-    "record_id_3": 44,
-    "service_type": 4,
-    "recipient_service_type": 4,
-    "unit_id_hex": "00000001",
-    "gprs_apn_dt": "internet",
-    "server_address_dt": "200.20.2.171:9090"
-  },
+    "variables": {
+        "packet_id": {"start": 27, "auto": true},
+        "record_id": {"start": 42, "auto": true},
+        "service_type": 4,
+        "recipient_service_type": 4,
+        "unit_id_hex": "00000001",
+        "gprs_apn_dt": "internet",
+        "server_address_dt": "200.20.2.171:9090"
+    },
   "steps": [
     {
       "name": "Настройка GPRS/APN",
@@ -26,11 +22,11 @@
       "build": {
         "gost_version": "2015",
         "packet": {
-          "packet_id": "{{packet_id_1}}",
+          "packet_id": "{{packet_id}}",
           "packet_type": 1,
           "records": [
             {
-              "record_id": "{{record_id_1}}",
+              "record_id": "{{record_id}}",
               "service_type": "{{service_type}}",
               "recipient_service_type": "{{recipient_service_type}}",
               "rsod": true,
@@ -79,11 +75,11 @@
       "build": {
         "gost_version": "2015",
         "packet": {
-          "packet_id": "{{packet_id_2}}",
+          "packet_id": "{{packet_id}}",
           "packet_type": 1,
           "records": [
             {
-              "record_id": "{{record_id_2}}",
+              "record_id": "{{record_id}}",
               "service_type": "{{service_type}}",
               "recipient_service_type": "{{recipient_service_type}}",
               "rsod": true,
@@ -132,11 +128,11 @@
       "build": {
         "gost_version": "2015",
         "packet": {
-          "packet_id": "{{packet_id_3}}",
+          "packet_id": "{{packet_id}}",
           "packet_type": 1,
           "records": [
             {
-              "record_id": "{{record_id_3}}",
+              "record_id": "{{record_id}}",
               "service_type": "{{service_type}}",
               "recipient_service_type": "{{recipient_service_type}}",
               "rsod": true,

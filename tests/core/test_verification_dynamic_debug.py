@@ -27,10 +27,14 @@ def test_verification_dynamic_step1():
     print(f"Packet dict: {json.dumps(step_def.build.get('packet', {}), indent=2, ensure_ascii=False)}")
 
     ctx = ScenarioContext(scenario_version="1", gost_version="2015")
-    # Загружаем переменные из сценария
+    # Загружаем переменные из сценария (с поддержкой формата {"start": N, "auto": bool})
     for k, v in data.get("variables", {}).items():
-        ctx.set(k, v)
-        print(f"Variable set: {k} = {v!r} (type={type(v).__name__})")
+        if isinstance(v, dict) and "start" in v:
+            ctx.set(k, v["start"], auto_increment=v.get("auto", False))
+            print(f"Variable set: {k} = {v['start']!r} (auto_increment={v.get('auto', False)})")
+        else:
+            ctx.set(k, v)
+            print(f"Variable set: {k} = {v!r} (type={type(v).__name__})")
 
     step = SendStep(
         name=step_def.name,

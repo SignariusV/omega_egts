@@ -39,6 +39,7 @@ class Variable:
     value: Any
     ttl: float | None  # Время жизни в секундах (None = бессрочно)
     created_at: float  # timestamp создания
+    auto_increment: bool = False  # Автоинкремент при каждом чтении
 
     @property
     def is_expired(self) -> bool:
@@ -82,16 +83,21 @@ class ScenarioContext:
 
     # --- Variables ---
 
-    def set(self, name: str, value: Any, ttl: float | None = None) -> None:
+    def set(
+        self, name: str, value: Any, ttl: float | None = None,
+        auto_increment: bool = False,
+    ) -> None:
         """Установить переменную.
 
         Args:
             name: Имя переменной.
             value: Значение.
             ttl: Время жизни в секундах (None = бессрочно).
+            auto_increment: Автоинкремент при каждом чтении.
         """
         self._variables[name] = Variable(
-            value=value, ttl=ttl, created_at=time.time()
+            value=value, ttl=ttl, created_at=time.time(),
+            auto_increment=auto_increment,
         )
 
     def get(self, name: str) -> Any | None:
@@ -109,7 +115,10 @@ class ScenarioContext:
         if var.is_expired:
             del self._variables[name]
             return None
-        return var.value
+        value = var.value
+        if var.auto_increment:
+            var.value = value + 1
+        return value
 
     # --- Template substitution ---
 
@@ -828,8 +837,17 @@ class ScenarioManager:
         self._context.parser = parser
 
         # Загружаем переменные сценария из секции "variables"
+        # Поддерживаются два формата:
+        #   "var": value                    — простое значение
+        #   "var": {"start": v, "auto": b}  — конфиг с автоинкрементом
         for var_name, var_value in data.get("variables", {}).items():
-            self._context.set(var_name, var_value)
+            if isinstance(var_value, dict) and "start" in var_value:
+                self._context.set(
+                    var_name, var_value["start"],
+                    auto_increment=var_value.get("auto", False),
+                )
+            else:
+                self._context.set(var_name, var_value)
 
     async def execute(
         self,
