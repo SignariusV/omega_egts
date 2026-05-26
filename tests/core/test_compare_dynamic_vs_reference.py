@@ -22,6 +22,7 @@ def main():
     registry.register("1", ScenarioParserV1)
     factory = ScenarioParserFactory(registry)
     mgr = ScenarioManager(parser_factory=factory)
+    mgr.register_resolver("server_address", lambda: "200.20.2.171:9090")
     mgr.load(scenario_path)
 
     refs = {

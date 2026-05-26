@@ -114,6 +114,13 @@ class CoreEngine:
             parser_factory = _ParserFactory(registry=registry)
             self.scenario_mgr = _ScenarioManager(parser_factory=parser_factory)
 
+            # Регистрируем резолвер для server_address
+            from core.network import get_wifi_ip
+            self.scenario_mgr.register_resolver(
+                "server_address",
+                lambda: f"{get_wifi_ip() or '127.0.0.1'}:{self.config.tcp_port}",
+            )
+
             # Создаём диспетчер пакетов (подписывается на raw.packet.received)
             self.packet_dispatcher = PacketDispatcher(bus=self.bus, session_mgr=self.session_mgr)
 

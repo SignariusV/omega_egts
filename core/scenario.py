@@ -13,7 +13,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 from core.event_bus import EventBus
 from core.scenario_parser import (
@@ -758,6 +758,7 @@ class ScenarioManager:
         self._metadata: ScenarioMetadata | None = None
         self._cancel_requested: bool = False
         self._running: bool = False
+        self._resolvers: dict[str, Callable[[], Any]] = {}
 
     @property
     def is_running(self) -> bool:
@@ -784,6 +785,15 @@ class ScenarioManager:
     def context(self) -> ScenarioContext:
         """Контекст выполнения."""
         return self._context
+
+    def register_resolver(self, name: str, func: Callable[[], Any]) -> None:
+        """Зарегистрировать резолвер для динамического вычисления переменной.
+
+        Args:
+            name: Имя резолвера (совпадает со значением ``resolver`` в JSON).
+            func: Функция без аргументов, возвращающая значение переменной.
+        """
+        self._resolvers[name] = func
 
     def load(self, path: Path) -> None:
         """Загрузить сценарий из JSON-файла.
@@ -837,15 +847,24 @@ class ScenarioManager:
         self._context.parser = parser
 
         # Загружаем переменные сценария из секции "variables"
-        # Поддерживаются два формата:
+        # Поддерживаются три формата:
         #   "var": value                    — простое значение
         #   "var": {"start": v, "auto": b}  — конфиг с автоинкрементом
+        #   "var": {"resolver": "name"}     — динамическое вычисление
         for var_name, var_value in data.get("variables", {}).items():
             if isinstance(var_value, dict) and "start" in var_value:
                 self._context.set(
                     var_name, var_value["start"],
                     auto_increment=var_value.get("auto", False),
                 )
+            elif isinstance(var_value, dict) and "resolver" in var_value:
+                resolver_name = var_value["resolver"]
+                if resolver_name not in self._resolvers:
+                    raise ValueError(
+                        f"Unknown resolver '{resolver_name}' for variable '{var_name}'"
+                    )
+                resolved = self._resolvers[resolver_name]()
+                self._context.set(var_name, resolved)
             else:
                 self._context.set(var_name, var_value)
 

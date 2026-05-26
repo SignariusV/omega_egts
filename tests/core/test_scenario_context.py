@@ -290,3 +290,55 @@ class TestScenarioManagerVariables:
         assert mgr.context.get("unit_id_hex") == "00000001"
         assert mgr.context.get("pid") == 28
         assert mgr.context.get("rid") == 43
+
+    def test_load_resolver_variables(self, tmp_path: Path, factory: ScenarioParserFactory) -> None:
+        """Загрузка переменных через резолвер (формат {"resolver": "name"})."""
+        data = {
+            "scenario_version": "1",
+            "name": "Test",
+            "steps": [{"name": "s1", "type": "send", "channel": "tcp", "timeout": 5}],
+            "variables": {
+                "server_address_dt": {"resolver": "server_address"},
+            },
+        }
+        mgr = ScenarioManager(parser_factory=factory)
+        mgr.register_resolver("server_address", lambda: "192.168.1.1:8054")
+        mgr.load(self._make_scenario(tmp_path, data))
+
+        assert mgr.context.get("server_address_dt") == "192.168.1.1:8054"
+
+    def test_load_unknown_resolver_raises(self, tmp_path: Path, factory: ScenarioParserFactory) -> None:
+        """Неизвестный резолвер вызывает ValueError."""
+        data = {
+            "scenario_version": "1",
+            "name": "Test",
+            "steps": [{"name": "s1", "type": "send", "channel": "tcp", "timeout": 5}],
+            "variables": {
+                "x": {"resolver": "nonexistent"},
+            },
+        }
+        mgr = ScenarioManager(parser_factory=factory)
+        import pytest
+        with pytest.raises(ValueError, match="nonexistent"):
+            mgr.load(self._make_scenario(tmp_path, data))
+
+    def test_load_mixed_with_resolver(self, tmp_path: Path, factory: ScenarioParserFactory) -> None:
+        """Смешанный формат: простые + auto-increment + резолвер."""
+        data = {
+            "scenario_version": "1",
+            "name": "Test",
+            "steps": [{"name": "s1", "type": "send", "channel": "tcp", "timeout": 5}],
+            "variables": {
+                "pid": {"start": 27, "auto": True},
+                "server_address_dt": {"resolver": "server_address"},
+                "unit_id_hex": "00000001",
+            },
+        }
+        mgr = ScenarioManager(parser_factory=factory)
+        mgr.register_resolver("server_address", lambda: "10.0.0.1:9090")
+        mgr.load(self._make_scenario(tmp_path, data))
+
+        assert mgr.context.get("pid") == 27
+        assert mgr.context.get("server_address_dt") == "10.0.0.1:9090"
+        assert mgr.context.get("unit_id_hex") == "00000001"
+        assert mgr.context.get("pid") == 28

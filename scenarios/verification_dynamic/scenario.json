@@ -12,7 +12,7 @@
         "recipient_service_type": 4,
         "unit_id_hex": "00000001",
         "gprs_apn_dt": "internet",
-        "server_address_dt": "200.20.2.171:9090"
+        "server_address_dt": {"resolver": "server_address"}
     },
   "steps": [
     {
