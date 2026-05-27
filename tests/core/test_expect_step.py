@@ -17,9 +17,9 @@ class TestExpectStepCheck:
         """Exact value match — все passed=True."""
         step = ExpectStep(
             name="test",
-            checks={"service": 1, "subrecord_type": "EGTS_SR_TERM_IDENTITY"},
+            checks={"service": 1, "subrecord_type": 9},
         )
-        parsed_data = {"service": 1, "subrecord_type": "EGTS_SR_TERM_IDENTITY"}
+        parsed_data = {"service": 1, "subrecord_type": 9}
         results = step._check(parsed_data)
         assert len(results) == 2
         assert all(r.passed for r in results)
@@ -360,3 +360,57 @@ class TestExpectStepExecute:
         assert result == "FAIL"
         assert details["check_results"][0]["expected"] == 0  # после подстановки
         assert details["check_results"][0]["actual"] == 999
+
+    @pytest.mark.asyncio
+    async def test_ki075_extra_contains_rpid_pr_record_id_subrecord_type(self) -> None:
+        """KI-075: extra содержит response_packet_id, processing_result, record_id, subrecord_type."""
+        from libs.egts.models import Packet, ParseResult, Record, Subrecord
+
+        # APPDATA-пакет (PT=1)
+        sub = Subrecord(subrecord_type=9, data={"rcd": 0})
+        rec = Record(record_id=42, service_type=1, subrecords=[sub])
+        pkt = Packet(packet_id=1, packet_type=1, records=[rec])
+        parsed_mock = MagicMock()
+        parsed_mock.parsed = ParseResult(packet=pkt)
+
+        ctx = ScenarioContext()
+        step = ExpectStep(name="test", checks={"record_id": 42, "subrecord_type": 9})
+
+        bus = EventBus()
+        async def emit() -> None:
+            await asyncio.sleep(0.01)
+            await bus.emit("packet.processed", {"ctx": parsed_mock, "connection_id": "c1", "channel": "tcp"})
+
+        task = asyncio.create_task(emit())
+        result, details = await step.execute(ctx, bus, timeout=2.0)
+        await task
+        assert result == "PASS"
+
+    @pytest.mark.asyncio
+    async def test_ki075_response_packet_extra_fields(self) -> None:
+        """RESPONSE-пакет: extra содержит response_packet_id и processing_result."""
+        from libs.egts.models import Packet, ParseResult, Record, Subrecord
+
+        sub = Subrecord(subrecord_type=0, data={"crn": 1, "rst": 0})
+        rec = Record(record_id=1, service_type=1, subrecords=[sub])
+        pkt = Packet(
+            packet_id=5, packet_type=0, records=[rec],
+            response_packet_id=5, processing_result=0,
+        )
+        parsed_mock = MagicMock()
+        parsed_mock.parsed = ParseResult(packet=pkt)
+
+        ctx = ScenarioContext()
+        step = ExpectStep(
+            name="test",
+            checks={"response_packet_id": 5, "processing_result": 0, "subrecord_type": 0},
+        )
+        bus = EventBus()
+        async def emit() -> None:
+            await asyncio.sleep(0.01)
+            await bus.emit("packet.processed", {"ctx": parsed_mock, "connection_id": "c1", "channel": "tcp"})
+
+        task = asyncio.create_task(emit())
+        result, details = await step.execute(ctx, bus, timeout=2.0)
+        await task
+        assert result == "PASS"

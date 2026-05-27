@@ -400,13 +400,22 @@ class ExpectStep:
                     pkt = packet_data.packet
                     extra["packet_type"] = pkt.packet_type
                     extra["packet_id"] = pkt.packet_id
-                    # service из первой записи (service_type)
+                    # RPID/PR (только для RESPONSE-пакетов)
+                    if pkt.response_packet_id is not None:
+                        extra["response_packet_id"] = pkt.response_packet_id
+                    if pkt.processing_result is not None:
+                        extra["processing_result"] = pkt.processing_result
+                    # service/record_id из первой записи
                     if pkt.records:
                         extra["service"] = pkt.records[0].service_type
+                        extra["record_id"] = pkt.records[0].record_id
                     for rec in pkt.records:
                         for sr in rec.subrecords:
                             if isinstance(sr.data, dict):
                                 extra.update(sr.data)
+                    # subrecord_type из первой подзаписи первого record
+                    if pkt.records and pkt.records[0].subrecords:
+                        extra["subrecord_type"] = pkt.records[0].subrecords[0].subrecord_type
                     # Fallback: ct, cid могут быть напрямую в пакете (из парсера)
                     if pkt.records:
                         first = pkt.records[0]

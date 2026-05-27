@@ -833,10 +833,20 @@ class SessionManager:
                 if hasattr(raw_parsed, "packet"):
                     # ParseResult — извлекаем данные напрямую из packet
                     if raw_parsed.packet is not None and raw_parsed.packet.records:
+                        pkt = raw_parsed.packet
                         # Берём service_type из первой записи
-                        parsed["service"] = raw_parsed.packet.records[0].service_type
+                        parsed["service"] = pkt.records[0].service_type
+                        parsed["record_id"] = pkt.records[0].record_id
+                        # RPID/PR (только для RESPONSE-пакетов)
+                        if pkt.response_packet_id is not None:
+                            parsed["response_packet_id"] = pkt.response_packet_id
+                        if pkt.processing_result is not None:
+                            parsed["processing_result"] = pkt.processing_result
+                        # subrecord_type из первой подзаписи
+                        if pkt.records[0].subrecords:
+                            parsed["subrecord_type"] = pkt.records[0].subrecords[0].subrecord_type
                         # Извлекаем данные из подзаписей первой записи
-                        for sr in raw_parsed.packet.records[0].subrecords:
+                        for sr in pkt.records[0].subrecords:
                             if isinstance(sr.data, dict):
                                 parsed.update(sr.data)
                 elif isinstance(raw_parsed, dict):

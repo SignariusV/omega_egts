@@ -329,10 +329,22 @@ class LogManager:
             packet = parsed.packet
             result["packet_type"] = getattr(packet, "packet_type", None)
             result["packet_id"] = getattr(packet, "packet_id", None)
+            # RPID/PR (только для RESPONSE-пакетов)
+            rpid = getattr(packet, "response_packet_id", None)
+            if rpid is not None:
+                result["response_packet_id"] = rpid
+            pr = getattr(packet, "processing_result", None)
+            if pr is not None:
+                result["processing_result"] = pr
             records = getattr(packet, "records", [])
-            # Добавляем service_type из первой записи
+            # Добавляем service_type и record_id из первой записи
             if records:
                 result["service"] = getattr(records[0], "service_type", None)
+                result["record_id"] = getattr(records[0], "record_id", None)
+                # subrecord_type из первой подзаписи
+                sr_list = getattr(records[0], "subrecords", [])
+                if sr_list:
+                    result["subrecord_type"] = getattr(sr_list[0], "subrecord_type", None)
             for rec in records:
                 for sr in getattr(rec, "subrecords", []):
                     if isinstance(sr.data, dict):
