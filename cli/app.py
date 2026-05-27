@@ -158,6 +158,45 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+# ===== Утилиты парсинга =====
+
+
+def _parse_flags(args: str) -> tuple[list[str], dict[str, Any]]:
+    """Разделить строку на позиционные аргументы и --flag value пары.
+
+    Поддерживает: --flag value, --flag (boolean), --flag v1 --flag v2 (append-list).
+    """
+    parts = args.split()
+    positional: list[str] = []
+    flags: dict[str, Any] = {}
+    i = 0
+    while i < len(parts):
+        if parts[i].startswith("--"):
+            flag = parts[i][2:]
+            if i + 1 < len(parts) and not parts[i + 1].startswith("--"):
+                if flag in flags:
+                    if not isinstance(flags[flag], list):
+                        flags[flag] = [flags[flag]]
+                    flags[flag].append(parts[i + 1])
+                else:
+                    flags[flag] = parts[i + 1]
+                i += 2
+            else:
+                flags[flag] = True
+                i += 1
+        else:
+            positional.append(parts[i])
+            i += 1
+    return positional, flags
+
+
+def _fmt_radio_value(name: str, value: Any, unit: str = "") -> str:
+    """Форматировать радиопараметр: 'name: value unit' или 'name: N/A'."""
+    if isinstance(value, (int, float)):
+        return f"  {name}: {value} {unit}".strip()
+    return f"  {name}: {value}"
+
+
 # ===== Обработчики команд =====
 
 
@@ -211,21 +250,12 @@ def _format_cmw_status(data: dict[str, Any]) -> str:
 
     # Радиопараметры
     lines.append("Радиопараметры:")
-    rssi = data.get("rssi", "N/A")
-    if rssi != "N/A":
-        lines.append(f"  RSSI: {rssi} dBm")
-    else:
-        lines.append(f"  RSSI: {rssi}")
+    lines.append(_fmt_radio_value("RSSI", data.get("rssi", "N/A"), "dBm"))
     ber = data.get("ber", "N/A")
-    if ber != "N/A" and isinstance(ber, (int, float)):
-        lines.append(f"  BER: {ber:.6f}")
-    else:
-        lines.append(f"  BER: {ber}")
-    rx = data.get("rx_level", "N/A")
-    if rx != "N/A" and isinstance(rx, (int, float)):
-        lines.append(f"  RX Level: {rx} dBm")
-    else:
-        lines.append(f"  RX Level: {rx}")
+    if isinstance(ber, float):
+        ber = f"{ber:.6f}"
+    lines.append(_fmt_radio_value("BER", ber))
+    lines.append(_fmt_radio_value("RX Level", data.get("rx_level", "N/A"), "dBm"))
 
     return "\n".join(lines)
 
@@ -356,40 +386,13 @@ async def _cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
-async def _try_get_engine_cmw_status() -> dict[str, Any] | None:
-    """Попытаться получить CMW статус от запущенного сервера.
-
-    Returns:
-        dict со статусом или None если сервер не запущен.
-    """
-    try:
-        _, writer = await asyncio.wait_for(
-            asyncio.open_connection("127.0.0.1", 3001),
-            timeout=2.0,
-        )
-        writer.close()
-        await writer.wait_closed()
-    except (OSError, TimeoutError):
-        return None
-
-    return None
-
-
 async def _cmd_cmw_status(args: argparse.Namespace) -> int:
     """Обработать команду cmw-status.
 
-    Если сервер запущен — показывает расширенный статус через engine.
-    Иначе — показывает конфигурацию CMW-500.
+    Показывает конфигурацию CMW-500.
     """
     from core.config import Config
 
-    # Пытаемся получить статус от запущенного сервера
-    status_data = await _try_get_engine_cmw_status()
-    if status_data is not None:
-        print(_format_cmw_status(status_data))
-        return 0 if status_data.get("connected") else 1
-
-    # Fallback — показываем конфигурацию
     config = Config()
     ip = config.cmw500.ip
     if ip:
@@ -592,32 +595,15 @@ class EGTSTesterCLI(Cmd):
             print("Сервер уже запущен")
             return
 
-        # Парсинг опций
-        parts = arg.split()
-        port = 3001
-        gost = "2015"
-        cmw_ip = None
-        simulate = False
-        i = 0
-        while i < len(parts):
-            if parts[i] == "--port" and i + 1 < len(parts):
-                try:
-                    port = int(parts[i + 1])
-                except ValueError:
-                    print(f"Ошибка: --port должен быть целым числом, получено '{parts[i + 1]}'")
-                    return
-                i += 2
-            elif parts[i] == "--gost" and i + 1 < len(parts):
-                gost = parts[i + 1]
-                i += 2
-            elif parts[i] == "--cmw" and i + 1 < len(parts):
-                cmw_ip = parts[i + 1]
-                i += 2
-            elif parts[i] == "--simulate":
-                simulate = True
-                i += 1
-            else:
-                i += 1
+        _, flags = _parse_flags(arg)
+        try:
+            port = int(flags.get("port", 3001))
+        except ValueError:
+            print(f"Ошибка: --port должен быть целым числом, получено '{flags.get('port')}'")
+            return
+        gost = flags.get("gost", "2015")
+        cmw_ip = flags.get("cmw")
+        simulate = bool(flags.get("simulate", False))
 
         from core.config import CmwConfig, Config, LogConfig, TimeoutsConfig
         from core.engine import CoreEngine
@@ -705,16 +691,12 @@ class EGTSTesterCLI(Cmd):
             print("Использование: run-scenario <path> [--connection-id <id>]")
             return
 
-        parts = arg.split()
+        parts, flags = _parse_flags(arg)
+        if not parts:
+            print("Использование: run-scenario <path> [--connection-id <id>]")
+            return
         scenario_path = parts[0]
-        connection_id = None
-        i = 1
-        while i < len(parts):
-            if parts[i] == "--connection-id" and i + 1 < len(parts):
-                connection_id = parts[i + 1]
-                i += 2
-            else:
-                i += 1
+        connection_id = flags.get("connection-id")
 
         if not self._server_running or self._engine is None:
 
@@ -740,16 +722,12 @@ class EGTSTesterCLI(Cmd):
             print("Использование: replay <log_path> [--scenario <path>]")
             return
 
-        parts = arg.split()
+        parts, flags = _parse_flags(arg)
+        if not parts:
+            print("Использование: replay <log_path> [--scenario <path>]")
+            return
         log_path = parts[0]
-        scenario = None
-        i = 1
-        while i < len(parts):
-            if parts[i] == "--scenario" and i + 1 < len(parts):
-                scenario = parts[i + 1]
-                i += 2
-            else:
-                i += 1
+        scenario = flags.get("scenario")
 
         if not self._server_running or self._engine is None:
 
@@ -770,24 +748,13 @@ class EGTSTesterCLI(Cmd):
             print("Использование: export <type> --format <fmt> --output <file>")
             return
 
-        parts = arg.split()
-        if len(parts) < 3:
+        parts, flags = _parse_flags(arg)
+        if len(parts) < 1:
             print("Использование: export <type> --format <fmt> --output <file>")
             return
-
         data_type = parts[0]
-        fmt = None
-        output = None
-        i = 1
-        while i < len(parts):
-            if parts[i] == "--format" and i + 1 < len(parts):
-                fmt = parts[i + 1]
-                i += 2
-            elif parts[i] == "--output" and i + 1 < len(parts):
-                output = parts[i + 1]
-                i += 2
-            else:
-                i += 1
+        fmt = flags.get("format")
+        output = flags.get("output")
 
         if not fmt or not output:
             print("Использование: export <type> --format <fmt> --output <file>")
@@ -812,19 +779,11 @@ class EGTSTesterCLI(Cmd):
             print("Использование: batch --scenario <name> [--scenario <name> ...] [--output FILE]")
             return
 
-        parts = arg.split()
-        scenarios: list[str] = []
-        output_file = None
-        i = 0
-        while i < len(parts):
-            if parts[i] == "--scenario" and i + 1 < len(parts):
-                scenarios.append(parts[i + 1])
-                i += 2
-            elif parts[i] == "--output" and i + 1 < len(parts):
-                output_file = parts[i + 1]
-                i += 2
-            else:
-                i += 1
+        _, flags = _parse_flags(arg)
+        scenarios = flags.get("scenario", [])
+        if isinstance(scenarios, str):
+            scenarios = [scenarios]
+        output_file = flags.get("output")
 
         if not scenarios:
             print("Использование: batch --scenario <name> [--scenario <name> ...] [--output FILE]")
@@ -840,8 +799,7 @@ class EGTSTesterCLI(Cmd):
             self.do_stop("")
         return True
 
-    def do_quit(self, arg: str) -> bool:
-        return self.do_exit("")
+    do_quit = do_exit
 
     def do_eof(self, arg: str) -> bool:
         print()
