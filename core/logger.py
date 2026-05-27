@@ -55,6 +55,13 @@ class LogManager:
         flush_batch_size: Порог записей для автосброса (по умолчанию 1000)
     """
 
+    _SUBSCRIBE_EVENTS: list[tuple[str, str]] = [
+        ("packet.processed", "_on_packet_processed"),
+        ("packet.sent", "_on_packet_sent"),
+        ("connection.changed", "_on_connection_changed"),
+        ("scenario.step", "_on_scenario_step"),
+    ]
+
     def __init__(
         self,
         bus: EventBus,
@@ -75,10 +82,8 @@ class LogManager:
         self._flush_task: asyncio.Task[None] | None = None
 
         # Подписка на события
-        self._bus.on("packet.processed", self._on_packet_processed)
-        self._bus.on("packet.sent", self._on_packet_sent)
-        self._bus.on("connection.changed", self._on_connection_changed)
-        self._bus.on("scenario.step", self._on_scenario_step)
+        for event, handler_name in self._SUBSCRIBE_EVENTS:
+            self._bus.on(event, getattr(self, handler_name))
 
         # Фоновая задача автосброса запускается через start()
         # (не в __init__ — чтобы избежать конфликта с qasync)
@@ -121,13 +126,11 @@ class LogManager:
             self._flush_task = None
 
         # Отписаться от событий
-        try:
-            self._bus.off("packet.processed", self._on_packet_processed)
-            self._bus.off("packet.sent", self._on_packet_sent)
-            self._bus.off("connection.changed", self._on_connection_changed)
-            self._bus.off("scenario.step", self._on_scenario_step)
-        except Exception as e:
-            logger.debug("Ошибка отписки при закрытии: %s", e)
+        for event, handler_name in self._SUBSCRIBE_EVENTS:
+            try:
+                self._bus.off(event, getattr(self, handler_name))
+            except Exception as e:
+                logger.debug("Ошибка отписки %s: %s", event, e)
         logger.info("LogManager: остановлен, буфер сброшен")
 
     async def flush(self) -> None:
@@ -204,6 +207,10 @@ class LogManager:
                 stats["scenarios"] += 1
         return stats
 
+    def _add_entry(self, entry: dict[str, Any], msg: str, *args: Any) -> None:
+        self._buffer.append(entry)
+        logger.debug(msg, *args)
+
     async def _on_packet_sent(self, data: dict[str, Any]) -> None:
         """Обработать событие packet.sent.
 
@@ -223,13 +230,9 @@ class LogManager:
             "rn": data.get("rn"),
         }
 
-        self._buffer.append(entry)
-        logger.debug(
+        self._add_entry(entry,
             "LogManager: packet_sent conn=%s channel=%s step=%s",
-            entry["connection_id"],
-            entry["channel"],
-            entry["step_name"],
-        )
+            entry["connection_id"], entry["channel"], entry["step_name"])
 
     async def _on_packet_processed(self, data: dict[str, Any]) -> None:
         """Обработать событие packet.processed.
@@ -267,14 +270,9 @@ class LogManager:
         if ctx.response_data is not None:
             entry["response_hex"] = ctx.response_data.hex().upper()
 
-        self._buffer.append(entry)
-        logger.debug(
+        self._add_entry(entry,
             "LogManager: packet conn=%s channel=%s crc=%s dup=%s",
-            ctx.connection_id,
-            ctx.channel,
-            ctx.crc_valid,
-            ctx.is_duplicate,
-        )
+            ctx.connection_id, ctx.channel, ctx.crc_valid, ctx.is_duplicate)
 
     async def _on_connection_changed(self, data: dict[str, Any]) -> None:
         """Обработать событие connection.changed.
@@ -289,13 +287,9 @@ class LogManager:
             "prev_state": data.get("prev_state"),
         }
 
-        self._buffer.append(entry)
-        logger.debug(
+        self._add_entry(entry,
             "LogManager: connection %s %s -> %s",
-            entry["connection_id"],
-            entry["prev_state"],
-            entry["state"],
-        )
+            entry["connection_id"], entry["prev_state"], entry["state"])
 
     async def _on_scenario_step(self, data: dict[str, Any]) -> None:
         """Обработать событие scenario.step.
@@ -312,13 +306,9 @@ class LogManager:
             "details": data.get("details"),
         }
 
-        self._buffer.append(entry)
-        logger.debug(
+        self._add_entry(entry,
             "LogManager: scenario %s step=%s result=%s",
-            entry["scenario_name"],
-            entry["step_name"],
-            entry["result"],
-        )
+            entry["scenario_name"], entry["step_name"], entry["result"])
 
     @staticmethod
     def _extract_parsed_data(parsed: object) -> dict[str, Any] | None:
@@ -334,15 +324,11 @@ class LogManager:
 
         result: dict[str, Any] = {}
 
-        # Извлечение packet info
+        # Извлечение packet info и данных из подзаписей (замена extra)
         if hasattr(parsed, "packet") and parsed.packet is not None:
             packet = parsed.packet
             result["packet_type"] = getattr(packet, "packet_type", None)
             result["packet_id"] = getattr(packet, "packet_id", None)
-
-        # Извлечение данных из подзаписей (замена extra)
-        if hasattr(parsed, "packet") and parsed.packet is not None:
-            packet = parsed.packet
             records = getattr(packet, "records", [])
             # Добавляем service_type из первой записи
             if records:
