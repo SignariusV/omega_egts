@@ -19,7 +19,7 @@ import random
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from core.event_bus import EventBus
 
@@ -178,10 +178,6 @@ class VisaCmw500Driver:
             return status_map.get(parts[0], result)
         return result
 
-    def get_connection_state(self) -> str:
-        """Получить состояние соединения (рекомендуемый метод)."""
-        return self.get_status()
-
     # ==================== Configure ====================
 
     def configure_gsm_signaling(
@@ -213,14 +209,6 @@ class VisaCmw500Driver:
         """Конфигурация SMS."""
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:DCODing {dcoding}")
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H{pid}")
-
-    def configure_dau(self) -> None:
-        """Конфигурация DAU.
-
-        Примечание: DAU конфигурация не требуется для режима GSM Signaling.
-        Этот метод оставлен для совместимости, но не выполняет никаких команд.
-        """
-        pass
 
     def get_mcc(self) -> str:
         """Получить текущий MCC."""
@@ -557,10 +545,6 @@ class Cmw500Controller:
             CmwCommand(name="get_status", func=self._driver.get_status, timeout=5.0, retry_count=3)
         )
 
-    async def get_connection_state(self) -> str:
-        """Получить состояние соединения (рекомендуемый метод)."""
-        return await self.get_status()
-
     async def get_mcc(self) -> str:
         """Получить текущий MCC."""
         return await self._execute_with_retry(
@@ -681,17 +665,7 @@ class Cmw500Controller:
         )
 
     async def configure_dau(self) -> None:
-        if self._driver is None:
-            raise ConnectionError("CMW-500 driver not connected")
-        await self._execute_with_retry(
-            CmwCommand(
-                name="configure_dau",
-                func=self._driver.configure_dau,
-                timeout=10.0,
-                retry_count=2,
-                retry_delay=1.0,
-            ),
-        )
+        logger.debug("configure_dau: DAU configuration not required in GSM Signaling mode")
 
     async def start_signaling(self) -> None:
         if self._driver is None:
@@ -795,9 +769,6 @@ class MockDriver:
     def configure_sms(self, dcoding: str = "BIT8", pid: int = 1) -> None:
         pass
 
-    def configure_dau(self) -> None:
-        pass
-
     def send_sms_raw(self, hex_data: str) -> bool:
         return True
 
@@ -842,8 +813,7 @@ class Cmw500Emulator(Cmw500Controller):
 
     async def connect(self) -> None:
         """Подключение эмулятора — создаёт мок-драйвер вместо реального."""
-        # Используем мок-драйвер вместо реального
-        self._driver = cast(VisaCmw500Driver, self._mock_driver)  # type: ignore
+        self._driver = self._mock_driver  # type: ignore[assignment]
 
         self._worker = asyncio.create_task(self._worker_loop())
         self._worker.add_done_callback(self._on_worker_done)
@@ -853,22 +823,6 @@ class Cmw500Emulator(Cmw500Controller):
 
         self._connected = True
         await self.bus.emit("cmw.connected", {"ip": self._ip, "simulate": True, "serial": "EMULATOR"})
-
-    async def disconnect(self) -> None:
-        """Отключение эмулятора."""
-        self._connected = False
-        for task in (self._worker, self._poll_task):
-            if task and not task.done():
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    pass
-
-        self._driver = None
-        self._status_cache = None
-        self._status_cache_ts = 0.0
-        await self.bus.emit("cmw.disconnected", {})
 
     def set_incoming_sms_handler(self, handler: Callable[[bytes], bytes | None]) -> None:
         """Установить хендлер для входящих SMS.
@@ -928,46 +882,4 @@ class Cmw500Emulator(Cmw500Controller):
 
         return True
 
-    async def send_sms(self, egts_bytes: bytes) -> bool:
-        """Отправка SMS через эмулятор."""
-        if not self._connected:
-            raise ConnectionError("CMW-500 not connected")
 
-        hex_data = egts_bytes.hex().upper()
-        return await self._handle_send_sms_emulation(hex_data)
-
-    async def read_sms(self) -> bytes | None:
-        """Чтение SMS через эмулятор."""
-        if not self._connected:
-            raise ConnectionError("CMW-500 not connected")
-
-        try:
-            data = self._incoming_sms_queue.get_nowait()
-            return data
-        except asyncio.QueueEmpty:
-            return None
-
-    async def get_full_status(self) -> dict[str, Any]:
-        """Статус эмулятора — моковые данные."""
-        now = time.monotonic()
-        if self._status_cache and now - self._status_cache_ts < self._status_cache_ttl:
-            return self._status_cache
-
-        result = {
-            "connected": True,
-            "serial": "EMULATOR",
-            "cs_state": self._mock_driver.get_cs_state(),
-            "ps_state": self._mock_driver.get_ps_state(),
-            "rssi": self._mock_driver.get_rssi(),
-            "rssi_range": self._mock_driver.get_rssi_range(),
-            "cell_status": self._mock_driver.get_cell_status(),
-            "imei": self._mock_driver.get_imei(),
-            "imsi": self._mock_driver.get_imsi(),
-            "simulate": True,
-            "ip": self._ip,
-            "timestamp": time.time(),
-        }
-
-        self._status_cache = result
-        self._status_cache_ts = now
-        return result

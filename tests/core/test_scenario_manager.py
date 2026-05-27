@@ -131,7 +131,6 @@ class TestScenarioManagerExecute:
         registry.register("1", ScenarioParserV1)
         factory = ScenarioParserFactory(registry)
 
-        # Сценарий с expect шагом
         data = {
             "scenario_version": "1",
             "name": "Test",
@@ -143,14 +142,11 @@ class TestScenarioManagerExecute:
         mgr = ScenarioManager(parser_factory=factory)
         mgr.load(file)
 
-        # Мок EventBus
         from core.event_bus import EventBus
 
         bus = EventBus()
 
-        # Симуляция: packet приходит сразу
         async def emit_packet() -> None:
-
             parsed_mock = MagicMock()
             parsed_mock.extra = {"service": 1}
             ctx_mock = MagicMock()
@@ -170,8 +166,8 @@ class TestScenarioManagerExecute:
         assert mgr.context.all_passed()
 
     @pytest.mark.asyncio
-    async def test_execute_step_fail(self, tmp_path: Path) -> None:
-        """Шаг не проходит → результат FAIL."""
+    async def test_execute_step_timeout(self, tmp_path: Path) -> None:
+        """Пакет не приходит → TIMEOUT."""
         registry = ScenarioParserRegistry()
         registry.register("1", ScenarioParserV1)
         factory = ScenarioParserFactory(registry)
@@ -190,7 +186,107 @@ class TestScenarioManagerExecute:
         from core.event_bus import EventBus
 
         bus = EventBus()
-
-        # Пакет не совпадает с checks → TIMEOUT
         result = await mgr.execute(bus, connection_id="conn-1", timeout=0.1)
         assert result == "TIMEOUT"
+
+    @pytest.mark.asyncio
+    async def test_execute_step_fail_with_details(self, tmp_path: Path) -> None:
+        """Пакет пришёл с неверными checks → FAIL с check_results."""
+        registry = ScenarioParserRegistry()
+        registry.register("1", ScenarioParserV1)
+        factory = ScenarioParserFactory(registry)
+
+        data = {
+            "scenario_version": "1",
+            "name": "Test",
+            "steps": [
+                {"name": "step1", "type": "expect", "channel": "tcp", "checks": {"service": 99}},
+            ],
+        }
+        file = _make_scenario(tmp_path, data)
+        mgr = ScenarioManager(parser_factory=factory)
+        mgr.load(file)
+
+        from core.event_bus import EventBus
+        from unittest.mock import MagicMock
+
+        bus = EventBus()
+
+        async def emit_bad_packet() -> None:
+            from libs.egts.models import Packet, ParseResult, Record, Subrecord
+
+            sub = Subrecord(subrecord_type=1, data={})
+            rec = Record(record_id=1, service_type=1, subrecords=[sub])
+            pkt = Packet(packet_id=1, packet_type=1, records=[rec])
+            parsed = ParseResult(packet=pkt)
+            ctx_mock = MagicMock()
+            ctx_mock.parsed = parsed
+            await bus.emit(
+                "packet.processed",
+                {"ctx": ctx_mock, "connection_id": "conn-1", "channel": "tcp"},
+            )
+
+        import asyncio
+
+        task = asyncio.create_task(emit_bad_packet())
+        result = await mgr.execute(bus, connection_id="conn-1", timeout=5.0)
+        await task
+
+        assert result == "FAIL"
+        # Проверяем что в истории есть details
+        assert len(mgr.context.history) == 1
+        history_entry = mgr.context.history[0]
+        assert history_entry.result == "FAIL"
+        assert history_entry.details is not None
+        details = json.loads(history_entry.details)
+        assert any(not c["passed"] for c in details)
+
+    @pytest.mark.asyncio
+    async def test_execute_step_fail_stops_scenario(self, tmp_path: Path) -> None:
+        """После FAIL второй шаг не выполняется."""
+        registry = ScenarioParserRegistry()
+        registry.register("1", ScenarioParserV1)
+        factory = ScenarioParserFactory(registry)
+
+        data = {
+            "scenario_version": "1",
+            "name": "Test",
+            "steps": [
+                {"name": "step1", "type": "expect", "channel": "tcp", "checks": {"service": 99}},
+                {"name": "step2", "type": "expect", "channel": "tcp", "checks": {"service": 1}},
+            ],
+        }
+        file = _make_scenario(tmp_path, data)
+        mgr = ScenarioManager(parser_factory=factory)
+        mgr.load(file)
+
+        from core.event_bus import EventBus
+        from unittest.mock import MagicMock
+
+        bus = EventBus()
+
+        async def emit_bad_packet() -> None:
+            await asyncio.sleep(0.01)
+            from libs.egts.models import Packet, ParseResult, Record, Subrecord
+
+            sub = Subrecord(subrecord_type=1, data={})
+            rec = Record(record_id=1, service_type=1, subrecords=[sub])
+            pkt = Packet(packet_id=1, packet_type=1, records=[rec])
+            parsed = ParseResult(packet=pkt)
+            ctx_mock = MagicMock()
+            ctx_mock.parsed = parsed
+            await bus.emit(
+                "packet.processed",
+                {"ctx": ctx_mock, "connection_id": "conn-1", "channel": "tcp"},
+            )
+
+        import asyncio
+
+        task = asyncio.create_task(emit_bad_packet())
+        result = await mgr.execute(bus, connection_id="conn-1", timeout=5.0)
+        await task
+
+        assert result == "FAIL"
+        # Только один шаг должен быть в истории (step2 не выполнен)
+        assert len(mgr.context.history) == 1
+        assert mgr.context.history[0].step_name == "step1"

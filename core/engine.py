@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from contextlib import suppress
 from dataclasses import dataclass, field
@@ -365,9 +366,20 @@ class CoreEngine:
                         connection_id=connection_id,
                         timeout=scenario_timeout,
                     )
+                    failed_steps = []
+                    for h in self.scenario_mgr.context.history:
+                        if h.result != "PASS":
+                            fs: dict[str, Any] = {"step": h.step_name, "result": h.result}
+                            if h.details:
+                                try:
+                                    fs["details"] = json.loads(h.details)
+                                except (json.JSONDecodeError, TypeError):
+                                    fs["details"] = h.details
+                            failed_steps.append(fs)
                     await self.bus.emit("scenario.finished", {
                         "scenario_name": self.scenario_mgr.metadata.name,
                         "result": result,
+                        "failed_steps": failed_steps,
                     })
                 except asyncio.CancelledError:
                     await self.bus.emit("scenario.finished", {

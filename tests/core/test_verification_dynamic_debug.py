@@ -1,4 +1,5 @@
 """Тест для воспроизведения ошибки 'str' object has no attribute 'to_bytes'."""
+import asyncio
 import json
 from pathlib import Path
 import sys
@@ -87,7 +88,64 @@ def test_scenario_manager_loads_variables():
     print(f"SUCCESS: packet_bytes = {packet_bytes.hex()}")
 
 
+def test_sendstep_captures_sent_vars():
+    """SendStep с build-template сохраняет sent_cid/sent_pid/sent_rn в контекст."""
+    scenario_path = Path(__file__).resolve().parent.parent.parent / "scenarios" / "verification_modern" / "scenario.json"
+    data = json.loads(scenario_path.read_text(encoding="utf-8"))
+
+    registry = ScenarioParserRegistry()
+    registry.register("1", ScenarioParserV1)
+    factory = ScenarioParserFactory(registry)
+    parser = factory.detect_and_create(data)
+    parser.load(data)
+    steps = parser.get_steps()
+
+    ctx = ScenarioContext(scenario_version="1", gost_version="2015")
+    # Загружаем переменные
+    for k, v in data.get("variables", {}).items():
+        if isinstance(v, dict) and "start" in v:
+            ctx.set(k, v["start"], auto_increment=v.get("auto", False))
+        elif isinstance(v, dict) and "resolver" in v:
+            ctx.set(k, "200.20.2.171:9090")
+        else:
+            ctx.set(k, v)
+
+    from core.event_bus import EventBus
+    bus = EventBus()
+
+    step = SendStep(
+        name=steps[0].name,
+        channel=steps[0].channel,
+        timeout=steps[0].timeout,
+        build=steps[0].build,
+    )
+
+    # Execute send — эмулируем command.sent
+    async def _run():
+        async def emit_sent():
+            await asyncio.sleep(0.01)
+            await bus.emit("command.sent", {"step_name": step.name, "packet_bytes": b"test"})
+
+        import asyncio
+        task = asyncio.create_task(emit_sent())
+        result, details = await step.execute(ctx, bus, timeout=2.0)
+        await task
+        return result
+
+    import asyncio
+    result = asyncio.run(_run())
+
+    assert result == "PASS"
+    # Проверяем что sent_* переменные установлены
+    assert ctx.get("sent_pid") == 27, f"sent_pid = {ctx.get('sent_pid')}"
+    assert ctx.get("sent_rn") == 42, f"sent_rn = {ctx.get('sent_rn')}"
+    assert ctx.get("sent_cid") == 0, f"sent_cid = {ctx.get('sent_cid')}"
+    assert ctx.get("sent_sid") == 0, f"sent_sid = {ctx.get('sent_sid')}"
+
+
 if __name__ == "__main__":
     test_verification_dynamic_step1()
     print("\n" + "=" * 60 + "\n")
     test_scenario_manager_loads_variables()
+    print("\n" + "=" * 60 + "\n")
+    test_sendstep_captures_sent_vars()

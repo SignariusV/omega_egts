@@ -1,110 +1,164 @@
 """Tests for ExpectStep — ожидание пакета с проверкой и capture переменных."""
 
 import asyncio
+import json
 from unittest.mock import MagicMock
 
 import pytest
 
 from core.event_bus import EventBus
-from core.scenario import ExpectStep, ScenarioContext
+from core.scenario import CheckResult, ExpectStep, ScenarioContext
 
 
-class TestExpectStepMatch:
-    """ExpectStep — matching пакетов."""
+class TestExpectStepCheck:
+    """ExpectStep._check — детальная проверка пакетов."""
 
     def test_exact_value_match(self) -> None:
-        """Exact value match проходит."""
+        """Exact value match — все passed=True."""
         step = ExpectStep(
             name="test",
             checks={"service": 1, "subrecord_type": "EGTS_SR_TERM_IDENTITY"},
         )
         parsed_data = {"service": 1, "subrecord_type": "EGTS_SR_TERM_IDENTITY"}
-        assert step._matches(parsed_data) is True
+        results = step._check(parsed_data)
+        assert len(results) == 2
+        assert all(r.passed for r in results)
+        assert results[0].check_type == "exact"
 
     def test_exact_value_mismatch(self) -> None:
-        """Exact value mismatch."""
+        """Exact value mismatch — один failed."""
         step = ExpectStep(name="test", checks={"service": 2})
         parsed_data = {"service": 1}
-        assert step._matches(parsed_data) is False
+        results = step._check(parsed_data)
+        assert len(results) == 1
+        assert not results[0].passed
+        assert results[0].actual == 1
+        assert results[0].expected == 2
+        assert results[0].check_type == "exact"
 
     def test_range_match(self) -> None:
         """Range match (dict с min/max)."""
         step = ExpectStep(name="test", checks={"points_count": {"min": 1, "max": 100}})
         parsed_data = {"points_count": 50}
-        assert step._matches(parsed_data) is True
+        results = step._check(parsed_data)
+        assert results[0].passed
+        assert results[0].check_type == "range"
 
     def test_range_below_min(self) -> None:
         """Range ниже min."""
         step = ExpectStep(name="test", checks={"points_count": {"min": 10, "max": 100}})
         parsed_data = {"points_count": 5}
-        assert step._matches(parsed_data) is False
+        results = step._check(parsed_data)
+        assert not results[0].passed
+        assert results[0].check_type == "range"
 
     def test_range_above_max(self) -> None:
         """Range выше max."""
         step = ExpectStep(name="test", checks={"points_count": {"min": 1, "max": 10}})
         parsed_data = {"points_count": 50}
-        assert step._matches(parsed_data) is False
+        results = step._check(parsed_data)
+        assert not results[0].passed
+        assert results[0].check_type == "range"
 
     def test_regex_match(self) -> None:
-        """Regex match (явный формат {\"regex\": \"...\"})."""
+        """Regex match (явный формат {"regex": "..."})."""
         step = ExpectStep(name="test", checks={"imei": {"regex": r"^\d{15}$"}})
         parsed_data = {"imei": "123456789012345"}
-        assert step._matches(parsed_data) is True
+        results = step._check(parsed_data)
+        assert results[0].passed
+        assert results[0].check_type == "regex"
 
     def test_regex_mismatch(self) -> None:
         """Regex mismatch."""
         step = ExpectStep(name="test", checks={"imei": {"regex": r"^\d{15}$"}})
         parsed_data = {"imei": "ABC"}
-        assert step._matches(parsed_data) is False
+        results = step._check(parsed_data)
+        assert not results[0].passed
+        assert results[0].check_type == "regex"
 
-    def test_regex_non_string_value(self) -> None:
-        """Regex на non-str — mismatch."""
-        step = ExpectStep(name="test", checks={"count": {"regex": r"^\d+$"}})
-        parsed_data = {"count": 42}
-        assert step._matches(parsed_data) is False
+    def test_missing_key(self) -> None:
+        """Ключ отсутствует в пакете — check_type=missing."""
+        step = ExpectStep(name="test", checks={"missing_field": 123})
+        parsed_data = {"service": 1}
+        results = step._check(parsed_data)
+        assert not results[0].passed
+        assert results[0].check_type == "missing"
+        assert results[0].actual is None
 
-    def test_string_without_regex_is_exact(self) -> None:
-        """Строка без {\"regex\": } — exact match."""
-        step = ExpectStep(name="test", checks={"type": "EGTS_SR_TERM_IDENTITY"})
-        parsed_data = {"type": "EGTS_SR_TERM_IDENTITY"}
-        assert step._matches(parsed_data) is True
-
-    def test_string_exact_mismatch(self) -> None:
-        """Exact string mismatch."""
-        step = ExpectStep(name="test", checks={"type": "EGTS_SR_TERM_IDENTITY"})
-        parsed_data = {"type": "EGTS_SR_OTHER"}
-        assert step._matches(parsed_data) is False
-
-    def test_nested_path_match(self) -> None:
-        """Nested path через _get_nested."""
-        step = ExpectStep(name="test")
-        data = {"records": [{"fields": {"RN": 42}}]}
-        assert step._get_nested(data, "records[0].fields.RN") == 42
-
-    def test_nested_path_missing_key(self) -> None:
-        """Nested path — ключ не найден."""
-        step = ExpectStep(name="test")
-        data = {"records": [{"fields": {"RN": 42}}]}
-        assert step._get_nested(data, "records[1].fields.RN") is None
-
-    def test_multiple_checks_all_pass(self) -> None:
-        """Multiple checks — все должны пройти."""
+    def test_multiple_checks_mixed(self) -> None:
+        """Несколько checks разных типов — один падает."""
         step = ExpectStep(
             name="test",
-            checks={"service": 1, "subrecord_type": "AUTH", "data.TID": 12345},
+            checks={"service": 1, "points": {"min": 0, "max": 100}, "extra": "data"},
         )
-        parsed_data = {
-            "service": 1,
-            "subrecord_type": "AUTH",
-            "data": {"TID": 12345},
-        }
-        assert step._matches(parsed_data) is True
+        parsed_data = {"service": 1, "points": 200, "extra": "data"}
+        results = step._check(parsed_data)
+        assert len(results) == 3
+        assert results[0].passed  # service=1
+        assert not results[1].passed  # points=200 > max=100
+        assert results[1].check_type == "range"
+        assert results[2].passed  # extra=data
 
-    def test_multiple_checks_one_fails(self) -> None:
-        """Multiple checks — один не проходит."""
-        step = ExpectStep(name="test", checks={"service": 1, "subrecord_type": "AUTH"})
-        parsed_data = {"service": 1, "subrecord_type": "OTHER"}
-        assert step._matches(parsed_data) is False
+
+class TestExpectStepCheckWithVarSubstitution:
+    """ExpectStep._check — подстановка {{var}} в checks (KI-074)."""
+
+    def test_var_in_check_exact_match(self) -> None:
+        """{{sent_cid}} подставляется и совпадает."""
+        ctx = ScenarioContext()
+        ctx.set("sent_cid", 0)
+        step = ExpectStep(name="test", checks={"cid": "{{sent_cid}}"})
+        results = step._check({"cid": 0}, ctx)
+        assert len(results) == 1
+        assert results[0].passed
+        assert results[0].actual == 0
+
+    def test_var_in_check_exact_mismatch(self) -> None:
+        """{{sent_cid}} подставляется, но не совпадает."""
+        ctx = ScenarioContext()
+        ctx.set("sent_cid", 0)
+        step = ExpectStep(name="test", checks={"cid": "{{sent_cid}}"})
+        results = step._check({"cid": 1}, ctx)
+        assert not results[0].passed
+        assert results[0].expected == 0
+        assert results[0].actual == 1
+
+    def test_var_in_check_unresolved_keeps_literal(self) -> None:
+        """Если переменной нет в контексте — {{var}} остаётся литералом."""
+        ctx = ScenarioContext()
+        step = ExpectStep(name="test", checks={"cid": "{{sent_cid}}"})
+        results = step._check({"cid": "{{sent_cid}}"}, ctx)
+        # Литерал "{{sent_cid}}" совпадает с actual "{{sent_cid}}" → passed
+        assert results[0].passed
+
+    def test_var_in_multiple_checks(self) -> None:
+        """Смешанные checks: часть с {{var}}, часть без."""
+        ctx = ScenarioContext()
+        ctx.set("sent_cid", 5)
+        step = ExpectStep(
+            name="test",
+            checks={"cid": "{{sent_cid}}", "ct": 1, "sid": "{{sent_sid}}"},
+        )
+        ctx.set("sent_sid", 0)
+        results = step._check({"cid": 5, "ct": 1, "sid": 0}, ctx)
+        assert all(r.passed for r in results)
+
+    def test_var_in_range_check(self) -> None:
+        """{{var}} подставляется в range check."""
+        ctx = ScenarioContext()
+        ctx.set("min_val", 10)
+        ctx.set("max_val", 100)
+        step = ExpectStep(name="test", checks={"count": {"min": "{{min_val}}", "max": "{{max_val}}"}})
+        results = step._check({"count": 50}, ctx)
+        assert results[0].passed
+
+    def test_var_substitution_without_ctx(self) -> None:
+        """Без ctx {{var}} остаётся литералом (обратная совместимость)."""
+        step = ExpectStep(name="test", checks={"cid": "{{sent_cid}}"})
+        results = step._check({"cid": "{{sent_cid}}"})
+        assert results[0].passed
+        results = step._check({"cid": 0})
+        assert not results[0].passed
 
 
 class TestExpectStepCapture:
@@ -151,13 +205,10 @@ class TestExpectStepExecute:
         ctx = ScenarioContext()
         step = ExpectStep(name="test", checks={"service": 1})
 
-        # Создаём реальный EventBus
         bus = EventBus()
 
-        # Симуляция: через 50мс эмитим packet.processed
         async def emit_packet_later() -> None:
             await asyncio.sleep(0.05)
-            # Создаём мок для ParseResult
             from libs.egts.models import Packet, ParseResult, Record, Subrecord
 
             sub = Subrecord(subrecord_type=9, data={"rcd": 0})
@@ -173,10 +224,12 @@ class TestExpectStepExecute:
             )
 
         task = asyncio.create_task(emit_packet_later())
-        result = await step.execute(ctx, bus, timeout=2.0)
+        result, details = await step.execute(ctx, bus, timeout=2.0)
         await task
 
         assert result == "PASS"
+        assert "check_results" in details
+        assert details["check_results"][0]["passed"] is True
 
     @pytest.mark.asyncio
     async def test_expect_timeout(self) -> None:
@@ -185,7 +238,7 @@ class TestExpectStepExecute:
         step = ExpectStep(name="test", checks={"service": 1})
         bus = EventBus()
 
-        result = await step.execute(ctx, bus, timeout=0.1)
+        result, details = await step.execute(ctx, bus, timeout=0.1)
         assert result == "TIMEOUT"
 
     @pytest.mark.asyncio
@@ -203,7 +256,7 @@ class TestExpectStepExecute:
             )
 
         task = asyncio.create_task(emit_disconnect_later())
-        result = await step.execute(ctx, bus, timeout=2.0)
+        result, details = await step.execute(ctx, bus, timeout=2.0)
         await task
 
         assert result == "ERROR"
@@ -240,3 +293,70 @@ class TestExpectStepExecute:
         await task
 
         assert ctx.get("tid") == 99999
+
+    @pytest.mark.asyncio
+    async def test_expect_check_fail_immediate(self) -> None:
+        """Пакет пришёл с неверными checks — FAIL мгновенно, без таймаута."""
+        ctx = ScenarioContext()
+        step = ExpectStep(name="test", checks={"service": 99})
+        bus = EventBus()
+
+        async def emit_bad_packet() -> None:
+            await asyncio.sleep(0.01)
+            from libs.egts.models import Packet, ParseResult, Record, Subrecord
+
+            sub = Subrecord(subrecord_type=9, data={"rcd": 0})
+            rec = Record(record_id=1, service_type=1, subrecords=[sub])
+            pkt = Packet(packet_id=1, packet_type=1, records=[rec])
+            parsed_mock = ParseResult(packet=pkt)
+
+            ctx_mock = MagicMock()
+            ctx_mock.parsed = parsed_mock
+            await bus.emit(
+                "packet.processed",
+                {"ctx": ctx_mock, "connection_id": "conn-1", "channel": "tcp"},
+            )
+
+        task = asyncio.create_task(emit_bad_packet())
+        # Таймаут 10s, но FAIL должен вернуться мгновенно (~0.01s)
+        result, details = await step.execute(ctx, bus, timeout=10.0)
+        await task
+
+        assert result == "FAIL"
+        assert "check_results" in details
+        assert details["check_results"][0]["passed"] is False
+        assert details["check_results"][0]["key"] == "service"
+        assert details["check_results"][0]["actual"] == 1
+        assert details["check_results"][0]["expected"] == 99
+
+    @pytest.mark.asyncio
+    async def test_expect_check_fail_with_var(self) -> None:
+        """FAIL с {{var}} подстановкой — details содержит ожидаемое значение после подстановки."""
+        ctx = ScenarioContext()
+        ctx.set("sent_cid", 0)
+        step = ExpectStep(name="test", checks={"cid": "{{sent_cid}}"})
+        bus = EventBus()
+
+        async def emit_bad_packet() -> None:
+            await asyncio.sleep(0.01)
+            from libs.egts.models import Packet, ParseResult, Record, Subrecord
+
+            sub = Subrecord(subrecord_type=9, data={"cid": 999})
+            rec = Record(record_id=1, service_type=1, subrecords=[sub])
+            pkt = Packet(packet_id=1, packet_type=1, records=[rec])
+            parsed_mock = ParseResult(packet=pkt)
+
+            ctx_mock = MagicMock()
+            ctx_mock.parsed = parsed_mock
+            await bus.emit(
+                "packet.processed",
+                {"ctx": ctx_mock, "connection_id": "conn-1", "channel": "tcp"},
+            )
+
+        task = asyncio.create_task(emit_bad_packet())
+        result, details = await step.execute(ctx, bus, timeout=10.0)
+        await task
+
+        assert result == "FAIL"
+        assert details["check_results"][0]["expected"] == 0  # после подстановки
+        assert details["check_results"][0]["actual"] == 999

@@ -114,10 +114,10 @@ class TestSendStepExecute:
             await bus.emit("command.sent", {"status": "sent"})
 
         task = asyncio.create_task(emit_sent_later())
-        result = await step.execute(ctx, bus, timeout=2.0)
+        status, details = await step.execute(ctx, bus, timeout=2.0)
         await task
 
-        assert result == "PASS"
+        assert status == "PASS"
 
     @pytest.mark.asyncio
     async def test_send_no_connection_error_before_emit(self) -> None:
@@ -136,8 +136,8 @@ class TestSendStepExecute:
 
         # conn_id = ctx._resolve_connection_id(None) = None
         # channel == "tcp" and conn_id is None → ERROR
-        result = await step.execute(ctx, bus, timeout=1.0)
-        assert result == "ERROR"
+        status, details = await step.execute(ctx, bus, timeout=1.0)
+        assert status == "ERROR"
 
     @pytest.mark.asyncio
     async def test_send_timeout(self, tmp_path: Path) -> None:
@@ -150,8 +150,8 @@ class TestSendStepExecute:
         step = SendStep(name="test", packet_file=str(hex_file), channel="tcp")
         bus = EventBus()
 
-        result = await step.execute(ctx, bus, timeout=0.1)
-        assert result == "TIMEOUT"
+        status, details = await step.execute(ctx, bus, timeout=0.1)
+        assert status == "TIMEOUT"
 
     @pytest.mark.asyncio
     async def test_send_from_build_template(self, tmp_path: Path) -> None:
@@ -174,7 +174,7 @@ class TestSendStepExecute:
             await bus.emit("command.sent", {"status": "sent"})
 
         task = asyncio.create_task(emit_sent_later())
-        result = await step.execute(ctx, bus, timeout=2.0)
+        status, details = await step.execute(ctx, bus, timeout=2.0)
         await task
 
-        assert result == "PASS"
+        assert status == "PASS"

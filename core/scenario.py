@@ -11,7 +11,7 @@ import json
 import logging
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
@@ -27,6 +27,20 @@ if TYPE_CHECKING:
     from libs.egts.models import Packet
 
 logger = logging.getLogger(__name__)
+
+
+# --- CheckResult ---
+
+
+@dataclass
+class CheckResult:
+    """Результат проверки одного поля в ExpectStep."""
+
+    key: str
+    expected: Any
+    actual: Any | None
+    check_type: str  # "exact" | "range" | "regex" | "missing"
+    passed: bool
 
 
 # --- Variable ---
@@ -213,46 +227,111 @@ class ExpectStep:
 
     _RANGE_KEYS: ClassVar[set[str]] = {"min", "max"}
 
-    def _matches(self, parsed_data: dict[str, Any]) -> bool:
-        """Проверить, соответствует ли пакет checks.
+    def _check(self, parsed_data: dict[str, Any], ctx: ScenarioContext | None = None) -> list[CheckResult]:
+        """Проверить пакет по checks, вернуть детальные результаты.
 
         Поддерживает:
         - Exact match: ``{"service": 1}``
         - Range: ``{"points": {"min": 1, "max": 100}}``
         - Regex: ``{"imei": r"^\\d{15}$"}``
         - Nested paths: ``{"data.TID": 12345}``
+        - ``{{var}}`` подстановка в expected (KI-074)
         """
+        results: list[CheckResult] = []
         for key, expected in self.checks.items():
             actual = self._get_nested(parsed_data, key)
             if actual is None:
-                return False
+                results.append(CheckResult(
+                    key=key, expected=expected, actual=None,
+                    check_type="missing", passed=False,
+                ))
+                continue
+
+            # KI-074: подстановка {{var}} в expected
+            if ctx is not None:
+                if isinstance(expected, str):
+                    expected_str = ctx.substitute(expected)
+                    if expected_str != expected:
+                        expected = expected_str
+                    if isinstance(expected, str):
+                        try:
+                            if expected.isdigit() or (expected.startswith("-") and expected[1:].isdigit()):
+                                expected = int(expected)
+                        except (ValueError, AttributeError):
+                            pass
+                elif isinstance(expected, dict) and not self._RANGE_KEYS.intersection(expected.keys()) and "regex" not in expected:
+                    # Dict-значение с подстановкой внутри
+                    substituted = {}
+                    for ek, ev in expected.items():
+                        if isinstance(ev, str):
+                            substituted[ek] = ctx.substitute(ev)
+                        else:
+                            substituted[ek] = ev
+                    expected = substituted
 
             # Range check
             if isinstance(expected, dict) and self._RANGE_KEYS.intersection(
                 expected.keys()
             ):
                 if not isinstance(actual, (int, float)):
-                    return False
-                if "min" in expected and actual < expected["min"]:
-                    return False
-                if "max" in expected and actual > expected["max"]:
-                    return False
+                    results.append(CheckResult(
+                        key=key, expected=self.checks[key], actual=actual,
+                        check_type="range", passed=False,
+                    ))
+                    continue
+                # KI-074: подстановка {{var}} в min/max значения
+                range_min = expected.get("min")
+                range_max = expected.get("max")
+                if isinstance(range_min, str) and ctx is not None:
+                    range_min = ctx.substitute(range_min)
+                if isinstance(range_max, str) and ctx is not None:
+                    range_max = ctx.substitute(range_max)
+                # Конвертируем range values из str в int
+                if isinstance(range_min, str):
+                    try:
+                        range_min = int(range_min)
+                    except (ValueError, TypeError):
+                        pass
+                if isinstance(range_max, str):
+                    try:
+                        range_max = int(range_max)
+                    except (ValueError, TypeError):
+                        pass
+                passed = True
+                if range_min is not None and actual < range_min:
+                    passed = False
+                if range_max is not None and actual > range_max:
+                    passed = False
+                results.append(CheckResult(
+                    key=key, expected=self.checks[key], actual=actual,
+                    check_type="range", passed=passed,
+                ))
                 continue
 
             # Regex check — явный формат {"regex": "..."}
             if isinstance(expected, dict) and "regex" in expected:
                 pattern = expected["regex"]
                 if not isinstance(actual, str):
-                    return False
-                if not re.fullmatch(pattern, actual):
-                    return False
+                    results.append(CheckResult(
+                        key=key, expected=expected, actual=actual,
+                        check_type="regex", passed=False,
+                    ))
+                    continue
+                passed = bool(re.fullmatch(pattern, actual))
+                results.append(CheckResult(
+                    key=key, expected=expected, actual=actual,
+                    check_type="regex", passed=passed,
+                ))
                 continue
 
             # Exact match
-            if actual != expected:
-                return False
+            passed = (actual == expected)
+            results.append(CheckResult(
+                key=key, expected=expected, actual=actual,
+                check_type="exact", passed=passed,
+            ))
 
-        return True
+        return results
 
     def _get_nested(self, data: dict[str, Any], path: str) -> Any | None:
         """Извлечь значение по nested path (например, ``records[0].fields.RN``)."""
@@ -284,15 +363,16 @@ class ExpectStep:
         ctx: ScenarioContext,
         bus: EventBus,
         timeout: float | None = None,
-    ) -> str:
+    ) -> tuple[str, dict]:
         """Выполнить шаг ожидания.
 
         Returns:
-            PASS, TIMEOUT или ERROR.
+            (status: str, details: dict), где status: PASS, FAIL, TIMEOUT или ERROR.
+            details содержит check_results и received_packet при FAIL/PASS.
         """
         eff_timeout = timeout or self.timeout or 30.0
         event = asyncio.Event()
-        result_container: dict[str, str] = {"status": "PENDING"}
+        result_container: dict[str, Any] = {"status": "PENDING"}
 
         def _on_packet(data: dict[str, Any]) -> None:
             logger.debug("ExpectStep '%s': _on_packet called, data keys=%s", self.name, list(data.keys()))
@@ -345,9 +425,18 @@ class ExpectStep:
             except Exception as e:
                 logger.debug("ExpectStep '%s': ERROR extracting: %s", self.name, e)
             logger.debug("ExpectStep '%s': extra=%s, checks=%s", self.name, extra, self.checks)
-            if self._matches(extra):
+            check_results = self._check(extra, ctx)
+            all_pass = all(cr.passed for cr in check_results)
+            logger.debug("ExpectStep '%s': check results: %s", self.name, [asdict(cr) for cr in check_results])
+            result_container["check_results"] = [asdict(cr) for cr in check_results]
+            result_container["received_packet"] = extra
+            if all_pass:
                 self._capture(ctx, extra)
                 result_container["status"] = "PASS"
+                event.set()
+            else:
+                # Немедленный FAIL при несовпадении checks — не ждём другой пакет
+                result_container["status"] = "FAIL"
                 event.set()
 
         def _on_disconnect(data: dict[str, Any]) -> None:
@@ -373,8 +462,15 @@ class ExpectStep:
             bus.off("packet.processed", _on_packet)
             bus.off("connection.changed", _on_disconnect)
 
-        logger.debug("ExpectStep '%s': finished with %s", self.name, result_container["status"])
-        return result_container["status"]
+        status = result_container["status"]
+        details: dict[str, Any] = {}
+        if "check_results" in result_container:
+            details["check_results"] = result_container["check_results"]
+        if "received_packet" in result_container:
+            details["received_packet"] = result_container["received_packet"]
+
+        logger.debug("ExpectStep '%s': finished with %s", self.name, status)
+        return status, details
 
 
 # --- SendStep ---
@@ -548,7 +644,8 @@ class SendStep:
 
         return packet
 
-    def _build_from_template_bytes(self, ctx: ScenarioContext) -> bytes:
+    def _build_from_template_bytes(self, ctx: ScenarioContext,
+                                    template_data: dict[str, Any] | None = None) -> bytes:
         """Построить пакет из build-template и вернуть байты.
 
         Поддерживает два формата:
@@ -557,6 +654,8 @@ class SendStep:
 
         Args:
             ctx: Контекст с переменными для подстановки.
+            template_data: Готовый template с подстановкой (опционально).
+                Если не указан — подстановка выполняется из self.build.
 
         Returns:
             Байты собранного EGTS-пакета.
@@ -564,19 +663,20 @@ class SendStep:
         Raises:
             ValueError: Если шаблон некорректен.
         """
-        if not self.build:
+        if not self.build and template_data is None:
             raise ValueError("build template is required")
 
-        def _substitute(obj: Any) -> Any:
-            if isinstance(obj, str):
-                return ctx.substitute(obj)
-            if isinstance(obj, dict):
-                return {k: _substitute(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [_substitute(item) for item in obj]
-            return obj
+        if template_data is None:
+            def _substitute(obj: Any) -> Any:
+                if isinstance(obj, str):
+                    return ctx.substitute(obj)
+                if isinstance(obj, dict):
+                    return {k: _substitute(v) for k, v in obj.items()}
+                if isinstance(obj, list):
+                    return [_substitute(item) for item in obj]
+                return obj
 
-        template_data: dict[str, Any] = _substitute(self.build)
+            template_data = _substitute(self.build)
 
         # Старый формат (обратная совместимость)
         packet_bytes_val = template_data.get("packet_bytes")
@@ -611,11 +711,11 @@ class SendStep:
         ctx: ScenarioContext,
         bus: EventBus,
         timeout: float | None = None,
-    ) -> str:
+    ) -> tuple[str, dict]:
         """Выполнить шаг отправки.
 
         Returns:
-            PASS, TIMEOUT или ERROR.
+            (status: str, details: dict), где status: PASS, TIMEOUT или ERROR.
         """
         eff_timeout = timeout or self.timeout or 10.0
 
@@ -623,23 +723,48 @@ class SendStep:
         conn_id = ctx._resolve_connection_id(None)
         if self.channel == "tcp" and conn_id is None:
             logger.error("SendStep: connection_id required for TCP channel")
-            return "ERROR"
+            return "ERROR", {}
 
         # Построение пакета (приоритет: build > packet_file)
         pid: int | None = None
         rn: int | None = None
 
         if self.build:
-            packet_bytes = self._build_from_template_bytes(ctx)
+            # Один раз строим template с подстановкой
+            built_dict = self._build_from_template(ctx)
+            # Извлекаем sent_* из template ДО сборки bytes (чтобы не было двойного auto-increment)
+            try:
+                packet_dict = built_dict.get("packet", {}) if isinstance(built_dict, dict) else {}
+                raw_pid = packet_dict.get("packet_id")
+                if raw_pid is not None:
+                    pid = int(raw_pid) if not isinstance(raw_pid, int) else raw_pid
+                    ctx.set("sent_pid", pid)
+                records = packet_dict.get("records", [])
+                if records:
+                    raw_rn = records[0].get("record_id")
+                    if raw_rn is not None:
+                        rn = int(raw_rn) if not isinstance(raw_rn, int) else raw_rn
+                        ctx.set("sent_rn", rn)
+                    subrecords = records[0].get("subrecords", [])
+                    if subrecords:
+                        sr_data = subrecords[0].get("data", {})
+                        if "cid" in sr_data:
+                            ctx.set("sent_cid", int(sr_data["cid"]) if not isinstance(sr_data["cid"], int) else sr_data["cid"])
+                        if "sid" in sr_data:
+                            ctx.set("sent_sid", int(sr_data["sid"]) if not isinstance(sr_data["sid"], int) else sr_data["sid"])
+            except Exception as exc:
+                logger.debug("SendStep '%s': could not extract sent_* vars: %s", self.name, exc)
+            # Строим bytes из того же template
+            packet_bytes = self._build_from_template_bytes(ctx, template_data=built_dict)
         elif self.packet_file:
             packet_bytes = self._build_packet(ctx)
         else:
             logger.error("SendStep: packet_file or build required")
-            return "ERROR"
+            return "ERROR", {}
 
         if not packet_bytes:
             logger.error("SendStep: empty packet_bytes")
-            return "ERROR"
+            return "ERROR", {}
 
         emit_data: dict[str, Any] = {
             "packet_bytes": packet_bytes,
@@ -683,7 +808,7 @@ class SendStep:
             bus.off("command.error", _on_error)
 
         logger.debug("SendStep '%s': finished with %s", self.name, result_container["status"])
-        return result_container["status"]
+        return result_container["status"], {}
 
 
 # --- Exceptions ---
@@ -952,14 +1077,30 @@ class ScenarioManager:
             logger.info("=== Step %d/%d: '%s' ===", step_idx + 1, total_steps, step.name)
 
             try:
-                result = await step.execute(self._context, bus, timeout=remaining)
+                result, step_details = await step.execute(self._context, bus, timeout=remaining)
             except Exception as exc:
                 logger.error("ScenarioManager: step '%s' failed: %s", step.name, exc)
                 result = "ERROR"
+                step_details = {}
 
             duration = time.monotonic() - start_time
-            self._context.add_history(step.name, result, duration)
+
+            # Сохраняем details из check_results в историю
+            details_str: str | None = None
+            check_results = step_details.get("check_results")
+            if check_results:
+                details_str = json.dumps(check_results, ensure_ascii=False)
+            self._context.add_history(step.name, result, duration, details=details_str)
+
             logger.info("Scenario: step '%s' finished with %s (%.2fs)", step.name, result, duration)
+
+            # Формируем steps с details для события
+            history_steps = []
+            for h in self._context.history:
+                hs: dict[str, Any] = {"name": h.step_name, "status": h.result, "duration": f"{h.duration:.2f}s"}
+                if h.details:
+                    hs["details"] = h.details
+                history_steps.append(hs)
 
             # Emit scenario.step — GUI обновляет таблицу и прогресс
             await bus.emit("scenario.step", {
@@ -971,11 +1112,10 @@ class ScenarioManager:
                 "result": result,
                 "duration": duration,
                 "progress": round((step_idx + 1) / total_steps * 100),
-                "steps": [
-                    {"name": h.step_name, "status": h.result, "duration": f"{h.duration:.2f}s"}
-                    for h in self._context.history
-                ],
+                "steps": history_steps,
                 "timestamp": time.monotonic(),
+                "details": check_results,
+                "received_packet": step_details.get("received_packet"),
             })
 
             if result != "PASS":
