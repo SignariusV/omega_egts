@@ -210,13 +210,8 @@ class CoreEngine:
         await self.bus.emit("server.stopped", {"reason": "shutdown"})
 
     async def _cleanup(self) -> None:
-        """Внутренний метод для остановки всех компонентов."""
-        # Останавливаем в обратном порядке создания
-
-        if self.log_mgr is not None:
-            await self.log_mgr.stop()
-            self.log_mgr = None
-
+        """Внутренний метод для остановки всех компонентов (обратный порядок создания)."""
+        # 7 → 6: CMW-500 + TCP-сервер (источники внешних событий)
         if self.cmw500 is not None:
             with suppress(Exception):
                 await asyncio.wait_for(self.cmw500.disconnect(), timeout=10.0)
@@ -227,29 +222,30 @@ class CoreEngine:
                 await self.tcp_server.stop()
             self.tcp_server = None
 
-        # Диспетчеры отписываются от EventBus
-        if self.packet_dispatcher is not None:
-            with suppress(Exception):
-                self.packet_dispatcher.stop()
-            self.packet_dispatcher = None
-
+        # 5 → 4: диспетчеры (обработчики)
         if self.command_dispatcher is not None:
             with suppress(Exception):
                 self.command_dispatcher.stop()
             self.command_dispatcher = None
 
-        # Остальные компоненты не требуют явной остановки —
-        # они просто перестают получать события через EventBus.
-        self.scenario_mgr = None
-        self.log_mgr = None
-        self.session_mgr = None
+        if self.packet_dispatcher is not None:
+            with suppress(Exception):
+                self.packet_dispatcher.stop()
+            self.packet_dispatcher = None
 
-        # Отменяем background task сценария
+        # Отменяем background task сценария до очистки менеджеров
         if self._scenario_task is not None and not self._scenario_task.done():
             self._scenario_task.cancel()
             with suppress(asyncio.CancelledError):
                 await self._scenario_task
         self._scenario_task = None
+
+        # 3 → 1: менеджеры (не генерируют события)
+        self.scenario_mgr = None
+        if self.log_mgr is not None:
+            await self.log_mgr.stop()
+            self.log_mgr = None
+        self.session_mgr = None
 
     @property
     def is_running(self) -> bool:
