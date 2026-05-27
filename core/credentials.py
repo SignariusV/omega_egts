@@ -57,6 +57,11 @@ class CredentialsRepository:
     attrib +h на Windows).
     """
 
+    @staticmethod
+    def _key(creds: Credentials) -> str:
+        """Вернуть ключ для хранения — device_id, либо IMEI если device_id пуст."""
+        return creds.device_id or creds.imei
+
     def __init__(self, path: str | Path) -> None:
         self._path = Path(path)
         self._creds: dict[str, Credentials] = {}
@@ -69,6 +74,8 @@ class CredentialsRepository:
 
     def _load(self) -> None:
         """Загрузить учётные данные из JSON-файла."""
+        self._creds.clear()
+
         if not self._path.exists():
             logger.warning("Файл учётных данных не найден: %s", self._path)
             return
@@ -83,9 +90,7 @@ class CredentialsRepository:
         for item in data.get("credentials", []):
             try:
                 cred = Credentials.from_dict(item)
-                # Ключ — device_id, если нет — используем IMEI
-                key = cred.device_id or cred.imei
-                self._creds[key] = cred
+                self._creds[self._key(cred)] = cred
             except (KeyError, TypeError) as exc:
                 logger.warning("Пропущена некорректная запись: %s", exc)
 
@@ -143,8 +148,7 @@ class CredentialsRepository:
         Ключом является ``creds.device_id``. Если ``device_id``
         не задан — используется ``creds.imei``.
         """
-        key = creds.device_id or creds.imei
-        self._creds[key] = creds
+        self._creds[self._key(creds)] = creds
         self._save()
 
     def list_all(self) -> dict[str, Credentials]:
