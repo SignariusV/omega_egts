@@ -25,30 +25,16 @@ def get_wifi_ip() -> str | None:
         return None
 
     wifi_section = re.search(
-        r"(Беспроводная локальная сеть|Wi-Fi).*?(?=\n\S|\Z)",
+        r"(?:Беспроводная локальная сеть|Wi-Fi|Wireless LAN adapter Wi-Fi).*?(?=\n\S|\Z)",
         result.stdout,
         re.DOTALL | re.IGNORECASE,
     )
 
     if not wifi_section:
-        wifi_section = re.search(
-            r"Wireless LAN adapter Wi-Fi.*?(?=\n\S|\Z)",
-            result.stdout,
-            re.DOTALL | re.IGNORECASE,
-        )
-
-    if not wifi_section:
         return None
 
     ip_match = re.search(
-        r"IPv4[^-].*?:\s*([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)",
-        wifi_section.group(),
-    )
-    if ip_match:
-        return ip_match.group(1)
-
-    ip_match = re.search(
-        r"IPv4 Address[^:]*:\s*([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)",
+        r"(?:IPv4[^-].*?|IPv4 Address[^:]*):\s*([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)",
         wifi_section.group(),
     )
     return ip_match.group(1) if ip_match else None
