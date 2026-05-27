@@ -519,6 +519,17 @@ class SendStep:
         except ValueError as exc:
             raise ValueError(f"Invalid HEX in {self.packet_file}: {exc}") from exc
 
+    @staticmethod
+    def _substitute_value(obj: Any, ctx: ScenarioContext) -> Any:
+        """Рекурсивно подставить {{var}} во все строки структуры."""
+        if isinstance(obj, str):
+            return ctx.substitute(obj)
+        if isinstance(obj, dict):
+            return {k: SendStep._substitute_value(v, ctx) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [SendStep._substitute_value(item, ctx) for item in obj]
+        return obj
+
     def _build_from_template(self, ctx: ScenarioContext) -> dict[str, Any]:
         """Построить пакет из build-template с подстановкой переменных.
 
@@ -528,16 +539,7 @@ class SendStep:
         if not self.build:
             raise ValueError("build template is required")
 
-        def _substitute(obj: Any) -> Any:
-            if isinstance(obj, str):
-                return ctx.substitute(obj)
-            if isinstance(obj, dict):
-                return {k: _substitute(v) for k, v in obj.items()}
-            if isinstance(obj, list):
-                return [_substitute(item) for item in obj]
-            return obj
-
-        result: dict[str, Any] = _substitute(self.build)
+        result: dict[str, Any] = self._substitute_value(self.build, ctx)
         return result
 
     def _dict_to_packet(self, data: dict[str, Any]) -> "Packet":
@@ -591,24 +593,20 @@ class SendStep:
         if "packet_type" not in data:
             raise ValueError("packet_type is required in build packet")
 
-        subrecords = []
-        for sr_data in data.get("subrecords", []):
-            sr = Subrecord(
-                subrecord_type=sr_data["subrecord_type"],
-                data=sr_data.get("data", {}),
-            )
-            subrecords.append(sr)
+        def build_subrecords(subrecords_data: list[dict]) -> list[Subrecord]:
+            result: list[Subrecord] = []
+            for sr_data in subrecords_data:
+                result.append(Subrecord(
+                    subrecord_type=sr_data["subrecord_type"],
+                    data=sr_data.get("data", {}),
+                ))
+            return result
+
+        subrecords = build_subrecords(data.get("subrecords", []))
 
         records = []
         for rec_data in data.get("records", []):
-            rec_subrecords = []
-            for sr_data in rec_data.get("subrecords", []):
-                sr = Subrecord(
-                    subrecord_type=sr_data["subrecord_type"],
-                    data=sr_data.get("data", {}),
-                )
-                rec_subrecords.append(sr)
-
+            rec_subrecords = build_subrecords(rec_data.get("subrecords", []))
             rec = Record(
                 record_id=rec_data["record_id"],
                 service_type=rec_data["service_type"],
@@ -667,27 +665,20 @@ class SendStep:
             raise ValueError("build template is required")
 
         if template_data is None:
-            def _substitute(obj: Any) -> Any:
-                if isinstance(obj, str):
-                    return ctx.substitute(obj)
-                if isinstance(obj, dict):
-                    return {k: _substitute(v) for k, v in obj.items()}
-                if isinstance(obj, list):
-                    return [_substitute(item) for item in obj]
-                return obj
-
-            template_data = _substitute(self.build)
+            template_data = self._substitute_value(self.build, ctx)
 
         # Старый формат (обратная совместимость)
         packet_bytes_val = template_data.get("packet_bytes")
         if packet_bytes_val is not None:
-            assert isinstance(packet_bytes_val, bytes), "packet_bytes must be bytes"
+            if not isinstance(packet_bytes_val, bytes):
+                raise TypeError("packet_bytes must be bytes")
             return packet_bytes_val
 
         # packet_hex (строка hex)
         packet_hex_val = template_data.get("packet_hex")
         if packet_hex_val is not None:
-            assert isinstance(packet_hex_val, str), "packet_hex must be str"
+            if not isinstance(packet_hex_val, str):
+                raise TypeError("packet_hex must be str")
             try:
                 return bytes.fromhex(packet_hex_val)
             except ValueError as exc:
@@ -920,6 +911,49 @@ class ScenarioManager:
         """
         self._resolvers[name] = func
 
+    def _history_steps(self) -> list[dict[str, Any]]:
+        """Список шагов для события scenario.step (с деталями)."""
+        result: list[dict[str, Any]] = []
+        for h in self._context.history:
+            hs: dict[str, Any] = {
+                "name": h.step_name,
+                "status": h.result,
+                "duration": f"{h.duration:.2f}s",
+            }
+            if h.details:
+                hs["details"] = h.details
+            result.append(hs)
+        return result
+
+    def _build_step_event(
+        self,
+        step_idx: int,
+        step: ExpectStep | SendStep,
+        result: str,
+        duration: float,
+        progress: int,
+        details: Any = None,
+        received_packet: Any = None,
+    ) -> dict[str, Any]:
+        """Построить событие scenario.step (единая структура)."""
+        event: dict[str, Any] = {
+            "scenario_name": self._metadata.name,
+            "step_name": step.name,
+            "step_type": type(step).__name__,
+            "step_index": step_idx,
+            "steps_total": len(self._steps),
+            "result": result,
+            "duration": duration,
+            "progress": progress,
+            "steps": self._history_steps(),
+            "timestamp": time.monotonic(),
+        }
+        if details is not None:
+            event["details"] = details
+        if received_packet is not None:
+            event["received_packet"] = received_packet
+        return event
+
     def load(self, path: Path) -> None:
         """Загрузить сценарий из JSON-файла.
 
@@ -1032,21 +1066,13 @@ class ScenarioManager:
             # Проверка отмены перед каждым шагом
             if self._cancel_requested:
                 self._running = False
-                await bus.emit("scenario.step", {
-                    "scenario_name": self._metadata.name,
-                    "step_name": step.name,
-                    "step_type": type(step).__name__,
-                    "step_index": step_idx,
-                    "steps_total": total_steps,
-                    "result": "CANCELLED",
-                    "duration": 0.0,
-                    "progress": round(step_idx / total_steps * 100),
-                    "steps": [
-                        {"name": h.step_name, "status": h.result, "duration": f"{h.duration:.2f}s"}
-                        for h in self._context.history
-                    ],
-                    "timestamp": time.monotonic(),
-                })
+                await bus.emit(
+                    "scenario.step",
+                    self._build_step_event(
+                        step_idx, step, "CANCELLED", 0.0,
+                        round(step_idx / total_steps * 100),
+                    ),
+                )
                 logger.info("Scenario '%s' cancelled at step %d", self._metadata.name, step_idx + 1)
                 return "CANCELLED"
 
@@ -1055,21 +1081,13 @@ class ScenarioManager:
             if remaining <= 0:
                 self._running = False
                 self._context.add_history(step.name, "TIMEOUT", 0.0)
-                await bus.emit("scenario.step", {
-                    "scenario_name": self._metadata.name,
-                    "step_name": step.name,
-                    "step_type": type(step).__name__,
-                    "step_index": step_idx,
-                    "steps_total": total_steps,
-                    "result": "TIMEOUT",
-                    "duration": 0.0,
-                    "progress": round(step_idx / total_steps * 100),
-                    "steps": [
-                        {"name": h.step_name, "status": h.result, "duration": f"{h.duration:.2f}s"}
-                        for h in self._context.history
-                    ],
-                    "timestamp": time.monotonic(),
-                })
+                await bus.emit(
+                    "scenario.step",
+                    self._build_step_event(
+                        step_idx, step, "TIMEOUT", 0.0,
+                        round(step_idx / total_steps * 100),
+                    ),
+                )
                 logger.info("Scenario: step '%s' SKIPPED (timeout)", step.name)
                 return "TIMEOUT"
 
@@ -1094,29 +1112,16 @@ class ScenarioManager:
 
             logger.info("Scenario: step '%s' finished with %s (%.2fs)", step.name, result, duration)
 
-            # Формируем steps с details для события
-            history_steps = []
-            for h in self._context.history:
-                hs: dict[str, Any] = {"name": h.step_name, "status": h.result, "duration": f"{h.duration:.2f}s"}
-                if h.details:
-                    hs["details"] = h.details
-                history_steps.append(hs)
-
             # Emit scenario.step — GUI обновляет таблицу и прогресс
-            await bus.emit("scenario.step", {
-                "scenario_name": self._metadata.name,
-                "step_name": step.name,
-                "step_type": type(step).__name__,
-                "step_index": step_idx,
-                "steps_total": total_steps,
-                "result": result,
-                "duration": duration,
-                "progress": round((step_idx + 1) / total_steps * 100),
-                "steps": history_steps,
-                "timestamp": time.monotonic(),
-                "details": check_results,
-                "received_packet": step_details.get("received_packet"),
-            })
+            await bus.emit(
+                "scenario.step",
+                self._build_step_event(
+                    step_idx, step, result, duration,
+                    round((step_idx + 1) / total_steps * 100),
+                    details=check_results,
+                    received_packet=step_details.get("received_packet"),
+                ),
+            )
 
             if result != "PASS":
                 self._running = False
