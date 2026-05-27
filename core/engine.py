@@ -102,11 +102,7 @@ class CoreEngine:
             from core.scenario import ScenarioManager as _ScenarioManager
             from core.scenario_parser import (
                 ScenarioParserFactory as _ParserFactory,
-            )
-            from core.scenario_parser import (
                 ScenarioParserRegistry as _ParserRegistry,
-            )
-            from core.scenario_parser import (
                 ScenarioParserV1 as _ParserV1,
             )
 
@@ -233,12 +229,7 @@ class CoreEngine:
                 self.packet_dispatcher.stop()
             self.packet_dispatcher = None
 
-        # Отменяем background task сценария до очистки менеджеров
-        if self._scenario_task is not None and not self._scenario_task.done():
-            self._scenario_task.cancel()
-            with suppress(asyncio.CancelledError):
-                await self._scenario_task
-        self._scenario_task = None
+        await self._cancel_scenario_task()
 
         # 3 → 1: менеджеры (не генерируют события)
         self.scenario_mgr = None
@@ -259,6 +250,23 @@ class CoreEngine:
         return (
             f"CoreEngine(state={state}, port={self.config.tcp_port}, cmw={cmw_status}, gost={self.config.gost_version})"
         )
+
+    # ===== Private helpers =====
+
+    @staticmethod
+    def _error_result(msg: str) -> dict[str, str]:
+        return {"status": "error", "error": msg}
+
+    async def _cancel_scenario_task(self) -> None:
+        if self._scenario_task is not None and not self._scenario_task.done():
+            self._scenario_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._scenario_task
+        self._scenario_task = None
+
+    async def _emit_scenario_finished(self, result: str, **extra: Any) -> None:
+        name = self.scenario_mgr.metadata.name if self.scenario_mgr else "unknown"
+        await self.bus.emit("scenario.finished", {"scenario_name": name, "result": result, **extra})
 
     # ===== API для CLI (задача 9.0) =====
 
@@ -338,10 +346,10 @@ class CoreEngine:
             raise RuntimeError("CoreEngine не запущен (вызовите start)")
 
         if self.scenario_mgr is None:
-            return {"status": "error", "error": "ScenarioManager не инициализирован"}
+            return self._error_result("ScenarioManager не инициализирован")
 
         if self._scenario_task is not None and not self._scenario_task.done():
-            return {"status": "error", "error": "Сценарий уже выполняется"}
+            return self._error_result("Сценарий уже выполняется")
 
         try:
             scenario_path_obj = Path(scenario_path)
@@ -372,22 +380,11 @@ class CoreEngine:
                                 except (json.JSONDecodeError, TypeError):
                                     fs["details"] = h.details
                             failed_steps.append(fs)
-                    await self.bus.emit("scenario.finished", {
-                        "scenario_name": self.scenario_mgr.metadata.name,
-                        "result": result,
-                        "failed_steps": failed_steps,
-                    })
+                    await self._emit_scenario_finished(result, failed_steps=failed_steps)
                 except asyncio.CancelledError:
-                    await self.bus.emit("scenario.finished", {
-                        "scenario_name": self.scenario_mgr.metadata.name,
-                        "result": "CANCELLED",
-                    })
+                    await self._emit_scenario_finished("CANCELLED")
                 except Exception as exc:
-                    await self.bus.emit("scenario.finished", {
-                        "scenario_name": self.scenario_mgr.metadata.name,
-                        "result": "ERROR",
-                        "error": str(exc),
-                    })
+                    await self._emit_scenario_finished("ERROR", error=str(exc))
                 finally:
                     self._scenario_task = None
 
@@ -399,7 +396,7 @@ class CoreEngine:
                 "steps_passed": 0,
             }
         except Exception as exc:
-            return {"status": "error", "error": str(exc)}
+            return self._error_result(str(exc))
 
     async def cancel_scenario(self) -> dict[str, Any]:
         """Отменить выполнение сценария.
@@ -408,21 +405,13 @@ class CoreEngine:
             Словарь с результатом отмены.
         """
         if self.scenario_mgr is None:
-            return {"status": "error", "error": "ScenarioManager не инициализирован"}
+            return self._error_result("ScenarioManager не инициализирован")
 
         if not self.scenario_mgr.is_running:
-            return {"status": "error", "error": "Сценарий не выполняется"}
+            return self._error_result("Сценарий не выполняется")
 
         self.scenario_mgr.cancel()
-
-        if self._scenario_task is not None and not self._scenario_task.done():
-            self._scenario_task.cancel()
-            try:
-                await self._scenario_task
-            except asyncio.CancelledError:
-                pass
-            self._scenario_task = None
-
+        await self._cancel_scenario_task()
         return {"status": "ok", "result": "CANCELLED"}
 
     async def replay(self, log_path: str, scenario_path: str | None = None) -> dict[str, Any]:
@@ -472,22 +461,14 @@ class CoreEngine:
         }
         log_type_filter = log_type_map.get(data_type, data_type)
 
-        if fmt == "csv":
-            result: dict[str, Any] = export_csv(
-                log_dir=self.config.logging.dir,
-                output_path=output_path,
-                log_type_filter=log_type_filter,
-            )
-            return result
-        elif fmt == "json":
-            result = export_json(
-                log_dir=self.config.logging.dir,
-                output_path=output_path,
-                log_type_filter=log_type_filter,
-            )
-            return result
-        else:
+        formatters = {"csv": export_csv, "json": export_json}
+        if fmt not in formatters:
             raise ValueError(f"Неподдерживаемый формат экспорта: {fmt}")
+        return formatters[fmt](
+            log_dir=self.config.logging.dir,
+            output_path=output_path,
+            log_type_filter=log_type_filter,
+        )
 
     async def get_log_stats(self) -> dict[str, Any]:
         """Статистика лог-файлов.
