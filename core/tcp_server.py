@@ -78,6 +78,28 @@ class TcpServerManager:
         addr: tuple[str, int] = socks[0].getsockname()
         return addr[1]
 
+    async def _emit_connection_changed(
+        self,
+        connection_id: str,
+        state: str,
+        prev_state: str | None,
+        action: str,
+        reason: str,
+    ) -> None:
+        """Эмитить connection.changed с единой структурой."""
+        await self.bus.emit(
+            "connection.changed",
+            {
+                "connection_id": connection_id,
+                "usv_id": connection_id,
+                "state": state,
+                "prev_state": prev_state,
+                "action": action,
+                "reason": reason,
+                "timestamp": time.monotonic(),
+            },
+        )
+
     async def start(self) -> None:
         """Запустить TCP-сервер.
 
@@ -163,17 +185,12 @@ class TcpServerManager:
                 conn.fsm.on_connect()
 
         # Эмитим событие подключения
-        await self.bus.emit(
-            "connection.changed",
-            {
-                "connection_id": connection_id,
-                "usv_id": connection_id,
-                "state": "CONNECTED",
-                "prev_state": None,
-                "action": "connected",
-                "reason": f"Connected from {peername}",
-                "timestamp": time.monotonic(),
-            },
+        await self._emit_connection_changed(
+            connection_id,
+            state="CONNECTED",
+            prev_state=None,
+            action="connected",
+            reason=f"Connected from {peername}",
         )
 
         # Создаём задачу для чтения данных
@@ -263,15 +280,10 @@ class TcpServerManager:
             self.session_mgr.connections.pop(connection_id, None)
 
         # Эмитим событие отключения
-        await self.bus.emit(
-            "connection.changed",
-            {
-                "connection_id": connection_id,
-                "usv_id": connection_id,
-                "state": "DISCONNECTED",
-                "prev_state": prev_state,
-                "action": "disconnected",
-                "reason": "TCP connection closed",
-                "timestamp": time.monotonic(),
-            },
+        await self._emit_connection_changed(
+            connection_id,
+            state="DISCONNECTED",
+            prev_state=prev_state,
+            action="disconnected",
+            reason="TCP connection closed",
         )
