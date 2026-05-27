@@ -4,6 +4,41 @@
 
 ---
 
+### Рефакторинг CommandDispatcher — устранение дублирования и race condition
+
+**Дата:** 27.05.2026
+
+#### Fixed
+- **Race condition в `_send_sms`** — транзакция регистрировалась ПОСЛЕ `send_sms()`,
+  тогда как TCP-путь регистрирует ДО `write()`. Если устройство отвечало быстрее,
+  чем выполнялась регистрация, `transaction_mgr` не находил транзакцию.
+  Исправлено: регистрация перенесена перед `send_sms()`.
+
+#### Changed
+- **`CommandDispatcher._send_tcp()` / `_send_sms()`** — дублирующийся код
+  (PID/RN extraction, transaction registration, emit событий) вынесен в три
+  helper-метода: `_resolve_pid_rn()`, `_register_transaction()`,
+  `_emit_sent_events()`
+- **`CommandDispatcher._send_sms()`** — `ensure_sms_session()` вызывается
+  один раз (было два: в PID/RN extraction и registration)
+- **Удалён дублирующий импорт `EventBus`** из `TYPE_CHECKING` (строка 31)
+
+#### Tests
+- **43 новых теста** в `tests/core/test_dispatcher.py`:
+  - `TestIsWriterClosing` — 5 тестов для модульной функции
+  - `TestPacketDispatcher` — 11 тестов (init, stop, pipeline, обработка raw
+    и processed пакетов, TCP/SMS, отправка RESPONSE)
+  - `TestCommandDispatcherInit` — 2 теста (подписка/отписка)
+  - `TestCommandDispatcherOnCommand` — 4 теста (routing, empty packet, ошибки)
+  - `TestCommandDispatcherSendTcp` — 6 тестов (валидация, отправка,
+    порядок register→write)
+  - `TestCommandDispatcherSendSms` — 5 тестов (cmw= None, сессия,
+    порядок register→send_sms, вызов ensure_sms_session один раз)
+  - `TestCommandDispatcherHelpers` — 7 тестов для трёх helper-методов
+- Покрытие `dispatcher.py`: 44% → **92%**
+
+---
+
 ### Универсальный механизм резолверов для динамических переменных
 
 **Дата:** 26.05.2026

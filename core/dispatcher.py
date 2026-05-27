@@ -29,7 +29,6 @@ from core.pipeline import (
 
 if TYPE_CHECKING:
     from core.cmw500 import Cmw500Controller
-    from core.event_bus import EventBus
     from core.session import SessionManager
 
 from core.session import SMS_DEFAULT_CONNECTION_ID
@@ -277,6 +276,83 @@ class CommandDispatcher:
         self.bus.off("command.send", self._on_command)
         logger.info("CommandDispatcher: отписался от событий")
 
+    # ------------------------------------------------------------------
+    # Helpers (сокращают дублирование между _send_tcp и _send_sms)
+    # ------------------------------------------------------------------
+
+    def _resolve_pid_rn(
+        self,
+        conn: object,
+        packet_bytes: bytes,
+        pid: int | None,
+        rn: int | None,
+    ) -> tuple[int | None, int | None]:
+        """Извлечь PID/RN из packet_bytes если не переданы явно."""
+        if pid is not None and rn is not None:
+            return pid, rn
+        parsed = self._parse_packet_bytes(conn, packet_bytes)
+        if parsed is None:
+            return pid, rn
+        return (
+            parsed.get("packet_id") if pid is None else pid,
+            parsed.get("record_id") if rn is None else rn,
+        )
+
+    def _register_transaction(
+        self,
+        conn: object,
+        pid: int | None,
+        rn: int | None,
+        step_name: str | None,
+        timeout: float,
+    ) -> None:
+        """Зарегистрировать транзакцию, если есть PID/RN."""
+        if pid is None and rn is None:
+            return
+        txn_mgr = getattr(conn, "transaction_mgr", None)
+        if txn_mgr is None:
+            logger.warning(
+                "CommandDispatcher: transaction_mgr отсутствует"
+            )
+            return
+        txn_mgr.register(
+            pid=pid,
+            rn=rn,
+            step_name=step_name or "",
+            timeout=timeout,
+        )
+
+    async def _emit_sent_events(
+        self,
+        connection_id: str,
+        step_name: str | None,
+        packet_bytes: bytes,
+        channel: str,
+        pid: int | None = None,
+        rn: int | None = None,
+    ) -> None:
+        """Эмит packet.sent + command.sent."""
+        await self.bus.emit(
+            "packet.sent",
+            {
+                "connection_id": connection_id,
+                "step_name": step_name,
+                "packet_bytes": packet_bytes,
+                "channel": channel,
+                "pid": pid,
+                "rn": rn,
+            },
+        )
+        await self.bus.emit(
+            "command.sent",
+            {
+                "connection_id": connection_id,
+                "step_name": step_name,
+                "packet_bytes": packet_bytes,
+                "channel": channel,
+            },
+        )
+
     async def _on_command(self, data: dict[str, Any]) -> None:
         """Обработать команду отправки.
 
@@ -376,56 +452,20 @@ class CommandDispatcher:
 
         # Извлечение PID/RN из packet_bytes если не переданы явно
         # Это позволяет регистрировать транзакции даже для hex-файлов
-        effective_pid: int | None = pid
-        effective_rn: int | None = rn
-
-        if effective_pid is None or effective_rn is None:
-            parsed = self._parse_packet_bytes(conn, packet_bytes)
-            if parsed is not None:
-                if effective_pid is None:
-                    effective_pid = parsed.get("packet_id")
-                if effective_rn is None:
-                    effective_rn = parsed.get("record_id")
+        effective_pid, effective_rn = self._resolve_pid_rn(
+            conn, packet_bytes, pid, rn,
+        )
 
         # Регистрация транзакции ДО отправки (KI-052)
-        if effective_pid is not None or effective_rn is not None:
-            if conn.transaction_mgr is not None:
-                conn.transaction_mgr.register(
-                    pid=effective_pid,
-                    rn=effective_rn,
-                    step_name=step_name or "",
-                    timeout=timeout,
-                )
-            else:
-                logger.warning(
-                    "CommandDispatcher: transaction_mgr отсутствует для %s",
-                    connection_id,
-                )
+        self._register_transaction(
+            conn, effective_pid, effective_rn, step_name, timeout,
+        )
 
         writer.write(packet_bytes)
         await writer.drain()
 
-        # Эмит события packet.sent для логирования отправленного пакета
-        await self.bus.emit(
-            "packet.sent",
-            {
-                "connection_id": connection_id,
-                "step_name": step_name,
-                "packet_bytes": packet_bytes,
-                "channel": "tcp",
-                "pid": effective_pid,
-                "rn": effective_rn,
-            },
-        )
-
-        await self.bus.emit(
-            "command.sent",
-            {
-                "connection_id": connection_id,
-                "step_name": step_name,
-                "packet_bytes": packet_bytes,
-                "channel": "tcp",
-            },
+        await self._emit_sent_events(
+            connection_id, step_name, packet_bytes, "tcp", effective_pid, effective_rn,
         )
         logger.info(
             "CommandDispatcher: команда отправлена через TCP %s (pid=%s, rn=%s, %d байт)",
@@ -491,60 +531,30 @@ class CommandDispatcher:
                 "CommandDispatcher: CMW-500 контроллер не подключён (cmw=None)"
             )
 
-        # Извлечение PID/RN из packet_bytes если не переданы явно (KI-077)
-        effective_pid: int | None = pid
-        effective_rn: int | None = rn
+        # Получаем SMS-сессию ОДИН раз
+        conn = self.session_mgr.ensure_sms_session()
+        if conn is None:
+            raise RuntimeError(
+                "CommandDispatcher: SMS-сессия недоступна"
+            )
 
-        if effective_pid is None or effective_rn is None:
-            conn = self.session_mgr.ensure_sms_session()
-            if conn is not None:
-                parsed = self._parse_packet_bytes(conn, packet_bytes)
-                if parsed is not None:
-                    if effective_pid is None:
-                        effective_pid = parsed.get("packet_id")
-                    if effective_rn is None:
-                        effective_rn = parsed.get("record_id")
+        # Извлечение PID/RN из packet_bytes если не переданы явно (KI-077)
+        effective_pid, effective_rn = self._resolve_pid_rn(
+            conn, packet_bytes, pid, rn,
+        )
+
+        # Регистрация транзакции ДО отправки (fix race condition)
+        self._register_transaction(
+            conn, effective_pid, effective_rn, step_name, timeout,
+        )
 
         success = await self.cmw.send_sms(packet_bytes)
         if not success:
             raise RuntimeError("CMW-500: send_sms вернул False")
 
-        # Регистрация транзакции для SMS-канала
-        if effective_pid is not None or effective_rn is not None:
-            conn = self.session_mgr.ensure_sms_session()
-            if conn is not None and conn.transaction_mgr is not None:
-                conn.transaction_mgr.register(
-                    pid=effective_pid,
-                    rn=effective_rn,
-                    step_name=step_name or "",
-                    timeout=timeout,
-                )
-            else:
-                logger.warning(
-                    "CommandDispatcher: SMS-сессия или transaction_mgr недоступны"
-                )
-
-        # Эмит события packet.sent для логирования отправленного пакета
-        await self.bus.emit(
-            "packet.sent",
-            {
-                "connection_id": SMS_DEFAULT_CONNECTION_ID,
-                "step_name": step_name,
-                "packet_bytes": packet_bytes,
-                "channel": "sms",
-                "pid": effective_pid,
-                "rn": effective_rn,
-            },
-        )
-
-        await self.bus.emit(
-            "command.sent",
-            {
-                "connection_id": SMS_DEFAULT_CONNECTION_ID,
-                "step_name": step_name,
-                "packet_bytes": packet_bytes,
-                "channel": "sms",
-            },
+        await self._emit_sent_events(
+            SMS_DEFAULT_CONNECTION_ID, step_name, packet_bytes,
+            "sms", effective_pid, effective_rn,
         )
         logger.info(
             "CommandDispatcher: команда отправлена через SMS (%d байт)",
