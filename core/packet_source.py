@@ -116,6 +116,11 @@ class ReplaySource:
         skipped_duplicates = 0
         errors: list[str] = []
 
+        def _record_error(prefix: str, exc: Exception) -> None:
+            msg = f"{prefix}: {exc!s}"
+            errors.append(msg)
+            logger.warning("ReplaySource: %s", msg)
+
         for record in records:
             if self._skip_duplicates and record.get("is_duplicate"):
                 skipped_duplicates += 1
@@ -125,9 +130,7 @@ class ReplaySource:
             try:
                 raw_bytes = _hex_to_bytes(record.get("hex"))
             except ValueError as exc:
-                error_msg = f"Некорректный hex в записи: {exc!s}"
-                errors.append(error_msg)
-                logger.warning("ReplaySource: %s", error_msg)
+                _record_error("Некорректный hex в записи", exc)
                 continue
 
             try:
@@ -160,9 +163,7 @@ class ReplaySource:
                 processed += 1
 
             except Exception as exc:
-                error_msg = f"Ошибка replay: {exc!s}"
-                errors.append(error_msg)
-                logger.warning("ReplaySource: %s", error_msg)
+                _record_error("Ошибка replay", exc)
 
         result = {
             "processed": processed,
