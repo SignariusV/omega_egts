@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -31,8 +32,8 @@ class EventBus:
     """
 
     def __init__(self) -> None:
-        self._handlers: dict[str, list[HandlerType]] = {}
-        self._ordered_handlers: dict[str, list[HandlerType]] = {}
+        self._handlers: dict[str, list[HandlerType]] = defaultdict(list)
+        self._ordered_handlers: dict[str, list[HandlerType]] = defaultdict(list)
 
     def on(self, event_name: str, handler: HandlerType, ordered: bool = False) -> None:
         """Подписаться на событие.
@@ -44,9 +45,9 @@ class EventBus:
                 до всех parallel-обработчиков.
         """
         if ordered:
-            self._ordered_handlers.setdefault(event_name, []).append(handler)
+            self._ordered_handlers[event_name].append(handler)
         else:
-            self._handlers.setdefault(event_name, []).append(handler)
+            self._handlers[event_name].append(handler)
 
     def off(self, event_name: str, handler: HandlerType) -> None:
         """Отписаться от события.
@@ -71,20 +72,18 @@ class EventBus:
             event_name: Имя события для публикации.
             data: Данные события, передаваемые всем обработчикам.
         """
-        ordered_count = len(self._ordered_handlers.get(event_name, []))
-        parallel_count = len(self._handlers.get(event_name, []))
+        ordered = self._ordered_handlers.get(event_name, [])
+        parallel = self._handlers.get(event_name, [])
         logger.debug("EventBus.emit: event=%s, data_keys=%s, handlers=(ordered=%d, parallel=%d)",
-                    event_name, list(data.keys()), ordered_count, parallel_count)
-        if not ordered_count and not parallel_count:
-            logger.debug("EventBus.emit: no handlers for event=%s", event_name)
+                    event_name, list(data.keys()), len(ordered), len(parallel))
 
         # 1. Ordered — строго последовательно
-        for handler in self._ordered_handlers.get(event_name, []):
+        for handler in ordered:
             await self._invoke_handler(handler, data)
 
         # 2. Parallel — параллельно через asyncio.gather
         parallel_tasks: list[asyncio.Task[None]] = []
-        for handler in self._handlers.get(event_name, []):
+        for handler in parallel:
             task = asyncio.create_task(self._invoke_handler(handler, data))
             parallel_tasks.append(task)
 
