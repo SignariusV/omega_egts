@@ -2,7 +2,7 @@
 
 Известные проблемы, ограничения и плановые задачи.
 
-**Обновлено:** 27.05.2026 | **ТЗ:** v7.0 | **Итерации 1–14:** 1000+ тестов | **Аудит + исправления:** R-001–R-101
+**Обновлено:** 27.05.2026 | **ТЗ:** v7.0 | **Итерации 1–16:** 1000+ тестов | **Аудит + исправления:** R-001–R-103
 
 ---
 
@@ -242,7 +242,7 @@ _Проект на стадии реализации. Ниже — архите�
 | ID | Описание | Статус | Планируемое решение |
 |----|----------|--------|---------------------|
 | ~~KI-074~~ | ~~**ExpectStep._matches() не поддерживает `{{var}}` подстановку**~~ | ~~Открыто~~ | **Решено**: `_matches()` заменён на `_check()`, который вызывает `ctx.substitute()` для строковых expected и значений внутри range-словарей (`min`, `max`). `{{sent_cid}}`, `{{sent_sid}}` и др. теперь корректно подставляются. SendStep также захватывает `sent_pid`, `sent_rn`, `sent_cid`, `sent_sid` в контекст через ExtractBeforeBytesMiddleware-подход. 24 теста ExpectStep, 3 теста capture. См. `feat/verification-diagnostic` |
-| KI-075 | **В extra не извлекаются response_packet_id, processing_result, record_id, subrecord_type** | **Решено** | Дополнен `extra`-билдер в 3 местах: `scenario.py:ExpectStep._on_packet()`, `session.py:SessionManager._on_packet_processed()`, `logger.py:LogManager._parse_parsed()`. Теперь все 4 поля присутствуют в extra. 2 новых теста в `test_expect_step.py`. См. `fix/ki-075-extra-fields` |
+| KI-075 | ~~**В extra не извлекаются response_packet_id, processing_result, record_id, subrecord_type**~~ | **Решено (R-103)**: Дополнен `extra`-билдер в 3 местах (`scenario.py`, `session.py`, `logger.py`). Теперь все 4 поля присутствуют. 2 новых теста. См. `feat/verification-diagnostic` |
 | KI-076 | **ScenarioManager.execute() возвращает только строку, captured-данные теряются** | Открыто | Все capture-переменные, сохранённые в ScenarioContext, умирают после выполнения сценария. execute() возвращает `"PASS"/"FAIL"/...` вместо структуры с захваченными данными. Невозможно получить IMEI, UNIT_ID, TID, imsi и т.д. после завершения сценария ни через CLI, ни через GUI. Решение: возвращать `ScenarioResult` с полями status, captured, steps, duration |
 | ~~KI-077~~ | ~~**TransactionManager.register() не извлекал pid/rn из packet_bytes для SMS**~~ | ~~Открыто~~ | **Решено (R-102)**: `_send_sms()` теперь извлекает pid/rn через `_parse_packet_bytes()` по аналогии с `_send_tcp()`. |
 | KI-078 | **Проверка дубликатов PID отключена** `(core/session.py:487-490)` | **Частично решено** | Автоинкремент PID/RN реализован в сценариях (`{"start": N, "auto": true}`). Динамические сценарии больше не используют одинаковые PID. Однако `TransactionManager.register()` по-прежнему перезаписывает дубликаты (проверка закомментирована) — риск сохраняется при прямых вызовах API или сценариях с `packet_file`. |
@@ -272,6 +272,7 @@ _Проект на стадии реализации. Ниже — архите�
 | R-100 | `test_start_emits_server_started` — не проверял событие | Теперь подписывается на `server.started` и верифицирует порт |
 | R-101 | CR-013 / KI-039: Дублирующее создание SMS-сессии | `SessionManager.get_or_create_session()` + `ensure_sms_session()` — единая фабрика. `PacketDispatcher` и `CommandDispatcher` вызывают `session_mgr.ensure_sms_session()`. Протокол из `self.gost_version` (не хардкод "2015"). Удалены дублирующиеся методы. 6 тестов. |
 | R-102 | KI-077: `_send_sms()` не извлекал pid/rn из packet_bytes | Добавлено извлечение pid/rn через `_parse_packet_bytes()` по аналогии с `_send_tcp()` |
+| R-103 | KI-075: В extra отсутствовали response_packet_id, processing_result, record_id, subrecord_type | Дополнен extra-билдер в scenario.py, session.py, logger.py. `checks: {"subrecord_type": 9}` теперь работает. 2 теста |
 
 ---
 
