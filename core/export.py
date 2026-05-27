@@ -99,6 +99,25 @@ def _flatten_entry(entry: dict[str, Any]) -> dict[str, Any]:
 # ====================================================================
 
 
+def _load_and_filter(
+    log_dir: Path | str,
+    output_path: Path | str,
+    *,
+    log_type_filter: str | None = None,
+    scenario_name_filter: str | None = None,
+) -> tuple[list[dict[str, Any]], Path]:
+    """Загрузить, отфильтровать, отсортировать и вернуть (entries, output_path)."""
+    log_dir = Path(log_dir)
+    output_path = Path(output_path)
+    entries = _load_all_entries(log_dir)
+    entries = _filter_and_sort(
+        entries,
+        log_type_filter=log_type_filter,
+        scenario_name_filter=scenario_name_filter,
+    )
+    return entries, output_path
+
+
 def _filter_and_sort(
     entries: list[dict[str, Any]],
     *,
@@ -144,12 +163,8 @@ def export_csv(
     Returns:
         Количество записанных записей.
     """
-    log_dir = Path(log_dir)
-    output_path = Path(output_path)
-
-    entries = _load_all_entries(log_dir)
-    entries = _filter_and_sort(
-        entries,
+    entries, output_path = _load_and_filter(
+        log_dir, output_path,
         log_type_filter=log_type_filter,
         scenario_name_filter=scenario_name_filter,
     )
@@ -186,8 +201,13 @@ def export_json(
     Returns:
         Словарь с данными (entries + summary).
     """
-    log_dir = Path(log_dir)
-    output_path = Path(output_path)
+    entries, output_path = _load_and_filter(
+        log_dir, output_path,
+        log_type_filter=log_type_filter,
+        scenario_name_filter=scenario_name_filter,
+    )
+
+
 
     entries = _load_all_entries(log_dir)
     entries = _filter_and_sort(
