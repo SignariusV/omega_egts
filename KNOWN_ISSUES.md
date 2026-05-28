@@ -2,7 +2,7 @@
 
 Известные проблемы, ограничения и плановые задачи.
 
-**Обновлено:** 27.05.2026 | **ТЗ:** v7.0 | **Итерации 1–16:** 1000+ тестов | **Аудит + исправления:** R-001–R-103
+**Обновлено:** 28.05.2026 | **ТЗ:** v7.0 | **Итерации 1–16:** 1000+ тестов | **Аудит + исправления:** R-001–R-104
 
 ---
 
@@ -22,8 +22,8 @@ _Проект на стадии реализации. Ниже — архите�
 | ~~CR-015~~ | ~~**Формат сценариев без версионирования**~~ | ~~Если захардкодить парсинг v1 в ScenarioManager — добавление v2 потребует переписывания монолитного кода~~ | ~~Решено в итерации 7.0: `IScenarioParser` (Protocol) + `ScenarioParserFactory` + `ScenarioParserRegistry`. Добавление новой версии = новый класс + `registry.register("2", V2) — без изменений в `ScenarioManager`~~ |
 | CR-016 | ~~**`ParseResult.extra` пуст после `parse_packet()`**~~ | ~~`protocol.parse_packet()` не заполнял `extra: dict`. `ExpectStep._matches()` ищет `service`, `subrecord_type` именно в `extra` → сценарии зависали на шагах `expect`.~~ | **Решено**: `adapter.parse_packet()` заполняет `extra` из `packet.records[0]` (service, subrecord_type). 6 новых тестов. См. ISSUE-002 |
 | CR-017 | ~~**FSM не переходит AUTHENTICATING → AUTHORIZED**~~ | ~~После успешной авторизации (RESULT_CODE отправлен) FSM остаётся в `authenticating`. Интеграционный тест FAIL: `assert "authorized" in states_lower`.~~ | **Решено**: 1) `CommandDispatcher._send_tcp()` извлекает pid/rn из packet_bytes если не переданы → регистрирует транзакцию. 2) `UsvStateMachine._handle_authenticating()` при RECORD_RESPONSE с CRN вызывает `on_result_code_sent(0)` → FSM переходит в AUTHORIZED. См. ISSUE-004 |
-| CR-007 | **SMS-отправка делегируется CMW-500** | ТЗ предполагает PDU-упаковку на нашей стороне (`build_sms_pdu`/`parse_sms_pdu`). Решение: CMW-500 сам кодирует/декодирует PDU, мы передаём только сырые EGTS-байты. Это упрощает код, но создаёт зависимость от поведения прибора. | Задокументировано (09.04.2026). Если потребуется своя PDU-упаковка — см. `egts_protocol_gost2015/gost2015_impl/sms.py` |
-| CR-006 | **Структура `libs/` отличается от ТЗ** | ТЗ (раздел 2.4) определяет `egts_protocol/base.py, v2015.py, v2023.py, sms.py`. Реализовано: `egts_protocol_iface/` + `egts_protocol_gost2015/gost2015_impl/`. Обоснование — dependency inversion: ядро зависит только от интерфейса. См. CHANGELOG.md | Задокументировано. Если потребуется строго по ТЗ — рефакторинг за 1–2 часа |
+| ~~CR-007~~ | ~~**SMS-отправка делегируется CMW-500**~~ | ~~ТЗ предполагает PDU-упаковку на нашей стороне (`build_sms_pdu`/`parse_sms_pdu`)~~ | **Не требует решения**: CMW-500 сам кодирует/декодирует PDU, мы передаём только сырые EGTS-байты. Это продуманная стратегия — упрощает код. Если потребуется своя PDU-упаковка — см. `egts_protocol_gost2015/gost2015_impl/sms.py` |
+| ~~CR-006~~ | ~~**Структура `libs/` отличается от ТЗ**~~ | ~~ТЗ (раздел 2.4) определяет `egts_protocol/base.py, v2015.py, v2023.py, sms.py`. Реализовано: `egts_protocol_iface/` + `egts_protocol_gost2015/gost2015_impl/`~~ | **Не требует решения**: Dependency inversion — ядро зависит только от интерфейса, а не от конкретной реализации. Это продуманная стратегия. См. CHANGELOG.md |
 | ~~CR-001~~ | ~~Circular dependency: `PacketDispatcher` ↔ `SessionManager`~~ | ~~При реализации может возникнуть циклический импорт~~ | **Решено**: SessionManager передаётся через конструктор (инъекция зависимостей), dispatcher.py использует `TYPE_CHECKING`, session.py не импортирует dispatcher. Проверено 18.04.2026 |
 | CR-002 | ~~Порядок логов при parallel-обработке EventBus~~ | Решено (R-077): LogManager сортирует записи по timestamp при flush() | — |
 | ~~CR-003~~ | ~~Голосовой канал eCall — механизм не расписан в ТЗ~~ | ~~Сценарий №5 не будет полным без проверки тонового модема~~ | **Не требуется**: Тестер проверяет EGTS-протокол, голосовой канал (аудио) не в scope |
@@ -243,7 +243,7 @@ _Проект на стадии реализации. Ниже — архите�
 |----|----------|--------|---------------------|
 | ~~KI-074~~ | ~~**ExpectStep._matches() не поддерживает `{{var}}` подстановку**~~ | ~~Открыто~~ | **Решено**: `_matches()` заменён на `_check()`, который вызывает `ctx.substitute()` для строковых expected и значений внутри range-словарей (`min`, `max`). `{{sent_cid}}`, `{{sent_sid}}` и др. теперь корректно подставляются. SendStep также захватывает `sent_pid`, `sent_rn`, `sent_cid`, `sent_sid` в контекст через ExtractBeforeBytesMiddleware-подход. 24 теста ExpectStep, 3 теста capture. См. `feat/verification-diagnostic` |
 | KI-075 | ~~**В extra не извлекаются response_packet_id, processing_result, record_id, subrecord_type**~~ | **Решено (R-103)**: Дополнен `extra`-билдер в 3 местах (`scenario.py`, `session.py`, `logger.py`). Теперь все 4 поля присутствуют. 2 новых теста. См. `feat/verification-diagnostic` |
-| KI-076 | **ScenarioManager.execute() возвращает только строку, captured-данные теряются** | Открыто | Все capture-переменные, сохранённые в ScenarioContext, умирают после выполнения сценария. execute() возвращает `"PASS"/"FAIL"/...` вместо структуры с захваченными данными. Невозможно получить IMEI, UNIT_ID, TID, imsi и т.д. после завершения сценария ни через CLI, ни через GUI. Решение: возвращать `ScenarioResult` с полями status, captured, steps, duration |
+| ~~KI-076~~ | ~~**ScenarioManager.execute() возвращает только строку, captured-данные теряются**~~ | **Решено (R-104)**: Возвращается `ScenarioResult` со статусом, захваченными переменными, шагами и длительностью. `ScenarioContext.get_captured()`. `scenario.finished` содержит `captured`. CLI отображает захваченные данные. 769 тестов PASS. См. `feat/verification-diagnostic` |
 | ~~KI-077~~ | ~~**TransactionManager.register() не извлекал pid/rn из packet_bytes для SMS**~~ | ~~Открыто~~ | **Решено (R-102)**: `_send_sms()` теперь извлекает pid/rn через `_parse_packet_bytes()` по аналогии с `_send_tcp()`. |
 | KI-078 | **Проверка дубликатов PID отключена** `(core/session.py:487-490)` | **Частично решено** | Автоинкремент PID/RN реализован в сценариях (`{"start": N, "auto": true}`). Динамические сценарии больше не используют одинаковые PID. Однако `TransactionManager.register()` по-прежнему перезаписывает дубликаты (проверка закомментирована) — риск сохраняется при прямых вызовах API или сценариях с `packet_file`. |
 
@@ -273,6 +273,7 @@ _Проект на стадии реализации. Ниже — архите�
 | R-101 | CR-013 / KI-039: Дублирующее создание SMS-сессии | `SessionManager.get_or_create_session()` + `ensure_sms_session()` — единая фабрика. `PacketDispatcher` и `CommandDispatcher` вызывают `session_mgr.ensure_sms_session()`. Протокол из `self.gost_version` (не хардкод "2015"). Удалены дублирующиеся методы. 6 тестов. |
 | R-102 | KI-077: `_send_sms()` не извлекал pid/rn из packet_bytes | Добавлено извлечение pid/rn через `_parse_packet_bytes()` по аналогии с `_send_tcp()` |
 | R-103 | KI-075: В extra отсутствовали response_packet_id, processing_result, record_id, subrecord_type | Дополнен extra-билдер в scenario.py, session.py, logger.py. `checks: {"subrecord_type": 9}` теперь работает. 2 теста |
+| R-104 | **KI-076**: `ScenarioManager.execute()` возвращает только строку, captured-данные теряются | Возвращается `ScenarioResult(status, captured, steps, duration)`. `ScenarioContext.get_captured()`. `scenario.finished` содержит `captured`. CLI отображает захваченные данные. |
 
 ---
 

@@ -162,7 +162,8 @@ class TestScenarioManagerExecute:
         result = await mgr.execute(bus, connection_id="conn-1")
         await task
 
-        assert result == "PASS"
+        assert result.status == "PASS"
+        assert result.name == "Test"
         assert mgr.context.all_passed()
 
     @pytest.mark.asyncio
@@ -187,7 +188,7 @@ class TestScenarioManagerExecute:
 
         bus = EventBus()
         result = await mgr.execute(bus, connection_id="conn-1", timeout=0.1)
-        assert result == "TIMEOUT"
+        assert result.status == "TIMEOUT"
 
     @pytest.mark.asyncio
     async def test_execute_step_fail_with_details(self, tmp_path: Path) -> None:
@@ -232,7 +233,7 @@ class TestScenarioManagerExecute:
         result = await mgr.execute(bus, connection_id="conn-1", timeout=5.0)
         await task
 
-        assert result == "FAIL"
+        assert result.status == "FAIL"
         # Проверяем что в истории есть details
         assert len(mgr.context.history) == 1
         history_entry = mgr.context.history[0]
@@ -286,7 +287,7 @@ class TestScenarioManagerExecute:
         result = await mgr.execute(bus, connection_id="conn-1", timeout=5.0)
         await task
 
-        assert result == "FAIL"
+        assert result.status == "FAIL"
         # Только один шаг должен быть в истории (step2 не выполнен)
         assert len(mgr.context.history) == 1
         assert mgr.context.history[0].step_name == "step1"

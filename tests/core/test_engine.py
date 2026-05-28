@@ -58,6 +58,7 @@ def _patch_components():
     mods["core.session"].SessionManager = MagicMock(return_value=sess)
     mods["core.logger"].LogManager = MagicMock(return_value=log)
     mods["core.scenario"].ScenarioManager = MagicMock(return_value=scen)
+    mods["core.scenario"].ScenarioResult = MagicMock
     mods["core.dispatcher"].PacketDispatcher = MagicMock(return_value=pkt)
     mods["core.dispatcher"].CommandDispatcher = MagicMock(return_value=cmd)
 

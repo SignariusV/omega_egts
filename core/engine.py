@@ -99,7 +99,7 @@ class CoreEngine:
             self.log_mgr.start()
 
             # Создаём менеджер сценариев (парсер + выполнение)
-            from core.scenario import ScenarioManager as _ScenarioManager
+            from core.scenario import ScenarioManager as _ScenarioManager, ScenarioResult
             from core.scenario_parser import (
                 ScenarioParserFactory as _ParserFactory,
                 ScenarioParserRegistry as _ParserRegistry,
@@ -264,9 +264,15 @@ class CoreEngine:
                 await self._scenario_task
         self._scenario_task = None
 
-    async def _emit_scenario_finished(self, result: str, **extra: Any) -> None:
-        name = self.scenario_mgr.metadata.name if self.scenario_mgr else "unknown"
-        await self.bus.emit("scenario.finished", {"scenario_name": name, "result": result, **extra})
+    async def _emit_scenario_finished(self, scenario_result: ScenarioResult) -> None:
+        name = scenario_result.name if scenario_result.name != "unknown" else (self.scenario_mgr.metadata.name if self.scenario_mgr else "unknown")
+        await self.bus.emit("scenario.finished", {
+            "scenario_name": name,
+            "result": scenario_result.status,
+            "captured": scenario_result.captured,
+            "steps": [{"name": s.name, "status": s.status, "duration": s.duration} for s in scenario_result.steps],
+            "duration": scenario_result.duration,
+        })
 
     # ===== API для CLI (задача 9.0) =====
 
@@ -363,28 +369,31 @@ class CoreEngine:
                 else 60.0
             )
 
+            from core.scenario import ScenarioResult
+
             async def _run():
                 try:
-                    result = await self.scenario_mgr.execute(
+                    scenario_result = await self.scenario_mgr.execute(
                         bus=self.bus,
                         connection_id=connection_id,
                         timeout=scenario_timeout,
                     )
-                    failed_steps = []
-                    for h in self.scenario_mgr.context.history:
-                        if h.result != "PASS":
-                            fs: dict[str, Any] = {"step": h.step_name, "result": h.result}
-                            if h.details:
-                                try:
-                                    fs["details"] = json.loads(h.details)
-                                except (json.JSONDecodeError, TypeError):
-                                    fs["details"] = h.details
-                            failed_steps.append(fs)
-                    await self._emit_scenario_finished(result, failed_steps=failed_steps)
+                    await self._emit_scenario_finished(scenario_result)
                 except asyncio.CancelledError:
-                    await self._emit_scenario_finished("CANCELLED")
+                    dummy = ScenarioResult(
+                        status="CANCELLED",
+                        name=self.scenario_mgr.metadata.name if self.scenario_mgr else "unknown",
+                        captured=self.scenario_mgr.context.captured if self.scenario_mgr else {},
+                    )
+                    await self._emit_scenario_finished(dummy)
                 except Exception as exc:
-                    await self._emit_scenario_finished("ERROR", error=str(exc))
+                    dummy = ScenarioResult(
+                        status="ERROR",
+                        name=self.scenario_mgr.metadata.name if self.scenario_mgr else "unknown",
+                        captured=self.scenario_mgr.context.captured if self.scenario_mgr else {},
+                    )
+                    await self._emit_scenario_finished(dummy)
+                    logger.exception("Scenario execution failed: %s", exc)
                 finally:
                     self._scenario_task = None
 

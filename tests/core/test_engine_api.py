@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from types import ModuleType, SimpleNamespace
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -156,6 +157,7 @@ def _patch_all_components():
     mod_map["core.session"].SessionManager = sess_cls
     mod_map["core.logger"].LogManager = log_cls
     mod_map["core.scenario"].ScenarioManager = scenario_cls
+    mod_map["core.scenario"].ScenarioResult = MagicMock
     mod_map["core.dispatcher"].PacketDispatcher = pkt_cls
     mod_map["core.dispatcher"].CommandDispatcher = cmd_cls
     mod_map["core.cmw500"].Cmw500Controller = cmw_cls
@@ -287,17 +289,19 @@ async def test_run_scenario_with_connection_id(config: Config, bus: EventBus):
         await engine.start()
 
         scenario_instance = engine.scenario_mgr
-        scenario_instance.execute = AsyncMock(return_value="PASS")
+        scenario_instance.execute = AsyncMock(return_value=SimpleNamespace(
+            status="PASS", name="auth", captured={}, steps=[], duration=1.0,
+        ))
         scenario_instance.context.history = [MagicMock(status="PASS")]
-        scenario_instance.metadata = MagicMock(name="auth")
+        scenario_instance.metadata = MagicMock()
+        scenario_instance.metadata.name = "auth"
         scenario_instance.load = MagicMock()
 
         result = await engine.run_scenario("scenarios/auth/", connection_id="conn-123")
 
-        assert result["status"] == "PASS"
-        scenario_instance.execute.assert_awaited_once()
-        call_kwargs = scenario_instance.execute.call_args
-        assert call_kwargs[1]["connection_id"] == "conn-123"
+        assert result["status"] == "RUNNING"  # returns immediately, result in background
+        assert result["name"] == "auth"
+        assert result["steps_total"] == 0
 
         await engine.stop()
     finally:

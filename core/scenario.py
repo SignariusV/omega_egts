@@ -73,6 +73,31 @@ class StepHistoryEntry:
     details: str | None = None
 
 
+@dataclass
+class StepResult:
+    """Результат выполнения одного шага сценария."""
+
+    name: str
+    status: str  # PASS, FAIL, TIMEOUT, CANCELLED, ERROR
+    duration: float
+    check_results: list[CheckResult] | None = None
+    received_packet: dict[str, Any] | None = None
+
+
+@dataclass
+class ScenarioResult:
+    """Результат выполнения сценария целиком.
+
+    Содержит статус, захваченные переменные, пошаговые результаты, длительность.
+    """
+
+    status: str  # PASS, FAIL, TIMEOUT, CANCELLED, ERROR
+    name: str
+    captured: dict[str, Any] = field(default_factory=dict)
+    steps: list[StepResult] = field(default_factory=list)
+    duration: float = 0.0
+
+
 # --- ScenarioContext ---
 
 
@@ -193,6 +218,19 @@ class ScenarioContext:
                 details=details,
             )
         )
+
+    def get_captured(self) -> dict[str, Any]:
+        """Вернуть словарь всех захваченных переменных.
+
+        Returns:
+            Копию словаря переменных (без TTL-проверки).
+        """
+        return {name: var.value for name, var in self._variables.items()}
+
+    @property
+    def captured(self) -> dict[str, Any]:
+        """Алиас для get_captured()."""
+        return self.get_captured()
 
     def all_passed(self) -> bool:
         """Проверить, все ли шаги прошли успешно."""
@@ -1036,12 +1074,28 @@ class ScenarioManager:
             else:
                 self._context.set(var_name, var_value)
 
+    def _build_step_result(
+        self,
+        step: ExpectStep | SendStep,
+        status: str,
+        duration: float,
+        step_details: dict[str, Any],
+    ) -> StepResult:
+        """Построить StepResult из результата шага."""
+        return StepResult(
+            name=step.name,
+            status=status,
+            duration=duration,
+            check_results=step_details.get("check_results"),
+            received_packet=step_details.get("received_packet"),
+        )
+
     async def execute(
         self,
         bus: EventBus,
         connection_id: str | None = None,
         timeout: float | None = None,
-    ) -> str:
+    ) -> ScenarioResult:
         """Выполнить загруженный сценарий.
 
         Args:
@@ -1050,7 +1104,7 @@ class ScenarioManager:
             timeout: Общий таймаут сценария.
 
         Returns:
-            PASS, FAIL, TIMEOUT, CANCELLED или ERROR.
+            ScenarioResult со статусом, захваченными переменными и шагами.
         """
         if not self._steps:
             raise RuntimeError("No steps loaded — call load() first")
@@ -1063,6 +1117,7 @@ class ScenarioManager:
         eff_timeout = timeout or (self._metadata.timeout if self._metadata else 60.0)
         start_total = time.monotonic()
         total_steps = len(self._steps)
+        step_results: list[StepResult] = []
 
         # Emit scenario.started — GUI инициализирует таблицу
         await bus.emit("scenario.started", {
@@ -1075,6 +1130,8 @@ class ScenarioManager:
             # Проверка отмены перед каждым шагом
             if self._cancel_requested:
                 self._running = False
+                sr = StepResult(name=step.name, status="CANCELLED", duration=0.0)
+                step_results.append(sr)
                 await bus.emit(
                     "scenario.step",
                     self._build_step_event(
@@ -1083,13 +1140,21 @@ class ScenarioManager:
                     ),
                 )
                 logger.info("Scenario '%s' cancelled at step %d", self._metadata.name, step_idx + 1)
-                return "CANCELLED"
+                return ScenarioResult(
+                    status="CANCELLED",
+                    name=self._metadata.name,
+                    captured=self._context.captured,
+                    steps=step_results,
+                    duration=time.monotonic() - start_total,
+                )
 
             elapsed = time.monotonic() - start_total
             remaining = eff_timeout - elapsed
             if remaining <= 0:
                 self._running = False
                 self._context.add_history(step.name, "TIMEOUT", 0.0)
+                sr = StepResult(name=step.name, status="TIMEOUT", duration=0.0)
+                step_results.append(sr)
                 await bus.emit(
                     "scenario.step",
                     self._build_step_event(
@@ -1098,7 +1163,13 @@ class ScenarioManager:
                     ),
                 )
                 logger.info("Scenario: step '%s' SKIPPED (timeout)", step.name)
-                return "TIMEOUT"
+                return ScenarioResult(
+                    status="TIMEOUT",
+                    name=self._metadata.name,
+                    captured=self._context.captured,
+                    steps=step_results,
+                    duration=time.monotonic() - start_total,
+                )
 
             start_time = time.monotonic()
             logger.info("=== Step %d/%d: '%s' ===", step_idx + 1, total_steps, step.name)
@@ -1119,6 +1190,9 @@ class ScenarioManager:
                 details_str = json.dumps(check_results, ensure_ascii=False)
             self._context.add_history(step.name, result, duration, details=details_str)
 
+            sr = self._build_step_result(step, result, duration, step_details)
+            step_results.append(sr)
+
             logger.info("Scenario: step '%s' finished with %s (%.2fs)", step.name, result, duration)
 
             # Emit scenario.step — GUI обновляет таблицу и прогресс
@@ -1137,8 +1211,21 @@ class ScenarioManager:
                 logger.warning(
                     "ScenarioManager: step '%s' returned %s", step.name, result
                 )
-                return result
+                return ScenarioResult(
+                    status=result,
+                    name=self._metadata.name,
+                    captured=self._context.captured,
+                    steps=step_results,
+                    duration=time.monotonic() - start_total,
+                )
 
         self._running = False
+        total_duration = time.monotonic() - start_total
         logger.info("Scenario '%s' completed PASS", self._metadata.name)
-        return "PASS"
+        return ScenarioResult(
+            status="PASS",
+            name=self._metadata.name,
+            captured=self._context.captured,
+            steps=step_results,
+            duration=total_duration,
+        )

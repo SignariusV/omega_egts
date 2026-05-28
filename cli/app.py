@@ -269,6 +269,11 @@ def _format_scenario_result(data: dict[str, Any]) -> str:
         f"Результат: {icon}",
         f"Шаги: {data.get('steps_passed', 0)}/{data.get('steps_total', 0)}",
     ]
+    captured = data.get("captured")
+    if captured:
+        lines.append("Захваченные данные:")
+        for key, value in captured.items():
+            lines.append(f"  {key} = {value}")
     if data.get("error"):
         lines.append(f"Ошибка: {data['error']}")
     return "\n".join(lines)
