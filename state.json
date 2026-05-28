@@ -1,11 +1,11 @@
 {
   "status_card": {
-    "server_running": true,
+    "server_running": false,
     "server_port": 8054,
-    "cmw_connected": true
+    "cmw_connected": false
   },
   "scenario_card": {
-    "selected_index": 12
+    "selected_index": 0
   },
   "packets_card": {
     "filter_text": "",
@@ -13,6 +13,6 @@
   },
   "logs_card": {
     "source_filter": "All",
-    "level_filter": "INFO"
+    "level_filter": "All"
   }
 }

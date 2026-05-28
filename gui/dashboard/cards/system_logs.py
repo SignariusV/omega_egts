@@ -191,7 +191,8 @@ class SystemLogsCard(BaseCard):
 
     @Slot(dict)
     def _on_packet_sent(self, data: dict):
-        hex_str = data.get("hex", "")[:32]
+        raw = data.get("packet_bytes") or b""
+        hex_str = raw.hex().upper()[:128] if isinstance(raw, bytes) else ""
         channel = data.get("channel", "?")
         step = data.get("step_name", "?")
         message = f"PACKET SENT | {channel} | {step} | hex={hex_str}..."

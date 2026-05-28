@@ -1,0 +1,97 @@
+{
+  "name": "Аутентификация TCP — правильная (без ручных RECORD_RESPONSE)",
+  "scenario_version": "1",
+  "gost_version": "ГОСТ 33465-2015",
+  "timeout": 30,
+  "description": "Аутентификация УСВ. RECORD_RESPONSE на TERM_IDENTITY и VEHICLE_DATA отправляются автоматически pipeline'ом (AutoResponseMiddleware). В сценарии — только бизнес-логика.",
+  "channels": ["tcp"],
+  "variables": {
+    "pid": {"start": 1, "auto": true},
+    "rn": {"start": 1, "auto": true},
+    "imei_default": {"resolver": "imei"},
+    "imsi_default": {"resolver": "imsi"},
+    "command_sid": 2
+  },
+  "steps": [
+    {
+      "name": "TERM_IDENTITY от УСВ",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "EGTS_SR_TERM_IDENTITY",
+      "timeout": 6,
+      "capture": {
+        "tid": "data.TID",
+        "imei": "data.IMEI",
+        "imsi": "data.IMSI"
+      },
+      "checks": {
+        "service": 1,
+        "subrecord_type": "EGTS_SR_TERM_IDENTITY"
+      },
+      "description": "УСВ отправляет TID, IMEI, IMSI — pipeline автоматом шлёт RECORD_RESPONSE"
+    },
+    {
+      "name": "VEHICLE_DATA от УСВ",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "EGTS_SR_VEHICLE_DATA",
+      "timeout": 6,
+      "capture": {
+        "vin": "data.VIN",
+        "vehicle_type": "data.VHT",
+        "fuel_type": "data.VPST",
+        "vehicle_record_id": "record_id"
+      },
+      "checks": {
+        "service": 1,
+        "subrecord_type": "EGTS_SR_VEHICLE_DATA"
+      },
+      "description": "УСВ отправляет VIN, тип ТС — pipeline автоматом шлёт RECORD_RESPONSE"
+    },
+    {
+      "name": "Результат аутентификации (RCD=0)",
+      "type": "send",
+      "channel": "tcp",
+      "build": {
+        "gost_version": "2015",
+        "packet": {
+          "packet_id": "{{pid}}",
+          "packet_type": 0,
+          "records": [
+            {
+              "record_id": "{{rn}}",
+              "service_type": 1,
+              "recipient_service_type": 1,
+              "subrecords": [
+                {
+                  "subrecord_type": 9,
+                  "data": {
+                    "rcd": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "timeout": 5,
+      "description": "Платформа отправляет EGTS_PC_OK (RCD=0) — финал аутентификации, service_type=1 по ГОСТ"
+    },
+    {
+      "name": "Подтверждение результата от УСВ",
+      "type": "expect",
+      "channel": "tcp",
+      "packet_type": "EGTS_SR_RECORD_RESPONSE",
+      "timeout": 5,
+      "checks": {
+        "subrecord_type": "EGTS_SR_RECORD_RESPONSE",
+        "record_status": 0,
+        "response_packet_id": "{{sent_pid}}"
+      },
+      "capture": {
+        "final_rst": "record_status"
+      },
+      "description": "УСВ подтверждает RCD=0: проверка response_packet_id через {{sent_pid}} (Phase 3)"
+    }
+  ]
+}
