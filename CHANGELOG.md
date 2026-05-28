@@ -4,6 +4,49 @@
 
 ---
 
+### KI-076: ScenarioResult с captured-данными (R-104)
+
+**Дата:** 28.05.2026
+**Ветка:** `feat/verification-diagnostic` | **Коммит:** `19c2835`
+
+#### Added
+- **`ScenarioResult` dataclass** — возвращается из `execute()` вместо `str`. Поля: `status`, `captured`, `steps`, `duration`.
+- **`StepResult` dataclass** — результат каждого шага: `name`, `status`, `duration`, `check_results`, `received_packet`.
+- **`ScenarioContext.get_captured()`** — публичный доступ ко всем захваченным переменным (IMEI, TID, UNIT_ID, imsi, accel_points_count и т.д.).
+- **`ScenarioContext.captured`** — property-алиас для `get_captured()`.
+- **CLI `_format_scenario_result()`** — отображает захваченные данные, если они есть.
+
+#### Changed
+- **`ScenarioManager.execute()`** — возвращает `ScenarioResult` вместо `str`. Все возвраты (`PASS`, `FAIL`, `TIMEOUT`, `CANCELLED`, `ERROR`) обёрнуты в `ScenarioResult`.
+- **`CoreEngine._emit_scenario_finished()`** — принимает `ScenarioResult`, передаёт `captured`, `steps`, `duration` в событие `scenario.finished`.
+- **`CoreEngine.run_scenario()`** — обрабатывает `ScenarioResult` из `execute()`, корректно формирует `ScenarioResult` при исключениях.
+
+#### Fixed
+- **KI-076**: Captured-данные (IMEI, TID, UNIT_ID, imsi) терялись после выполнения сценария — ✅ решено.
+
+#### Tests
+- 4 теста обновлены: `assert result == "PASS"` → `assert result.status == "PASS"`
+- 769 тестов PASS
+
+---
+
+### KI-075: Недостающие поля в extra (R-103)
+
+**Дата:** 27.05.2026
+**Ветка:** `feat/verification-diagnostic` | **Коммит:** `9f437da`
+
+#### Fixed
+- **В extra не извлекались `response_packet_id`, `processing_result`, `record_id`, `subrecord_type`** — дополнен extra-билдер в 3 местах:
+  - `scenario.py:ExpectStep._on_packet()` — добавлены все 4 поля
+  - `session.py:SessionManager._on_packet_processed()` — добавлены все 4 поля
+  - `logger.py:LogManager._parse_parsed()` — добавлены все 4 поля
+- **KI-075**: `checks: {"subrecord_type": 9}` не работал для extra-полей — ✅ решено
+
+#### Tests
+- 2 новых теста в `test_expect_step.py`: `test_ki075_extra_contains_rpid_pr_record_id_subrecord_type`, `test_ki075_response_packet_extra_fields`
+
+---
+
 ### Рефакторинг CommandDispatcher — устранение дублирования и race condition
 
 **Дата:** 27.05.2026

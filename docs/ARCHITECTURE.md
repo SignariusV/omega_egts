@@ -126,7 +126,7 @@ class EventBus:
 | `connection.changed` | `usv_id, state, action, reason` | SessionManager | LogManager, CLI/GUI |
 | `scenario.step` | `scenario_name, step_name, step_type, step_index, steps_total, result, duration, progress, steps, timestamp` | ScenarioManager | LogManager, CLI/GUI |
 | `scenario.started` | `scenario_name, steps_total, steps` | ScenarioManager | GUI |
-| `scenario.finished` | `scenario_name, result, error` | ScenarioManager | GUI |
+| `scenario.finished` | `scenario_name, result, captured, steps, duration` | ScenarioManager | GUI |
 | `server.started` | `port` | CoreEngine | CLI/GUI |
 | `server.stopped` | `reason` | CoreEngine | CLI/GUI |
 | `cmw.error` | `error, command` | Cmw500Controller | CLI/GUI |
@@ -492,6 +492,28 @@ class StepDefinition:
     extra: dict[str, Any]   # доп. поля версии
 ```
 
+**StepResult** — результат одного шага:
+```python
+@dataclass
+class StepResult:
+    name: str
+    status: str  # PASS, FAIL, TIMEOUT, CANCELLED, ERROR
+    duration: float
+    check_results: list[CheckResult] | None = None
+    received_packet: dict[str, Any] | None = None
+```
+
+**ScenarioResult** — результат сценария целиком:
+```python
+@dataclass
+class ScenarioResult:
+    status: str        # PASS, FAIL, TIMEOUT, CANCELLED, ERROR
+    name: str
+    captured: dict[str, Any] = field(default_factory=dict)  # IMEI, TID, UNIT_ID...
+    steps: list[StepResult] = field(default_factory=list)
+    duration: float = 0.0
+```
+
 **ScenarioParserRegistry** — реестр версий:
 ```python
 class ScenarioParserRegistry:
@@ -535,11 +557,11 @@ class ScenarioManager:
     def register_resolver(self, name: str, func: Callable[[], Any]) -> None:
         # Регистрация резолвера для динамического вычисления переменной
 
-    async def execute(self, bus, connection_id, timeout) -> str:
+    async def execute(self, bus, connection_id, timeout) -> ScenarioResult:
         # 1. Emit scenario.started (все шаги PENDING)
         # 2. For each step: execute → emit scenario.step
-        # 3. Emit scenario.finished
-        # 4. Return PASS/FAIL/TIMEOUT/CANCELLED/ERROR
+        # 3. Emit scenario.finished (с захваченными переменными)
+        # 4. Return ScenarioResult(status, captured, steps, duration)
 
     def cancel(self) -> None:
         # Устанавливает _cancel_requested = True
@@ -552,11 +574,11 @@ class ScenarioManager:
 |---------|-------|--------|
 | `scenario.started` | Перед первым шагом | `scenario_name`, `steps_total`, `steps` (все PENDING) |
 | `scenario.step` | После каждого шага | `step_index`, `result`, `duration`, `progress`, `steps` (история) |
-| `scenario.finished` | После последнего шага / отмены | `scenario_name`, `result`, `error` (если есть) |
+| `scenario.finished` | После последнего шага / отмены | `scenario_name`, `result`, `captured` (все захваченные переменные), `steps` (список шагов), `duration` |
 
 **Механизм отмены:**
 - `cancel()` устанавливает `_cancel_requested = True`
-- Проверка между шагами: если флаг установлен → emit `scenario.step(CANCELLED)` → return `"CANCELLED"`
+- Проверка между шагами: если флаг установлен → emit `scenario.step(CANCELLED)` → возвращает `ScenarioResult(status="CANCELLED")`
 - `CoreEngine.cancel_scenario()` вызывает `scenario_mgr.cancel()` + `task.cancel()`
 
 **Структура сценария (V1, JSON):**
