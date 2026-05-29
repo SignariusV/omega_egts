@@ -2,8 +2,8 @@
 import re
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLabel, QTabWidget, QTextEdit, QTreeWidget, QTreeWidgetItem,
-    QScrollArea, QToolButton, QFrame
+    QLabel, QTabWidget, QTreeWidget, QTreeWidgetItem,
+    QScrollArea, QToolButton, QFrame, QSplitter, QHeaderView,
 )
 from PySide6.QtCore import Signal, Slot, Qt
 from PySide6.QtGui import QFont, QColor
@@ -15,6 +15,8 @@ from gui.utils.name_mappings import (
     format_priority, format_bool, format_direction, format_channel,
     format_crc_status, format_duplicate, format_value, get_field_label,
 )
+from gui.utils.byte_layout import compute_layout, ByteField
+from gui.utils.hex_viewer import HexDumpWidget
 
 
 class PacketDetailCard(BaseCard):
@@ -45,6 +47,7 @@ class PacketDetailCard(BaseCard):
         title_layout = self._title_bar.layout()
         title_layout.insertWidget(title_layout.count() - 1, self._pin_btn)
 
+        self._hex_viewer = None
         self._build_widgets()
         self.finish_init()
 
@@ -121,182 +124,127 @@ class PacketDetailCard(BaseCard):
 
         self._tabs = QTabWidget()
         self._tabs.setTabPosition(QTabWidget.TabPosition.North)
+        self._tabs.setStyleSheet("""
+            QTabWidget::pane { border: 1px solid #3E3E42; background: #1E1E1E; }
+            QTabBar::tab { color: #CCCCCC; background: #2D2D30; border: 1px solid #3E3E42;
+                           padding: 6px 16px; margin: 1px; }
+            QTabBar::tab:selected { color: #FFFFFF; background: #1E1E1E; border-bottom: 1px solid #1E1E1E; }
+            QTabBar::tab:hover { color: #FFFFFF; background: #3E3E42; }
+        """)
 
-        self._tabs.addTab(self._build_raw_tab(), "Raw Data")
-        self._tabs.addTab(self._build_transport_tab(), "Transport")
-        self._tabs.addTab(self._build_service_tab(), "Service")
+        self._tabs.addTab(self._build_protocol_tab(), "Protocol")
         self._tabs.addTab(self._build_metadata_tab(), "Metadata")
 
         layout.addWidget(self._tabs)
 
-    def _build_raw_tab(self) -> QWidget:
+    def _build_protocol_tab(self) -> QWidget:
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(4, 4, 4, 4)
 
-        text_edit = QTextEdit()
-        text_edit.setReadOnly(True)
-        text_edit.setFont(QFont("Consolas", 10))
-        text_edit.setStyleSheet(
-            "background-color: #1E1E1E; color: #CCCCCC; border: 1px solid #3E3E42;"
-        )
-
-        hex_data = self._packet.get("hex", "")
-        if hex_data:
-            formatted = self._format_hex_dump(hex_data)
-            text_edit.setPlainText(formatted)
-        else:
-            text_edit.setPlainText("(no data)")
-
-        layout.addWidget(text_edit)
-        return widget
-
-    def _format_hex_dump(self, hex_str: str, bytes_per_line: int = 16) -> str:
-        if not hex_str:
-            return "(empty)"
-
-        if isinstance(hex_str, bytes):
-            hex_str = hex_str.hex()
-
-        lines = []
-        for i in range(0, len(hex_str), bytes_per_line * 2):
-            chunk = hex_str[i:i + bytes_per_line * 2]
-            offset = f"{i:04X}: "
-            hex_bytes = " ".join(
-                chunk[j:j+2] for j in range(0, len(chunk), 2)
-            ).ljust(bytes_per_line * 3)
-            ascii_repr = "".join(
-                chr(int(chunk[j:j+2], 16)) if 32 <= int(chunk[j:j+2], 16) < 127
-                else "." for j in range(0, len(chunk), 2)
-            )
-            lines.append(f"{offset}{hex_bytes} {ascii_repr}")
-
-        return "\n".join(lines)
-
-    def _build_transport_tab(self) -> QWidget:
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-
-        widget = QWidget()
-        layout = QFormLayout(widget)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(4)
-
-        parsed = self._packet.get("parsed", {})
-
-        pid_val = parsed.get("packet_id", "?")
-        pt_val = parsed.get("packet_type", "?")
-        try:
-            pt_display = format_packet_type(int(pt_val))
-        except (ValueError, TypeError):
-            pt_display = pt_val
-        hl_val = parsed.get("header_length", "?")
-        rc_val = parsed.get("records_count", "?")
-        pr_val = parsed.get("priority", "?")
-        try:
-            pr_display = format_priority(int(pr_val))
-        except (ValueError, TypeError):
-            pr_display = pr_val
-        cmp_val = parsed.get("compression", "?")
-        cmp_display = format_bool(cmp_val)
-
-        fields = [
-            ("Packet ID (PID)", str(pid_val)),
-            ("Packet Type (PT)", pt_display),
-            ("Header Length (HL)", str(hl_val)),
-            ("Records Count", str(rc_val)),
-            ("Priority (PR)", pr_display),
-            ("Compressed (CMP)", cmp_display),
-        ]
-
-        for label, value in fields:
-            label_widget = QLabel(label)
-            label_widget.setStyleSheet("color: #9CDCFE;")
-            value_widget = QLabel(value)
-            value_widget.setStyleSheet("color: #CCCCCC;")
-            layout.addRow(label_widget, value_widget)
-
-        crc_label = QLabel("CRC Status")
-        crc_label.setStyleSheet("color: #9CDCFE;")
-        crc_raw = self._packet.get("crc", "?")
-        crc_display = format_crc_status(crc_raw)
-        crc_value = QLabel(crc_display)
-        crc_color = "#4EC9B0" if crc_raw == "OK" else "#F44747"
-        crc_value.setStyleSheet(f"color: {crc_color};")
-        layout.addRow(crc_label, crc_value)
-
-        dup_label = QLabel("Duplicate Status")
-        dup_label.setStyleSheet("color: #9CDCFE;")
-        dup_raw = self._packet.get("duplicate", "No")
-        dup_display = format_duplicate(dup_raw)
-        dup_value = QLabel(dup_display)
-        dup_color = "#CE9178" if dup_raw == "Yes" else "#CCCCCC"
-        dup_value.setStyleSheet(f"color: {dup_color};")
-        layout.addRow(dup_label, dup_value)
-
-        scroll.setWidget(widget)
-        return scroll
-
-    def _build_service_tab(self) -> QWidget:
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setContentsMargins(4, 4, 4, 4)
+        splitter = QSplitter(Qt.Horizontal)
 
         tree = QTreeWidget()
-        tree.setHeaderLabels(["Field", "Value"])
+        tree.setHeaderLabels(["Offset", "Field → Value", "Hex"])
+        tree.setColumnWidth(0, 120)
+        tree.setColumnWidth(2, 140)
+        tree.setIndentation(16)
+        tree.setAlternatingRowColors(False)
         tree.setStyleSheet(
-            "background-color: #1E1E1E; color: #CCCCCC; border: 1px solid #3E3E42;"
+            "QTreeWidget { background-color: #1E1E1E; color: #CCCCCC;"
+            " border: 1px solid #3E3E42; font-family: Consolas; font-size: 14px; }"
+            "QTreeWidget::item { padding: 2px; }"
+            "QHeaderView::section { background-color: #2D2D30; color: #CCCCCC;"
+            " border: 1px solid #3E3E42; padding: 2px; font-weight: bold; font-size: 14px; }"
+            "QTreeWidget::item:selected { background-color: #264F78; }"
         )
 
+        header = tree.header()
+        header.setStretchLastSection(False)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+
+        hex_str = self._packet.get("hex", "")
         parsed = self._packet.get("parsed", {})
+        fields = compute_layout(hex_str, parsed)
 
-        if parsed:
-            svc_raw = parsed.get("service", "?")
-            try:
-                svc_display = format_service(int(svc_raw))
-            except (ValueError, TypeError):
-                svc_display = svc_raw
-            QTreeWidgetItem(tree, [get_field_label("service"), svc_display])
+        for bf in fields:
+            self._add_field_item(tree, None, bf)
 
-            packet_type = parsed.get("packet_type")
-            if packet_type is not None:
-                try:
-                    pt_display = format_packet_type(int(packet_type))
-                except (ValueError, TypeError):
-                    pt_display = str(packet_type)
-                QTreeWidgetItem(tree, [get_field_label("packet_type"), pt_display])
+        tree.itemClicked.connect(self._on_tree_item_clicked)
 
-            records = parsed.get("records", [])
-            if records:
-                rec_root = QTreeWidgetItem(tree, ["Records", f"({len(records)} items)"])
+        self._hex_viewer = HexDumpWidget()
+        self._hex_viewer.set_hex_data(hex_str)
 
-                for i, rec in enumerate(records):
-                    rec_item = QTreeWidgetItem(rec_root, [f"Record {i+1}", ""])
+        splitter.addWidget(tree)
+        splitter.addWidget(self._hex_viewer)
+        splitter.setSizes([550, 300])
 
-                    for key, value in rec.items():
-                        if key == "subrecords":
-                            continue
-                        label = get_field_label(key)
-                        formatted = format_value(key, value)
-                        QTreeWidgetItem(rec_item, [label, formatted])
-
-                    subrecords = rec.get("subrecords", [])
-                    if subrecords:
-                        sub_root = QTreeWidgetItem(rec_item, ["Subrecords", f"({len(subrecords)})"])
-
-                        for j, sub in enumerate(subrecords):
-                            sub_item = QTreeWidgetItem(sub_root, [f"Subrecord {j+1}", ""])
-                            for sub_key, sub_value in sub.items():
-                                label = get_field_label(sub_key)
-                                formatted = format_value(sub_key, sub_value)
-                                QTreeWidgetItem(sub_item, [label, formatted])
-
-            tree.expandAll()
-        else:
-            QTreeWidgetItem(tree, ["(no parsed data)", ""])
-
-        layout.addWidget(tree)
+        layout.addWidget(splitter)
         return widget
+
+    def _add_field_item(self, tree: QTreeWidget, parent: QTreeWidgetItem | None,
+                        bf: ByteField):
+        """Recursively add a ByteField to the tree."""
+        offset_str = self._format_offset(bf.offset_start, bf.offset_end)
+        field_str = self._format_field(bf)
+        hex_str = bf.hex_display
+
+        parts = [offset_str, field_str, hex_str]
+        if parent:
+            item = QTreeWidgetItem(parent, parts)
+        else:
+            item = QTreeWidgetItem(tree, parts)
+
+        item.setForeground(0, QColor("#9CDCFE"))
+        item.setForeground(2, QColor("#DCDCAA"))
+
+        if bf.error:
+            for c in range(3):
+                item.setForeground(c, QColor("#F44747"))
+        elif bf.field_type == "section":
+            font = QFont("Segoe UI", pointSize=12)
+            font.setBold(True)
+            for c in range(3):
+                item.setFont(c, font)
+                item.setForeground(c, QColor("#4EC9B0"))
+
+        if bf.field_type == "bitfield":
+            item.setForeground(1, QColor("#CE9178"))
+
+        item.setData(0, Qt.ItemDataRole.UserRole,
+                     (bf.offset_start, bf.offset_end))
+
+        for child in bf.children:
+            self._add_field_item(tree, item, child)
+
+    def _format_offset(self, start: int, end: int) -> str:
+        if start == end:
+            return str(start)
+        return f"{start}-{end}"
+
+    def _format_field(self, bf: ByteField) -> str:
+        if bf.field_type == "section":
+            return f"{bf.full_name} {bf.value_display}"
+        if bf.abbr:
+            parts = [bf.abbr]
+            if bf.full_name:
+                parts.append(f"({bf.full_name})")
+            if bf.description:
+                parts.append(f"— {bf.description}")
+            if bf.value_display:
+                parts.append(f"→  {bf.value_display}")
+            return " ".join(parts)
+        return bf.value_display
+
+    def _on_tree_item_clicked(self, item: QTreeWidgetItem, column: int):
+        """Handle tree item click — highlight bytes in hex viewer."""
+        byte_range = item.data(0, Qt.ItemDataRole.UserRole)
+        if byte_range and self._hex_viewer:
+            start, end = byte_range
+            self._hex_viewer.clear_highlight()
+            self._hex_viewer.highlight(start, end)
 
     def _build_metadata_tab(self) -> QWidget:
         scroll = QScrollArea()
