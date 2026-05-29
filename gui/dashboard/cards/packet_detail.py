@@ -10,6 +10,11 @@ from PySide6.QtGui import QFont, QColor
 
 from gui.dashboard.card_base import BaseCard, DisplayState
 from gui.dashboard.layout_engine import GRID_COLS, GRID_ROWS
+from gui.utils.name_mappings import (
+    format_service, format_packet_type, format_subrecord_type,
+    format_priority, format_bool, format_direction, format_channel,
+    format_crc_status, format_duplicate, format_value, get_field_label,
+)
 
 
 class PacketDetailCard(BaseCard):
@@ -18,25 +23,28 @@ class PacketDetailCard(BaseCard):
     closed = Signal(str)  # card_id
 
     def __init__(self, packet_data: dict, card_id: str, parent=None):
-        title = f"Packet {packet_data.get('pid', '?')}"
+        svc = packet_data.get("parsed", {}).get("service", packet_data.get("service", "?"))
+        try:
+            svc_name = format_service(int(svc))
+        except (ValueError, TypeError):
+            svc_name = f"SVC: {svc}"
+        title = f"Packet {packet_data.get('pid', '?')} — {svc_name}"
         super().__init__(title, card_id=card_id, parent=parent)
         self._packet = packet_data
         self._floating = False
-        
-        # Add pin button to title bar for floating mode toggle
+
         self._pin_btn = QToolButton()
         self._pin_btn.setObjectName("pinButton")
-        self._pin_btn.setText("📌")  # Pin emoji
+        self._pin_btn.setText("📌")
         self._pin_btn.setFixedSize(20, 20)
         self._pin_btn.setCheckable(True)
         self._pin_btn.setChecked(False)
         self._pin_btn.setToolTip("Toggle floating mode")
         self._pin_btn.clicked.connect(self.toggle_floating)
-        
-        # Insert pin button before collapse button in title bar
+
         title_layout = self._title_bar.layout()
         title_layout.insertWidget(title_layout.count() - 1, self._pin_btn)
-        
+
         self._build_widgets()
         self.finish_init()
 
@@ -46,7 +54,6 @@ class PacketDetailCard(BaseCard):
         self.set_views(self._compact_widget, self._expanded_widget)
 
     def _is_packet_ok(self) -> bool:
-        """Check if packet has no errors."""
         return (
             self._packet.get("crc", "OK") == "OK"
             and self._packet.get("duplicate", "No") == "No"
@@ -59,7 +66,6 @@ class PacketDetailCard(BaseCard):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(2)
 
-        # Status indicator
         is_ok = self._is_packet_ok()
         status_text = "OK" if is_ok else "ERROR"
         bg_color = "#1E3A2E" if is_ok else "#3A1E1E"
@@ -73,18 +79,23 @@ class PacketDetailCard(BaseCard):
         self._status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._status_label)
 
-        # Brief info
         pid = self._packet.get("pid", "?")
-        service = self._packet.get("service", "?")
         direction = self._packet.get("direction", "rx")
         dir_color = "#4EC9B0" if direction == "rx" else "#569CD6"
 
-        info_text = f"PID: {pid} | SVC: {service}"
+        parsed = self._packet.get("parsed", {})
+        svc_raw = parsed.get("service", self._packet.get("service", "?"))
+        try:
+            svc_display = format_service(int(svc_raw))
+        except (ValueError, TypeError):
+            svc_display = f"SVC: {svc_raw}"
+
+        dir_label = "RX" if direction == "rx" else "TX"
+        info_text = f"PID: {pid} | {svc_display} | {dir_label}"
         self._info_label = QLabel(info_text)
         self._info_label.setStyleSheet(f"color: {dir_color}; font-size: 10px;")
         layout.addWidget(self._info_label)
 
-        # Error summary if any
         errors = self._get_error_summary()
         if errors:
             error_label = QLabel(errors)
@@ -93,14 +104,13 @@ class PacketDetailCard(BaseCard):
             layout.addWidget(error_label)
 
     def _get_error_summary(self) -> str:
-        """Get brief error summary."""
         errors = []
         if self._packet.get("crc", "OK") != "OK":
-            errors.append("CRC FAIL")
+            errors.append("CRC Invalid")
         if self._packet.get("duplicate", "No") == "Yes":
-            errors.append("DUP")
+            errors.append("Duplicate")
         if not self._packet.get("parsed"):
-            errors.append("NO PARSE")
+            errors.append("No Parse")
         return " | ".join(errors) if errors else ""
 
     def _build_expanded_ui(self):
@@ -109,26 +119,17 @@ class PacketDetailCard(BaseCard):
         layout.setContentsMargins(4, 4, 4, 4)
         layout.setSpacing(4)
 
-        # Tab widget
         self._tabs = QTabWidget()
         self._tabs.setTabPosition(QTabWidget.TabPosition.North)
 
-        # Tab 1: Raw Data
         self._tabs.addTab(self._build_raw_tab(), "Raw Data")
-
-        # Tab 2: Transport Layer
         self._tabs.addTab(self._build_transport_tab(), "Transport")
-
-        # Tab 3: Service Layer
         self._tabs.addTab(self._build_service_tab(), "Service")
-
-        # Tab 4: Metadata
         self._tabs.addTab(self._build_metadata_tab(), "Metadata")
 
         layout.addWidget(self._tabs)
 
     def _build_raw_tab(self) -> QWidget:
-        """Build raw hex dump tab."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(4, 4, 4, 4)
@@ -151,38 +152,28 @@ class PacketDetailCard(BaseCard):
         return widget
 
     def _format_hex_dump(self, hex_str: str, bytes_per_line: int = 16) -> str:
-        """Format hex string as dump with ASCII."""
         if not hex_str:
             return "(empty)"
 
-        # Convert bytes to hex string if necessary
         if isinstance(hex_str, bytes):
             hex_str = hex_str.hex()
 
         lines = []
         for i in range(0, len(hex_str), bytes_per_line * 2):
             chunk = hex_str[i:i + bytes_per_line * 2]
-
-            # Offset
             offset = f"{i:04X}: "
-
-            # Hex bytes
             hex_bytes = " ".join(
                 chunk[j:j+2] for j in range(0, len(chunk), 2)
             ).ljust(bytes_per_line * 3)
-
-            # ASCII
             ascii_repr = "".join(
                 chr(int(chunk[j:j+2], 16)) if 32 <= int(chunk[j:j+2], 16) < 127
                 else "." for j in range(0, len(chunk), 2)
             )
-
             lines.append(f"{offset}{hex_bytes} {ascii_repr}")
 
         return "\n".join(lines)
 
     def _build_transport_tab(self) -> QWidget:
-        """Build transport layer tab."""
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
 
@@ -193,14 +184,29 @@ class PacketDetailCard(BaseCard):
 
         parsed = self._packet.get("parsed", {})
 
-        # Transport layer fields
+        pid_val = parsed.get("packet_id", "?")
+        pt_val = parsed.get("packet_type", "?")
+        try:
+            pt_display = format_packet_type(int(pt_val))
+        except (ValueError, TypeError):
+            pt_display = pt_val
+        hl_val = parsed.get("header_length", "?")
+        rc_val = parsed.get("records_count", "?")
+        pr_val = parsed.get("priority", "?")
+        try:
+            pr_display = format_priority(int(pr_val))
+        except (ValueError, TypeError):
+            pr_display = pr_val
+        cmp_val = parsed.get("compression", "?")
+        cmp_display = format_bool(cmp_val)
+
         fields = [
-            ("Packet ID (PID)", str(parsed.get("packet_id", "?"))),
-            ("Packet Type", str(parsed.get("packet_type", "?"))),
-            ("Header Length (HL)", str(parsed.get("header_length", "?"))),
-            ("Records Count", str(parsed.get("records_count", "?"))),
-            ("Priority", str(parsed.get("priority", "?"))),
-            ("Compression", str(parsed.get("compression", "?"))),
+            ("Packet ID (PID)", str(pid_val)),
+            ("Packet Type (PT)", pt_display),
+            ("Header Length (HL)", str(hl_val)),
+            ("Records Count", str(rc_val)),
+            ("Priority (PR)", pr_display),
+            ("Compressed (CMP)", cmp_display),
         ]
 
         for label, value in fields:
@@ -210,19 +216,21 @@ class PacketDetailCard(BaseCard):
             value_widget.setStyleSheet("color: #CCCCCC;")
             layout.addRow(label_widget, value_widget)
 
-        # CRC info
-        crc_label = QLabel("CRC Valid")
+        crc_label = QLabel("CRC Status")
         crc_label.setStyleSheet("color: #9CDCFE;")
-        crc_value = QLabel(self._packet.get("crc", "?"))
-        crc_color = "#4EC9B0" if self._packet.get("crc") == "OK" else "#F44747"
+        crc_raw = self._packet.get("crc", "?")
+        crc_display = format_crc_status(crc_raw)
+        crc_value = QLabel(crc_display)
+        crc_color = "#4EC9B0" if crc_raw == "OK" else "#F44747"
         crc_value.setStyleSheet(f"color: {crc_color};")
         layout.addRow(crc_label, crc_value)
 
-        # Duplicate info
-        dup_label = QLabel("Duplicate")
+        dup_label = QLabel("Duplicate Status")
         dup_label.setStyleSheet("color: #9CDCFE;")
-        dup_value = QLabel(self._packet.get("duplicate", "No"))
-        dup_color = "#CE9178" if self._packet.get("duplicate") == "Yes" else "#CCCCCC"
+        dup_raw = self._packet.get("duplicate", "No")
+        dup_display = format_duplicate(dup_raw)
+        dup_value = QLabel(dup_display)
+        dup_color = "#CE9178" if dup_raw == "Yes" else "#CCCCCC"
         dup_value.setStyleSheet(f"color: {dup_color};")
         layout.addRow(dup_label, dup_value)
 
@@ -230,7 +238,6 @@ class PacketDetailCard(BaseCard):
         return scroll
 
     def _build_service_tab(self) -> QWidget:
-        """Build service layer tab with tree view."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(4, 4, 4, 4)
@@ -244,10 +251,21 @@ class PacketDetailCard(BaseCard):
         parsed = self._packet.get("parsed", {})
 
         if parsed:
-            # Service type
-            svc_item = QTreeWidgetItem(tree, ["Service", str(parsed.get("service", "?"))])
+            svc_raw = parsed.get("service", "?")
+            try:
+                svc_display = format_service(int(svc_raw))
+            except (ValueError, TypeError):
+                svc_display = svc_raw
+            QTreeWidgetItem(tree, [get_field_label("service"), svc_display])
 
-            # Records
+            packet_type = parsed.get("packet_type")
+            if packet_type is not None:
+                try:
+                    pt_display = format_packet_type(int(packet_type))
+                except (ValueError, TypeError):
+                    pt_display = str(packet_type)
+                QTreeWidgetItem(tree, [get_field_label("packet_type"), pt_display])
+
             records = parsed.get("records", [])
             if records:
                 rec_root = QTreeWidgetItem(tree, ["Records", f"({len(records)} items)"])
@@ -255,23 +273,23 @@ class PacketDetailCard(BaseCard):
                 for i, rec in enumerate(records):
                     rec_item = QTreeWidgetItem(rec_root, [f"Record {i+1}", ""])
 
-                    # Record fields
                     for key, value in rec.items():
                         if key == "subrecords":
                             continue
-                        QTreeWidgetItem(rec_item, [str(key), str(value)])
+                        label = get_field_label(key)
+                        formatted = format_value(key, value)
+                        QTreeWidgetItem(rec_item, [label, formatted])
 
-                    # Subrecords
                     subrecords = rec.get("subrecords", [])
                     if subrecords:
                         sub_root = QTreeWidgetItem(rec_item, ["Subrecords", f"({len(subrecords)})"])
 
                         for j, sub in enumerate(subrecords):
-                            sub_item = QTreeWidgetItem(sub_root, [f"Subrec {j+1}", ""])
+                            sub_item = QTreeWidgetItem(sub_root, [f"Subrecord {j+1}", ""])
                             for sub_key, sub_value in sub.items():
-                                if isinstance(sub_value, dict):
-                                    sub_value = str(sub_value)
-                                QTreeWidgetItem(sub_item, [str(sub_key), str(sub_value)])
+                                label = get_field_label(sub_key)
+                                formatted = format_value(sub_key, sub_value)
+                                QTreeWidgetItem(sub_item, [label, formatted])
 
             tree.expandAll()
         else:
@@ -281,7 +299,6 @@ class PacketDetailCard(BaseCard):
         return widget
 
     def _build_metadata_tab(self) -> QWidget:
-        """Build metadata tab."""
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
 
@@ -290,11 +307,15 @@ class PacketDetailCard(BaseCard):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(4)
 
-        # Metadata fields
+        direction_raw = self._packet.get("direction", "?")
+        direction_display = format_direction(direction_raw)
+        channel_raw = self._packet.get("channel", "?")
+        channel_display = format_channel(channel_raw)
+
         fields = [
             ("Timestamp", self._packet.get("timestamp", "?")),
-            ("Channel", self._packet.get("channel", "?")),
-            ("Direction", self._packet.get("direction", "?")),
+            ("Channel", channel_display),
+            ("Direction", direction_display),
             ("Length", f"{self._packet.get('length', 0)} bytes"),
         ]
 
@@ -309,52 +330,40 @@ class PacketDetailCard(BaseCard):
         return scroll
 
     def toggle_floating(self):
-        """Switch between floating dialog and grid card mode."""
         if self._floating:
             self._attach_to_grid()
         else:
             self._detach_to_floating()
-        # Update pin button state and resize handles visibility
         self._pin_btn.setChecked(self._floating)
-        # Show/hide resize handles based on mode
         for grip in self._grips:
             grip.setVisible(not self._floating)
 
     def _detach_to_floating(self):
-        """Detach card to floating window mode."""
         self._floating = True
         self.setParent(None)
-        # Use Qt.Window to allow resizing, remove FramelessWindowHint to enable resize handles
         self.setWindowFlags(
             Qt.WindowType.Window |
             Qt.WindowType.WindowStaysOnTopHint
         )
         self.setWindowModality(Qt.WindowModality.NonModal)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
-        # Set minimum size for floating window
         self.setMinimumSize(400, 300)
         self.show()
 
     def _attach_to_grid(self):
-        """Attach card back to grid."""
         self._floating = False
         self.setWindowFlags(Qt.WindowType.Widget)
         self.setParent(None)
-        # Note: Caller must add card back to DashboardContainer
 
     def set_floating_position(self, x: int, y: int):
-        """Set position for floating window."""
         self.move(x, y)
 
     def closeEvent(self, event):
-        """Handle close event - emit signal."""
         self.closed.emit(self.card_id)
         super().closeEvent(event)
 
     def get_state(self) -> dict:
-        """Return empty state (not persisted)."""
         return {}
 
     def set_state(self, state: dict):
-        """No state to restore for floating cards."""
         pass

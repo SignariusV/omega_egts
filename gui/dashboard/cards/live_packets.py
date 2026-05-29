@@ -389,9 +389,9 @@ class LivePacketsCard(BaseCard):
         parsed = {}
         if hex_data:
             try:
-                from core.egts.protocol import get_protocol
+                from libs.egts.registry import get_protocol
                 protocol = get_protocol("2015")
-                result = protocol.parse(bytes.fromhex(hex_data))
+                result = protocol.parse_packet(bytes.fromhex(hex_data))
                 if result and result.packet is not None:
                     pkt = result.packet
                     records = []
