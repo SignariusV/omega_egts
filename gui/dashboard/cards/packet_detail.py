@@ -278,37 +278,27 @@ class PacketDetailCard(BaseCard):
         return scroll
 
     def toggle_floating(self):
-        if self._floating:
-            self._attach_to_grid()
+        flags = Qt.WindowType.Window
+        if not self._floating:
+            self._floating = True
+            flags |= Qt.WindowType.WindowStaysOnTopHint
         else:
-            self._detach_to_floating()
-        self._pin_btn.setChecked(self._floating)
-        for grip in self._grips:
-            grip.setVisible(not self._floating)
-
-    def _detach_to_floating(self):
-        self._floating = True
-        self.setParent(None)
-        self.setWindowFlags(
-            Qt.WindowType.Window |
-            Qt.WindowType.WindowStaysOnTopHint
-        )
+            self._floating = False
+        self.setWindowFlags(flags)
         self.setWindowModality(Qt.WindowModality.NonModal)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         self.setMinimumSize(400, 300)
         self.show()
-
-    def _attach_to_grid(self):
-        self._floating = False
-        self.setWindowFlags(Qt.WindowType.Widget)
-        self.setParent(None)
+        self._pin_btn.setChecked(self._floating)
+        for grip in self._grips:
+            grip.setVisible(not self._floating)
 
     def set_floating_position(self, x: int, y: int):
         self.move(x, y)
 
     def closeEvent(self, event):
         self.closed.emit(self.card_id)
-        super().closeEvent(event)
+        event.accept()
 
     def get_state(self) -> dict:
         return {}

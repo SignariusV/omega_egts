@@ -1,9 +1,47 @@
 # Tests for PacketDetailCard
 import pytest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QTreeWidget, QSplitter
 from PySide6.QtCore import Qt
 
 from gui.dashboard.cards.packet_detail import PacketDetailCard
+from gui.utils.hex_viewer import HexDumpWidget
+
+
+def _crc8(data: bytes) -> int:
+    poly = 0x31; crc = 0xFF
+    for b in data:
+        crc ^= b
+        for _ in range(8):
+            if crc & 0x80: crc = (crc << 1) ^ poly
+            else: crc <<= 1
+            crc &= 0xFF
+    return crc
+
+
+def _crc16(data: bytes) -> int:
+    poly = 0x1021; crc = 0xFFFF
+    for b in data:
+        crc ^= b << 8
+        for _ in range(8):
+            if crc & 0x8000: crc = (crc << 1) ^ poly
+            else: crc <<= 1
+            crc &= 0xFFFF
+    return crc
+
+
+def _valid_appdata_hex(pid: int = 27) -> str:
+    """Build a valid minimal APPDATA hex with TERM_IDENTITY (TID=12345).
+
+    TID=12345 = 0x00003039, stored as LE: 39 30 00 00
+    """
+    hdr = bytes([0x01, 0x00, 0x00, 0x0B, 0x00, 0x0E, 0x00,
+                 pid & 0xFF, (pid >> 8) & 0xFF, 0x01])
+    hcs = _crc8(hdr)
+    tid_le = (12345).to_bytes(4, 'little')  # 39 30 00 00
+    records = bytes([0x07, 0x00, 0x01, 0x00, 0x00, 0x01, 0x01,
+                     0x01, 0x04, 0x00]) + tid_le
+    sfrcs = _crc16(records)
+    return (hdr + bytes([hcs]) + records + sfrcs.to_bytes(2, 'little')).hex()
 
 
 @pytest.fixture
@@ -13,11 +51,11 @@ def sample_packet():
         "timestamp": "2026-05-08T14:32:01.123",
         "pid": "27",
         "service": "1",
-        "length": 64,
+        "length": 27,
         "channel": "tcp",
         "crc": "OK",
         "duplicate": "No",
-        "hex": "0100000B0021001B0001321A00",
+        "hex": _valid_appdata_hex(),
         "parsed": {
             "packet_id": 27,
             "packet_type": 1,
@@ -100,11 +138,11 @@ class TestPacketDetailCardCompactView:
 
 
 class TestPacketDetailCardExpandedView:
-    def test_has_four_tabs(self, packet_detail_card):
+    def test_has_two_tabs(self, packet_detail_card):
         packet_detail_card.show()
         packet_detail_card.expand()
         assert hasattr(packet_detail_card, '_tabs')
-        assert packet_detail_card._tabs.count() == 4
+        assert packet_detail_card._tabs.count() == 2
 
     def test_tab_names(self, packet_detail_card):
         packet_detail_card.show()
@@ -113,10 +151,36 @@ class TestPacketDetailCardExpandedView:
             packet_detail_card._tabs.tabText(i)
             for i in range(packet_detail_card._tabs.count())
         ]
-        assert "Raw Data" in tab_names
-        assert "Transport" in tab_names
-        assert "Service" in tab_names
+        assert "Protocol" in tab_names
         assert "Metadata" in tab_names
+
+    def test_protocol_tab_has_splitter_with_tree_and_hex(self, packet_detail_card):
+        packet_detail_card.show()
+        packet_detail_card.expand()
+        protocol_widget = packet_detail_card._tabs.widget(0)
+        splitter = protocol_widget.findChild(QSplitter)
+        assert splitter is not None
+        assert splitter.findChild(QTreeWidget) is not None
+        assert splitter.findChild(HexDumpWidget) is not None
+
+    def test_protocol_tree_has_columns(self, packet_detail_card):
+        packet_detail_card.show()
+        packet_detail_card.expand()
+        protocol_widget = packet_detail_card._tabs.widget(0)
+        tree = protocol_widget.findChild(QTreeWidget)
+        assert tree is not None
+        assert tree.headerItem().text(0) == "Offset"
+        assert tree.headerItem().text(1) == "Field → Value"
+        assert tree.headerItem().text(2) == "Hex"
+
+    def test_protocol_tree_contains_packet_sections(self, packet_detail_card):
+        packet_detail_card.show()
+        packet_detail_card.expand()
+        protocol_widget = packet_detail_card._tabs.widget(0)
+        tree = protocol_widget.findChild(QTreeWidget)
+        root_items = [tree.topLevelItem(i) for i in range(tree.topLevelItemCount())]
+        field_strs = [item.text(1) for item in root_items]
+        assert any("Transport Header" in s for s in field_strs)
 
 
 class TestPacketDetailCardFloatingMode:
@@ -144,18 +208,6 @@ class TestPacketDetailCardFloatingMode:
 
         assert signal_received == True
         assert received_id == "pkt_signal"
-
-
-class TestPacketDetailCardHexFormat:
-    def test_format_hex_dump(self, packet_detail_card):
-        hex_str = "0100000B0021001B0001321A00"
-        result = packet_detail_card._format_hex_dump(hex_str)
-        assert "01 00" in result
-        assert len(result) > 0
-
-    def test_format_empty_hex(self, packet_detail_card):
-        result = packet_detail_card._format_hex_dump("")
-        assert result == "(empty)"
 
 
 class TestPacketDetailCardState:

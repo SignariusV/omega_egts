@@ -31,6 +31,7 @@ class HexDumpWidget(QWidget):
             "background-color: #1E1E1E; color: #CCCCCC; border: none;"
         )
         self._hex_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._hex_edit.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
 
         self._ascii_edit = QTextEdit(self)
         self._ascii_edit.setReadOnly(True)
@@ -39,6 +40,7 @@ class HexDumpWidget(QWidget):
             "background-color: #26262A; color: #CCCCCC; border: none;"
         )
         self._ascii_edit.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._ascii_edit.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
 
         self._splitter = QSplitter(Qt.Orientation.Horizontal, self)
         self._splitter.addWidget(self._hex_edit)

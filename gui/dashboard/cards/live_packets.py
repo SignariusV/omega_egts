@@ -236,8 +236,7 @@ class LivePacketsCard(BaseCard):
 
         # Show as floating window
         self._position_floating_card(card)
-        card.show()
-        card.toggle_floating()  # Switch to floating mode
+        card.toggle_floating()  # Switch to floating (pinned) mode
 
     def _position_floating_card(self, card: PacketDetailCard):
         """Position floating card with cascade offset."""
@@ -316,19 +315,27 @@ class LivePacketsCard(BaseCard):
         ctx = data.get("ctx")
         hex_data = ""
         parsed_dict = {}
-        timestamp = ""
 
         if ctx is not None:
             raw = getattr(ctx, "raw", None)
             hex_data = raw.hex() if isinstance(raw, bytes) else ""
             parsed = getattr(ctx, "parsed", None)
-            ts = getattr(ctx, "timestamp", None)
-            timestamp = str(ts) if ts is not None else ""
 
             if parsed is not None:
                 records = []
                 for r in (getattr(parsed, "records", None) or []):
                     rec = {"record_id": r.record_id}
+                    rec["service_type"] = getattr(r, "service_type", 0)
+                    rec["recipient_service_type"] = getattr(r, "recipient_service_type", 0)
+                    rec["ssod"] = getattr(r, "ssod", False)
+                    rec["rsod"] = getattr(r, "rsod", False)
+                    rec["rpp"] = getattr(r, "rpp", 0)
+                    if getattr(r, "object_id", None) is not None:
+                        rec["object_id"] = r.object_id
+                    if getattr(r, "event_id", None) is not None:
+                        rec["event_id"] = r.event_id
+                    if getattr(r, "timestamp", None) is not None:
+                        rec["timestamp"] = r.timestamp
                     subrecords = getattr(r, "subrecords", None) or []
                     if subrecords:
                         rec["subrecords"] = [
@@ -361,7 +368,6 @@ class LivePacketsCard(BaseCard):
         pid = parsed_dict.get("packet_id", "")
 
         packet = {
-            "timestamp": timestamp,
             "pid": str(pid),
             "service": str(svc),
             "length": len(hex_data) // 2 if hex_data else 0,
@@ -397,6 +403,17 @@ class LivePacketsCard(BaseCard):
                     records = []
                     for r in (pkt.records or []):
                         rec = {"record_id": r.record_id}
+                        rec["service_type"] = getattr(r, "service_type", 0)
+                        rec["recipient_service_type"] = getattr(r, "recipient_service_type", 0)
+                        rec["ssod"] = getattr(r, "ssod", False)
+                        rec["rsod"] = getattr(r, "rsod", False)
+                        rec["rpp"] = getattr(r, "rpp", 0)
+                        if getattr(r, "object_id", None) is not None:
+                            rec["object_id"] = r.object_id
+                        if getattr(r, "event_id", None) is not None:
+                            rec["event_id"] = r.event_id
+                        if getattr(r, "timestamp", None) is not None:
+                            rec["timestamp"] = r.timestamp
                         if r.subrecords:
                             rec["subrecords"] = [
                                 {
@@ -427,7 +444,6 @@ class LivePacketsCard(BaseCard):
             pid = ""
 
         packet = {
-            "timestamp": data.get("timestamp", ""),
             "pid": str(pid),
             "service": str(parsed.get("service", "?")),
             "length": byte_len,
