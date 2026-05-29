@@ -1,19 +1,15 @@
 # OMEGA_EGTS GUI - Packet Detail Card
-import re
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
+    QWidget, QVBoxLayout, QFormLayout,
     QLabel, QTabWidget, QTreeWidget, QTreeWidgetItem,
     QScrollArea, QToolButton, QFrame, QSplitter, QHeaderView,
 )
-from PySide6.QtCore import Signal, Slot, Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont, QColor
 
-from gui.dashboard.card_base import BaseCard, DisplayState
-from gui.dashboard.layout_engine import GRID_COLS, GRID_ROWS
+from gui.dashboard.card_base import BaseCard
 from gui.utils.name_mappings import (
-    format_service, format_packet_type, format_subrecord_type,
-    format_priority, format_bool, format_direction, format_channel,
-    format_crc_status, format_duplicate, format_value, get_field_label,
+    format_service, format_direction, format_channel,
 )
 from gui.utils.byte_layout import compute_layout, ByteField
 from gui.utils.hex_viewer import HexDumpWidget
@@ -27,10 +23,10 @@ class PacketDetailCard(BaseCard):
     def __init__(self, packet_data: dict, card_id: str, parent=None):
         svc = packet_data.get("parsed", {}).get("service", packet_data.get("service", "?"))
         try:
-            svc_name = format_service(int(svc))
+            self._svc_display = format_service(int(svc))
         except (ValueError, TypeError):
-            svc_name = f"SVC: {svc}"
-        title = f"Packet {packet_data.get('pid', '?')} — {svc_name}"
+            self._svc_display = f"SVC: {svc}"
+        title = f"Packet {packet_data.get('pid', '?')} — {self._svc_display}"
         super().__init__(title, card_id=card_id, parent=parent)
         self._packet = packet_data
         self._floating = False
@@ -47,6 +43,8 @@ class PacketDetailCard(BaseCard):
         title_layout = self._title_bar.layout()
         title_layout.insertWidget(title_layout.count() - 1, self._pin_btn)
 
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        self.setMinimumSize(400, 300)
         self._hex_viewer = None
         self._build_widgets()
         self.finish_init()
@@ -56,12 +54,18 @@ class PacketDetailCard(BaseCard):
         self._build_expanded_ui()
         self.set_views(self._compact_widget, self._expanded_widget)
 
+    def _error_summary(self) -> str:
+        errors = []
+        if self._packet.get("crc", "OK") != "OK":
+            errors.append("CRC Invalid")
+        if self._packet.get("duplicate", "No") == "Yes":
+            errors.append("Duplicate")
+        if not self._packet.get("parsed"):
+            errors.append("No Parse")
+        return " | ".join(errors) if errors else ""
+
     def _is_packet_ok(self) -> bool:
-        return (
-            self._packet.get("crc", "OK") == "OK"
-            and self._packet.get("duplicate", "No") == "No"
-            and bool(self._packet.get("parsed"))
-        )
+        return not self._error_summary()
 
     def _build_compact_ui(self):
         self._compact_widget = QFrame()
@@ -86,35 +90,18 @@ class PacketDetailCard(BaseCard):
         direction = self._packet.get("direction", "rx")
         dir_color = "#4EC9B0" if direction == "rx" else "#569CD6"
 
-        parsed = self._packet.get("parsed", {})
-        svc_raw = parsed.get("service", self._packet.get("service", "?"))
-        try:
-            svc_display = format_service(int(svc_raw))
-        except (ValueError, TypeError):
-            svc_display = f"SVC: {svc_raw}"
-
         dir_label = "RX" if direction == "rx" else "TX"
-        info_text = f"PID: {pid} | {svc_display} | {dir_label}"
+        info_text = f"PID: {pid} | {self._svc_display} | {dir_label}"
         self._info_label = QLabel(info_text)
         self._info_label.setStyleSheet(f"color: {dir_color}; font-size: 10px;")
         layout.addWidget(self._info_label)
 
-        errors = self._get_error_summary()
+        errors = self._error_summary()
         if errors:
             error_label = QLabel(errors)
             error_label.setStyleSheet("color: #CE9178; font-size: 9px;")
             error_label.setWordWrap(True)
             layout.addWidget(error_label)
-
-    def _get_error_summary(self) -> str:
-        errors = []
-        if self._packet.get("crc", "OK") != "OK":
-            errors.append("CRC Invalid")
-        if self._packet.get("duplicate", "No") == "Yes":
-            errors.append("Duplicate")
-        if not self._packet.get("parsed"):
-            errors.append("No Parse")
-        return " | ".join(errors) if errors else ""
 
     def _build_expanded_ui(self):
         self._expanded_widget = QWidget()
@@ -286,12 +273,8 @@ class PacketDetailCard(BaseCard):
             self._floating = False
         self.setWindowFlags(flags)
         self.setWindowModality(Qt.WindowModality.NonModal)
-        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
-        self.setMinimumSize(400, 300)
         self.show()
         self._pin_btn.setChecked(self._floating)
-        for grip in self._grips:
-            grip.setVisible(not self._floating)
 
     def set_floating_position(self, x: int, y: int):
         self.move(x, y)

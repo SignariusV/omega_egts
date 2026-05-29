@@ -131,7 +131,7 @@ class TestPacketDetailCardCompactView:
     def test_error_summary(self, qtbot, error_packet):
         card = PacketDetailCard(error_packet, card_id="pkt_err2")
         qtbot.addWidget(card)
-        summary = card._get_error_summary()
+        summary = card._error_summary()
         assert "CRC Invalid" in summary
         assert "Duplicate" in summary
         assert "No Parse" in summary
