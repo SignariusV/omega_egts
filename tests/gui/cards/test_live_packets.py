@@ -236,3 +236,57 @@ class TestLivePacketsDetailCards:
 
         assert closed == True
         assert len(packet_card._open_detail_cards) == 0
+
+
+class TestPositionFloatingCard:
+    """Regression for Б-11: cascade must wrap within main window, not collapse."""
+
+    @pytest.fixture
+    def packet_card(self, qtbot):
+        card = LivePacketsCard()
+        qtbot.addWidget(card)
+        return card
+
+    def test_cascade_wraps_within_main_window(self, packet_card, app, monkeypatch):
+        """Offsets must wrap modulo (main_w - card_w) // stride, not collapse to (base_x, base_y)."""
+        from PySide6.QtCore import QRect
+
+        class MockMainWindow:
+            def geometry(self):
+                # 1000×800 main window: wrap_step = (1000-500)//30 = 16
+                return QRect(0, 0, 1000, 800)
+
+        monkeypatch.setattr(packet_card, "window", lambda: MockMainWindow())
+
+        positions = []
+        class FakeCard:
+            def set_floating_position(self, x, y):
+                positions.append((x, y))
+
+        base_x, base_y = 250, 200
+        stride = 30
+        wrap_step = (1000 - 500) // 30  # 16
+
+        # Mimic real call pattern: _position_floating_card is called BEFORE the
+        # card is added to the dict. So the Nth call sees len = N-1.
+        for i in range(18):
+            packet_card._open_detail_cards = {f"pkt_{j}": object() for j in range(i)}
+            packet_card._position_floating_card(FakeCard())
+
+        # 1st call: len=0 → offset=0 → (250, 200)
+        assert positions[0] == (base_x, base_y)
+        # 2nd call: len=1 → offset=30 → (280, 230)
+        assert positions[1] == (base_x + stride, base_y + stride)
+        # 17th call: len=16 → 16%16=0 → wraps to (250, 200)
+        assert positions[wrap_step] == (base_x, base_y)
+        # 18th call: len=17 → 17%16=1 → (280, 230) again
+        assert positions[wrap_step + 1] == (base_x + stride, base_y + stride)
+        # All x values must be within the main window
+        for x, y in positions:
+            assert x >= base_x
+            assert x <= base_x + wrap_step * stride
+
+    def test_no_window_does_nothing(self, packet_card, app, monkeypatch):
+        monkeypatch.setattr(packet_card, "window", lambda: None)
+        # Should not raise
+        packet_card._position_floating_card(object())

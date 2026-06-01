@@ -296,3 +296,200 @@ class TestAbbreviations:
         for abbr, (full, desc) in ABBREVIATIONS.items():
             assert full, f"Abbreviation {abbr} has no full name"
             assert desc, f"Abbreviation {abbr} has no description"
+
+
+# ──────────────────────────────────────────────────────────────
+# Regression tests for byte-layout bugs fixed via canonical parser integration.
+# These tests pass parsed subrecords (from libs.egts._gost2015.subrecords)
+# to compute_layout() and verify the previously buggy offset computations.
+# ──────────────────────────────────────────────────────────────
+
+def _find_field(field_list, abbr):
+    """Recursively find a ByteField by abbr."""
+    for f in field_list:
+        if f.abbr == abbr:
+            return f
+        if f.children:
+            r = _find_field(f.children, abbr)
+            if r:
+                return r
+    return None
+
+
+def _find_section(field_list, name_substr):
+    for f in field_list:
+        if f.field_type == "section" and name_substr in f.full_name:
+            return f
+        if f.children:
+            r = _find_section(f.children, name_substr)
+            if r:
+                return r
+    return None
+
+
+class TestSrt33Regression:
+    """SRT=33 SERVICE_PART_DATA: OD field must show actual length, not constant 6."""
+
+    def test_od_field_length_matches_parsed(self):
+        """With parsed_data, OD length = len(parsed['od']), not the broken `remaining = 6`."""
+        from libs.egts._gost2015.subrecords import ServicePartDataParser
+        raw_srd = b'\x01\x00' + b'\x01\x00' + b'\x01\x00' + b'\xAA' * 20  # id=1, pn=1, epq=1, 20 bytes OD
+        parsed = ServicePartDataParser().parse(raw_srd)
+        sub_dicts = [{"srt": 33, "data": parsed, "raw_bytes": raw_srd}]
+
+        # Build APPDATA with this subrecord
+        srd = bytes([33]) + len(raw_srd).to_bytes(2, 'little') + raw_srd
+        rl = len(srd)
+        record = bytes([rl & 0xFF, (rl >> 8) & 0xFF, 1, 0, 0, 1, 1]) + srd
+        fdl = len(record)
+        hdr = bytes([1, 0, 0, 0x0B, 0, fdl & 0xFF, (fdl >> 8) & 0xFF, 1, 0, 1])
+        hcs = _crc8(hdr)
+        sfrcs = _crc16(record)
+        hex_str = (hdr + bytes([hcs]) + record + sfrcs.to_bytes(2, 'little')).hex()
+
+        fields = compute_layout(hex_str, {}, [{"subrecords": sub_dicts}])
+        od = _find_field(fields, "OD")
+        assert od is not None, "OD field should be present"
+        assert "(20 bytes)" in od.value_display, f"OD must show 20 bytes, got: {od.value_display}"
+
+    def test_od_offset_end_covers_full_payload(self):
+        """The OD field's offset_end must equal the last byte of the payload."""
+        from libs.egts._gost2015.subrecords import ServicePartDataParser
+        raw_srd = b'\x01\x00' + b'\x01\x00' + b'\x01\x00' + b'\xBB' * 15
+        parsed = ServicePartDataParser().parse(raw_srd)
+        sub_dicts = [{"srt": 33, "data": parsed, "raw_bytes": raw_srd}]
+
+        srd = bytes([33]) + len(raw_srd).to_bytes(2, 'little') + raw_srd
+        rl = len(srd)
+        record = bytes([rl & 0xFF, (rl >> 8) & 0xFF, 1, 0, 0, 1, 1]) + srd
+        fdl = len(record)
+        hdr = bytes([1, 0, 0, 0x0B, 0, fdl & 0xFF, (fdl >> 8) & 0xFF, 1, 0, 1])
+        hcs = _crc8(hdr)
+        sfrcs = _crc16(record)
+        hex_str = (hdr + bytes([hcs]) + record + sfrcs.to_bytes(2, 'little')).hex()
+
+        fields = compute_layout(hex_str, {}, [{"subrecords": sub_dicts}])
+        od = _find_field(fields, "OD")
+        assert od is not None
+        # OD must span exactly 15 bytes
+        assert od.offset_end - od.offset_start + 1 == 15
+
+
+class TestSrt34Regression:
+    """SRT=34 SERVICE_FULL_DATA: OD must NOT be hidden by the always-zero `remaining` bug."""
+
+    def test_od_field_present(self):
+        from libs.egts._gost2015.subrecords import ServiceFullDataParser
+        # ODH: OA(1) + OT_MT(1) + CMI(1) + VER(2) + WOS(2) + null-terminated FN, then null
+        odh = b'\x01\x02\x03\x04\x05\x06\x07' + b'firmware.bin\x00'
+        od = b'\xDE\xAD\xBE\xEF' * 8
+        raw_srd = odh + od
+        parsed = ServiceFullDataParser().parse(raw_srd)
+        sub_dicts = [{"srt": 34, "data": parsed, "raw_bytes": raw_srd}]
+
+        srd = bytes([34]) + len(raw_srd).to_bytes(2, 'little') + raw_srd
+        rl = len(srd)
+        record = bytes([rl & 0xFF, (rl >> 8) & 0xFF, 1, 0, 0, 9, 9]) + srd
+        fdl = len(record)
+        hdr = bytes([1, 0, 0, 0x0B, 0, fdl & 0xFF, (fdl >> 8) & 0xFF, 1, 0, 1])
+        hcs = _crc8(hdr)
+        sfrcs = _crc16(record)
+        hex_str = (hdr + bytes([hcs]) + record + sfrcs.to_bytes(2, 'little')).hex()
+
+        fields = compute_layout(hex_str, {}, [{"subrecords": sub_dicts}])
+        od_field = _find_field(fields, "OD")
+        assert od_field is not None, "OD field must be present for SERVICE_FULL_DATA"
+        assert len(od) == od_field.offset_end - od_field.offset_start + 1
+
+
+class TestSrt20Regression:
+    """SRT=20 ACCEL_DATA: bounds checks and iteration count must use parsed measurements."""
+
+    def test_measurements_count_matches_parsed(self):
+        from libs.egts._gost2015.subrecords import AccelDataParser
+        # 3 measurements, each 8 bytes
+        m1 = b'\x00\x01' + b'\x10\x00' + b'\x20\x00' + b'\x30\x00'  # rtm=256, +16, +32, +48
+        m2 = b'\x00\x02' + b'\x11\x00' + b'\x21\x00' + b'\x31\x00'
+        m3 = b'\x00\x03' + b'\x12\x00' + b'\x22\x00' + b'\x32\x00'
+        raw_srd = b'\x03' + b'\x00\x00\x00\x00' + m1 + m2 + m3
+        parsed = AccelDataParser().parse(raw_srd)
+        assert len(parsed["measurements"]) == 3
+
+        sub_dicts = [{"srt": 20, "data": parsed, "raw_bytes": raw_srd}]
+        srd = bytes([20]) + len(raw_srd).to_bytes(2, 'little') + raw_srd
+        rl = len(srd)
+        record = bytes([rl & 0xFF, (rl >> 8) & 0xFF, 1, 0, 0, 1, 1]) + srd
+        fdl = len(record)
+        hdr = bytes([1, 0, 0, 0x0B, 0, fdl & 0xFF, (fdl >> 8) & 0xFF, 1, 0, 1])
+        hcs = _crc8(hdr)
+        sfrcs = _crc16(record)
+        hex_str = (hdr + bytes([hcs]) + record + sfrcs.to_bytes(2, 'little')).hex()
+
+        fields = compute_layout(hex_str, {}, [{"subrecords": sub_dicts}])
+        measurements = [c for c in fields[1].children
+                        if "Measurement" in c.full_name]  # type: ignore[union-attr]
+        # Find measurements anywhere in the tree
+        all_measurements = []
+        def collect(fs):
+            for f in fs:
+                if f.field_type == "section" and "Measurement" in f.full_name:
+                    all_measurements.append(f)
+                if f.children:
+                    collect(f.children)
+        collect(fields)
+        assert len(all_measurements) == 3, f"Expected 3 measurements, got {len(all_measurements)}"
+
+
+class TestSrt63Regression:
+    """SRT=63 TRACK_DATA: Point section must cover actual point bytes, not 2 bytes."""
+
+    def test_point_section_covers_full_point(self):
+        from libs.egts._gost2015.subrecords import TrackDataParser
+        # 1 point with all fields: FLG(1) + LAT(4) + LONG(4) + SPD(3) = 12 bytes (no DIR)
+        # FLG byte: TNDE=1, LOHS=0, LAHS=0, SDFE=0, SPFE=1, RTM=2 → 0x8A
+        # 128 | 8 | 2 = 138 = 0x8A
+        flg = 0x80 | 0x08 | 0x02  # tnde + spfe + rtm=2
+        point = bytes([flg]) + b'\x00\x00\x00\x80' + b'\x00\x00\x00\x40' + b'\x00\x01\x02'
+        raw_srd = b'\x01' + b'\x00\x00\x00\x00' + point  # SA=1, ATM=0
+        parsed = TrackDataParser().parse(raw_srd)
+        assert len(parsed["track_points"]) == 1
+
+        sub_dicts = [{"srt": 63, "data": parsed, "raw_bytes": raw_srd}]
+        srd = bytes([63]) + len(raw_srd).to_bytes(2, 'little') + raw_srd
+        rl = len(srd)
+        record = bytes([rl & 0xFF, (rl >> 8) & 0xFF, 1, 0, 0, 1, 1]) + srd
+        fdl = len(record)
+        hdr = bytes([1, 0, 0, 0x0B, 0, fdl & 0xFF, (fdl >> 8) & 0xFF, 1, 0, 1])
+        hcs = _crc8(hdr)
+        sfrcs = _crc16(record)
+        hex_str = (hdr + bytes([hcs]) + record + sfrcs.to_bytes(2, 'little')).hex()
+
+        fields = compute_layout(hex_str, {}, [{"subrecords": sub_dicts}])
+        point_section = _find_section(fields, "Point 1")
+        assert point_section is not None
+        # FLG(1) + LAT(4) + LONG(4) + SPD(3) = 12 bytes
+        point_size = point_section.offset_end - point_section.offset_start + 1
+        assert point_size == 12, (
+            f"Point 1 section should cover 12 bytes (FLG+LAT+LONG+SPD), got {point_size}. "
+            f"Offset range: [{point_section.offset_start}-{point_section.offset_end}]"
+        )
+
+
+class TestTruncatedRecordRegression:
+    """Б-04 fix: APPDATA record bound check uses 7 (not 4) bytes for record header."""
+
+    def test_truncated_record_breaks_gracefully(self):
+        """A record with RL=10 but only 8 bytes present should not crash."""
+        # RL=10, RN=1, RFL=0, SST=1, RST=1 = 7 bytes header, then 1 byte of RD
+        # Total available: 8 (truncated RD)
+        record = bytes([10, 0, 1, 0, 0, 1, 1, 0xAA])
+        fdl = len(record)
+        hdr = bytes([1, 0, 0, 0x0B, 0, fdl & 0xFF, (fdl >> 8) & 0xFF, 1, 0, 1])
+        hcs = _crc8(hdr)
+        sfrcs = _crc16(record)
+        hex_str = (hdr + bytes([hcs]) + record + sfrcs.to_bytes(2, 'little')).hex()
+
+        # Should not raise an exception
+        fields = compute_layout(hex_str, {})
+        # At minimum, the header section should be present
+        assert len(fields) >= 1

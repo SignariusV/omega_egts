@@ -154,7 +154,8 @@ class PacketDetailCard(BaseCard):
 
         hex_str = self._packet.get("hex", "")
         parsed = self._packet.get("parsed", {})
-        fields = compute_layout(hex_str, parsed)
+        parsed_records = parsed.get("records") if isinstance(parsed, dict) else None
+        fields = compute_layout(hex_str, parsed, parsed_records)
 
         for bf in fields:
             self._add_field_item(tree, None, bf)

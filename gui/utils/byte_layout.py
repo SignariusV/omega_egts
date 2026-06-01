@@ -394,7 +394,9 @@ def _build_response_sfrd(data: bytes, offset: int) -> tuple[list[ByteField], int
     return fields, offset
 
 
-def _build_record_layout(data: bytes, offset: int) -> tuple[list[ByteField], int, int]:
+def _build_record_layout(data: bytes, offset: int,
+                        parsed_subrecords: list[dict] | None = None
+                        ) -> tuple[list[ByteField], int, int]:
     fields = []
     rec_start = offset
     rl = _uint16_le(data, offset)
@@ -463,7 +465,7 @@ def _build_record_layout(data: bytes, offset: int) -> tuple[list[ByteField], int
         offset += 4
 
     rd_end = offset + rl
-    sub_fields, offset = _build_subrecords_layout(data, offset, rd_end)
+    sub_fields, offset = _build_subrecords_layout(data, offset, rd_end, parsed_subrecords)
     fields.extend(sub_fields)
     offset = rd_end
 
@@ -471,8 +473,16 @@ def _build_record_layout(data: bytes, offset: int) -> tuple[list[ByteField], int
     return fields, rec_start, rec_end
 
 
-def _build_subrecords_layout(data: bytes, offset: int, end: int) -> tuple[list[ByteField], int]:
+def _build_subrecords_layout(data: bytes, offset: int, end: int,
+                             parsed_subrecords: list[dict] | None = None) -> tuple[list[ByteField], int]:
+    """Build layout for subrecords within a record.
+
+    parsed_subrecords: optional list of {srt, data, raw_bytes} from the canonical
+    parser. When provided, the matching parsed_data dict is forwarded to each
+    _parse_srt_N so values come from the canonical parser (single source of truth).
+    """
     fields = []
+    sub_idx = 0
     while offset < end:
         if offset + 3 > len(data):
             break
@@ -490,78 +500,97 @@ def _build_subrecords_layout(data: bytes, offset: int, end: int) -> tuple[list[B
                                   f"{srl} (0x{srl:04X})"))
         offset += 2
 
+        # Match this subrecord to its parsed counterpart (same srt, in order).
+        parsed_data = None
+        if parsed_subrecords is not None and sub_idx < len(parsed_subrecords):
+            psr = parsed_subrecords[sub_idx]
+            if psr.get("srt") == srt:
+                parsed_data = psr.get("data")
+
         if offset + srl > len(data):
             srl = len(data) - offset
         if srl > 0:
             srd_data = data[offset:offset + srl]
-            srd_fields = _parse_srd(srt, data, offset, srl)
+            srd_fields = _parse_srd(srt, data, offset, srl, parsed_data)
             if srd_fields:
                 fields.extend(srd_fields)
             else:
                 fields.append(_make_field("SRD", offset, offset + srl - 1,
                                           srd_data, field_type="subrecord_data"))
         offset += srl
+        sub_idx += 1
     return fields, offset
 
 
-def _parse_srd(srt: int, data: bytes, offset: int, length: int) -> list[ByteField]:
+def _parse_srd(srt: int, data: bytes, offset: int, length: int,
+               parsed_data: dict | None = None) -> list[ByteField]:
+    """Dispatch subrecord layout by SRT.
+
+    parsed_data: when provided, byte offsets are still walked here (for accurate
+    highlight ranges in the hex viewer), but values are pulled from parsed_data
+    (produced by the canonical parser in libs/egts/_gost2015/subrecords.py).
+    This eliminates duplication of the value-decoding logic and the offset bugs
+    in the SRT=20/33/34/63 layout walkers.
+    """
     if srt == 0:
-        return _parse_srt_0(data, offset, length)
+        return _parse_srt_0(data, offset, length, parsed_data)
     elif srt == 1:
-        return _parse_srt_1(data, offset, length)
+        return _parse_srt_1(data, offset, length, parsed_data)
     elif srt == 2:
-        return _parse_srt_2(data, offset, length)
+        return _parse_srt_2(data, offset, length, parsed_data)
     elif srt == 3:
-        return _parse_srt_3(data, offset, length)
+        return _parse_srt_3(data, offset, length, parsed_data)
     elif srt == 6:
-        return _parse_srt_6(data, offset, length)
+        return _parse_srt_6(data, offset, length, parsed_data)
     elif srt == 7:
-        return _parse_srt_7(data, offset, length)
+        return _parse_srt_7(data, offset, length, parsed_data)
     elif srt == 8:
-        return _parse_srt_8(data, offset, length)
+        return _parse_srt_8(data, offset, length, parsed_data)
     elif srt == 9:
-        return _parse_srt_9(data, offset, length)
+        return _parse_srt_9(data, offset, length, parsed_data)
     elif srt == 20:
-        return _parse_srt_20(data, offset, length)
+        return _parse_srt_20(data, offset, length, parsed_data)
     elif srt == 33:
-        return _parse_srt_33(data, offset, length)
+        return _parse_srt_33(data, offset, length, parsed_data)
     elif srt == 34:
-        return _parse_srt_34(data, offset, length)
+        return _parse_srt_34(data, offset, length, parsed_data)
     elif srt == 51:
-        return _parse_srt_51(data, offset, length)
+        return _parse_srt_51(data, offset, length, parsed_data)
     elif srt == 62:
-        return _parse_srt_62(data, offset, length)
+        return _parse_srt_62(data, offset, length, parsed_data)
     elif srt == 63:
-        return _parse_srt_63(data, offset, length)
+        return _parse_srt_63(data, offset, length, parsed_data)
     return []
 
 
-def _parse_srt_0(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_0(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len >= 2:
-        crn = _uint16_le(data, offset)
+        crn = parsed_data["crn"] if parsed_data and "crn" in parsed_data else _uint16_le(data, offset)
         fields.append(_make_field("CRN", offset, offset + 1, data[offset:offset + 2],
                                   f"{crn} (0x{crn:04X})"))
         offset += 2
     if _len >= 3:
-        rcs = _int8(data, offset)
+        rcs = parsed_data["rst"] if parsed_data and "rst" in parsed_data else _int8(data, offset)
         rc_name = RESULT_CODES.get(rcs, f"UNKNOWN_{rcs}")
         fields.append(_make_field("RCS", offset, offset, data[offset:offset + 1],
                                   f"{rc_name} ({rcs})"))
     return fields
 
 
-def _parse_srt_1(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_1(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 4:
         return fields
-    tid = _uint32_le(data, offset)
+    tid = parsed_data["tid"] if parsed_data and "tid" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("TID", offset, offset + 3, data[offset:offset + 4],
                               f"{tid} (0x{tid:08X})"))
     offset += 4
     if _len < 5:
         return fields
-    flags = _int8(data, offset)
+    flags = parsed_data["flags"] if parsed_data and "flags" in parsed_data else _int8(data, offset)
     flag_names = ["HDIDE", "IMEIE", "IMSIE", "LNGCE", "SSRA", "NIDE", "BSE", "MNE"]
     flag_bits = []
     flag_desc = ["Home Dispatcher ID", "IMEI", "IMSI", "Language Code",
@@ -577,110 +606,134 @@ def _parse_srt_1(data: bytes, offset: int, _len: int) -> list[ByteField]:
     offset += 1
 
     if _len >= 7 and (flags & 0x01):
-        hdid = _uint16_le(data, offset)
+        hdid = parsed_data["hdid"] if parsed_data and "hdid" in parsed_data else _uint16_le(data, offset)
         fields.append(_make_field("HDID", offset, offset + 1, data[offset:offset + 2],
                                   f"0x{hdid:04X} ({hdid})"))
         offset += 2
     if _len >= 22 and (flags & 0x02):
-        imei = _decode_str(data, offset, 15)
+        if parsed_data and "imei" in parsed_data:
+            imei = str(parsed_data["imei"])
+        else:
+            imei = _decode_str(data, offset, 15)
         fields.append(_make_field("IMEI", offset, offset + 14, data[offset:offset + 15],
                                   imei))
         offset += 15
     if _len >= 38 and (flags & 0x04):
-        imsi = _decode_str(data, offset, 16)
+        if parsed_data and "imsi" in parsed_data:
+            imsi = str(parsed_data["imsi"])
+        else:
+            imsi = _decode_str(data, offset, 16)
         fields.append(_make_field("IMSI", offset, offset + 15, data[offset:offset + 16],
                                   imsi))
         offset += 16
     if _len >= 41 and (flags & 0x08):
-        lngc = _decode_str(data, offset, 3)
+        if parsed_data and "lngc" in parsed_data:
+            lngc = str(parsed_data["lngc"])
+        else:
+            lngc = _decode_str(data, offset, 3)
         fields.append(_make_field("LNGC", offset, offset + 2, data[offset:offset + 3],
                                   lngc))
         offset += 3
     if _len >= 44 and (flags & 0x20):
-        nid = data[offset:offset + 3]
+        if parsed_data and "nid" in parsed_data and isinstance(parsed_data["nid"], (bytes, bytearray)):
+            nid = bytes(parsed_data["nid"])
+        else:
+            nid = data[offset:offset + 3]
         fields.append(_make_field("NID", offset, offset + 2, nid,
                                   nid.hex()))
         offset += 3
     if _len >= 46 and (flags & 0x40):
-        bs = _uint16_le(data, offset)
+        bs = parsed_data["bs"] if parsed_data and "bs" in parsed_data else _uint16_le(data, offset)
         fields.append(_make_field("BS", offset, offset + 1, data[offset:offset + 2],
                                   f"{bs} (0x{bs:04X})"))
         offset += 2
     if _len >= 61 and (flags & 0x80):
-        msisdn = _decode_str(data, offset, 15)
+        if parsed_data and "msisdn" in parsed_data:
+            msisdn = str(parsed_data["msisdn"])
+        else:
+            msisdn = _decode_str(data, offset, 15)
         fields.append(_make_field("MSISDN", offset, offset + 14, data[offset:offset + 15],
                                   msisdn))
         offset += 15
     return fields
 
 
-def _parse_srt_2(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_2(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 11:
         return fields
-    mt = _int8(data, offset)
+    mt = parsed_data["mt"] if parsed_data and "mt" in parsed_data else _int8(data, offset)
     mt_names = {1: "Main", 2: "I/O", 3: "GNSS", 4: "Wireless"}
     mt_name = mt_names.get(mt, f"Unknown ({mt})")
     fields.append(_make_field("MT", offset, offset, data[offset:offset + 1], mt_name))
     offset += 1
-    vid = _uint32_le(data, offset)
+    vid = parsed_data["vid"] if parsed_data and "vid" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("VID", offset, offset + 3, data[offset:offset + 4],
                               f"0x{vid:08X} ({vid})"))
     offset += 4
-    fwv = _uint16_le(data, offset)
+    fwv = parsed_data["fwv"] if parsed_data and "fwv" in parsed_data else _uint16_le(data, offset)
     fields.append(_make_field("FWV", offset, offset + 1, data[offset:offset + 2],
                               f"{fwv} (major={fwv >> 8}, minor={fwv & 0xFF})"))
     offset += 2
-    swv = _uint16_le(data, offset)
+    swv = parsed_data["swv"] if parsed_data and "swv" in parsed_data else _uint16_le(data, offset)
     fields.append(_make_field("SWV", offset, offset + 1, data[offset:offset + 2],
                               f"{swv} (major={swv >> 8}, minor={swv & 0xFF})"))
     offset += 2
-    md_val = _int8(data, offset)
+    md_val = parsed_data["md"] if parsed_data and "md" in parsed_data else _int8(data, offset)
     fields.append(_make_field("MD", offset, offset, data[offset:offset + 1],
                               f"0x{md_val:02X} ({md_val})"))
     offset += 1
-    st_val = _int8(data, offset)
+    st_val = parsed_data["st"] if parsed_data and "st" in parsed_data else _int8(data, offset)
     st_names = {0: "Off", 1: "On"}
     st_name = st_names.get(st_val, f"Fault ({st_val})" if st_val > 127 else str(st_val))
     fields.append(_make_field("ST", offset, offset, data[offset:offset + 1], st_name))
     offset += 1
     remaining = data[offset:]
     if remaining:
+        srn_value = parsed_data.get("srn") if parsed_data else None
         srn, offset = _decode_until_null(data, offset)
+        if srn_value is None:
+            srn_value = srn
         fields.append(_make_field("SRN", offset - len(srn) - 1, offset - 2,
                                   data[offset - len(srn) - 1:offset],
-                                  srn, field_type="subrecord_data"))
+                                  srn_value, field_type="subrecord_data"))
         if offset < len(data):
             dscr, offset = _decode_until_null(data, offset)
             if dscr:
+                dscr_value = parsed_data.get("dscr") if parsed_data else None
+                if dscr_value is None:
+                    dscr_value = dscr
                 fields.append(_make_field("DSCR", offset - len(dscr) - 1, offset - 2,
                                           data[offset - len(dscr) - 1:offset],
-                                          dscr, field_type="subrecord_data"))
+                                          dscr_value, field_type="subrecord_data"))
     return fields
 
 
-def _parse_srt_3(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_3(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 25:
         return fields
-    vin = _decode_str(data, offset, 17)
+    vin = parsed_data.get("vin", _decode_str(data, offset, 17)) if parsed_data else _decode_str(data, offset, 17)
     fields.append(_make_field("VIN", offset, offset + 16, data[offset:offset + 17], vin))
     offset += 17
-    vht = _uint32_le(data, offset)
+    vht = parsed_data["vht"] if parsed_data and "vht" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("VHT", offset, offset + 3, data[offset:offset + 4],
                               f"0x{vht:08X}"))
     offset += 4
-    vpst = _uint32_le(data, offset)
+    vpst = parsed_data["vpst"] if parsed_data and "vpst" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("VPST", offset, offset + 3, data[offset:offset + 4],
                               f"0x{vpst:08X}"))
     return fields
 
 
-def _parse_srt_6(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_6(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 1:
         return fields
-    flg = _int8(data, offset)
+    flg = parsed_data["flg"] if parsed_data and "flg" in parsed_data else _int8(data, offset)
     flag_bits = []
     bit_names = ["ENA", "PKE", "ISLE", "MSE", "SSE", "EXE"]
     bit_desc = ["Encryption Algorithm", "Public Key", "Identity String Len",
@@ -697,33 +750,33 @@ def _parse_srt_6(data: bytes, offset: int, _len: int) -> list[ByteField]:
     pos = offset
     if _len >= 3 and (flg & 0x02):
         if pos + 2 <= len(data):
-            pkl = _uint16_le(data, pos)
+            pkl = parsed_data["pkl"] if parsed_data and "pkl" in parsed_data else _uint16_le(data, pos)
             fields.append(_make_field("PKL", pos, pos + 1, data[pos:pos + 2], f"{pkl}"))
             pos += 2
-            if pkl > 0 and pos + pkl <= len(data):
+            if pkl and pkl > 0 and pos + pkl <= len(data):
                 fields.append(_make_field("PBK", pos, pos + pkl - 1,
                                           data[pos:pos + pkl], f"({pkl} bytes)"))
                 pos += pkl
     if _len >= 3 and (flg & 0x04):
         if pos + 2 <= len(data):
-            isl = _uint16_le(data, pos)
+            isl = parsed_data["isl"] if parsed_data and "isl" in parsed_data else _uint16_le(data, pos)
             fields.append(_make_field("ISL", pos, pos + 1, data[pos:pos + 2], f"{isl}"))
             pos += 2
-            if isl > 0 and pos + isl <= len(data):
+            if isl and isl > 0 and pos + isl <= len(data):
                 fields.append(_make_field("IS", pos, pos + isl - 1,
                                           data[pos:pos + isl], f"({isl} bytes)"))
                 pos += isl
     if _len >= 3 and (flg & 0x08):
         if pos + 2 <= len(data):
-            msz = _uint16_le(data, pos)
+            msz = parsed_data["msz"] if parsed_data and "msz" in parsed_data else _uint16_le(data, pos)
             fields.append(_make_field("MSZ", pos, pos + 1, data[pos:pos + 2], f"{msz}"))
             pos += 2
     if _len >= 3 and (flg & 0x10):
         if pos + 2 <= len(data):
-            ssl = _uint16_le(data, pos)
+            ssl = parsed_data["ssl"] if parsed_data and "ssl" in parsed_data else _uint16_le(data, pos)
             fields.append(_make_field("SSL", pos, pos + 1, data[pos:pos + 2], f"{ssl}"))
             pos += 2
-            if ssl > 0 and pos + ssl <= len(data):
+            if ssl and ssl > 0 and pos + ssl <= len(data):
                 fields.append(_make_field("SS", pos, pos + ssl - 1,
                                           data[pos:pos + ssl], f"({ssl} bytes)"))
                 pos += ssl
@@ -732,39 +785,53 @@ def _parse_srt_6(data: bytes, offset: int, _len: int) -> list[ByteField]:
             pos += 1
             exp_str, pos = _decode_until_null(data, pos)
             if exp_str:
+                exp_value = parsed_data.get("exp") if parsed_data else None
+                if exp_value is None:
+                    exp_value = exp_str
                 fields.append(_make_field("EXP", pos - len(exp_str) - 1, pos - 2,
                                           data[pos - len(exp_str) - 1:pos],
-                                          exp_str, field_type="subrecord_data"))
+                                          exp_value, field_type="subrecord_data"))
     return fields
 
 
-def _parse_srt_7(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_7(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     pos = offset
-    unm, pos = _decode_until_null(data, pos)
-    if unm:
+    unm_local, pos = _decode_until_null(data, pos)
+    if unm_local:
+        unm_value = parsed_data.get("unm") if parsed_data else None
+        if unm_value is None:
+            unm_value = unm_local
         fields.append(_make_field("UNM", offset, pos - 2,
-                                  data[offset:pos], unm))
-    upsw, pos = _decode_until_null(data, pos)
-    if upsw:
-        fstart = pos - len(upsw) - 1
+                                  data[offset:pos], unm_value))
+    upsw_local, pos = _decode_until_null(data, pos)
+    if upsw_local:
+        fstart = pos - len(upsw_local) - 1
+        upsw_value = parsed_data.get("upsw") if parsed_data else None
+        if upsw_value is None:
+            upsw_value = upsw_local
         fields.append(_make_field("UPSW", fstart, pos - 2,
-                                  data[fstart:pos], upsw))
+                                  data[fstart:pos], upsw_value))
     if pos < len(data):
-        ss_str, pos = _decode_until_null(data, pos)
-        if ss_str:
-            fstart = pos - len(ss_str) - 1
+        ss_local, pos = _decode_until_null(data, pos)
+        if ss_local:
+            fstart = pos - len(ss_local) - 1
+            ss_value = parsed_data.get("ss") if parsed_data else None
+            if ss_value is None:
+                ss_value = ss_local
             fields.append(_make_field("SS", fstart, pos - 2,
-                                      data[fstart:pos], ss_str))
+                                      data[fstart:pos], ss_value))
     return fields
 
 
-def _parse_srt_8(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_8(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     pos = offset
     if pos >= len(data):
         return fields
-    srvp = _int8(data, pos)
+    srvp = parsed_data["srvp"] if parsed_data and "srvp" in parsed_data else _int8(data, pos)
     srvp_bits = []
     srva = bool(srvp & 0x80)
     srvrp = srvp & 0x03
@@ -796,72 +863,121 @@ def _parse_srt_8(data: bytes, offset: int, _len: int) -> list[ByteField]:
     return fields
 
 
-def _parse_srt_9(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_9(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len >= 1:
-        rcd = _int8(data, offset)
-        rc_name = RESULT_CODES.get(rcd, f"UNKNOWN_{rcd}")
+        rcd = parsed_data["rcd"] if parsed_data and "rcd" in parsed_data else _int8(data, offset)
+        rc_name = parsed_data.get("rcd_text") if parsed_data else None
+        if not rc_name:
+            rc_name = RESULT_CODES.get(rcd, f"UNKNOWN_{rcd}")
         fields.append(_make_field("RCD", offset, offset, data[offset:offset + 1],
                                   f"{rc_name} ({rcd})"))
     return fields
 
 
-def _parse_srt_20(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_20(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 5:
         return fields
-    sa = _int8(data, offset)
+    sa = parsed_data["sa"] if parsed_data and "sa" in parsed_data else _int8(data, offset)
     fields.append(_make_field("SA", offset, offset, data[offset:offset + 1], f"{sa}"))
     offset += 1
-    if offset + 4 > offset + _len:
+    # FIX Б-03: bounds check was `offset + 4 > offset + _len` (tautology ≡ 4 > _len).
+    # Correct: use len(data) since SRL may be longer than actual buffer.
+    if offset + 4 > len(data):
         return fields
-    atm = _uint32_le(data, offset)
+    atm = parsed_data["atm"] if parsed_data and "atm" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("ATM", offset, offset + 3, data[offset:offset + 4],
                               f"{atm} sec from 2010-01-01"))
     offset += 4
 
-    for i in range(sa):
-        if offset + 8 > offset + _len:
-            break
-        ad_fields = []
-        rtm = _uint16_le(data, offset)
-        ad_fields.append(_make_field("RTM", offset, offset + 1, data[offset:offset + 2],
-                                     f"{rtm} ms"))
-        offset += 2
-        xaav = int.from_bytes(data[offset:offset + 2], 'little', signed=True)
-        ad_fields.append(_make_field("XAAV", offset, offset + 1, data[offset:offset + 2],
-                                     f"{xaav * 0.1:.1f} m/s²"))
-        offset += 2
-        yaav = int.from_bytes(data[offset:offset + 2], 'little', signed=True)
-        ad_fields.append(_make_field("YAAV", offset, offset + 1, data[offset:offset + 2],
-                                     f"{yaav * 0.1:.1f} m/s²"))
-        offset += 2
-        zaav = int.from_bytes(data[offset:offset + 2], 'little', signed=True)
-        ad_fields.append(_make_field("ZAAV", offset, offset + 1, data[offset:offset + 2],
-                                     f"{zaav * 0.1:.1f} m/s²"))
-        offset += 2
-        fields.append(_make_section(f"Measurement {i + 1}",
-                                    offset - 8, offset - 1, ad_fields,
-                                    f"[{rtm}ms] X={xaav * 0.1:.1f} Y={yaav * 0.1:.1f} Z={zaav * 0.1:.1f}"))
+    # FIX Б-03: prefer iterating the canonical `measurements` list (already
+    # correctly bounded). Fallback uses `range(sa)` with `len(data)` bounds check.
+    if parsed_data and isinstance(parsed_data.get("measurements"), list):
+        measurements = parsed_data["measurements"]
+        for i, m in enumerate(measurements):
+            if offset + 8 > len(data):
+                break
+            measurement_start = offset
+            ad_fields = []
+            rtm = m.get("rtm") if isinstance(m, dict) else None
+            if rtm is None:
+                rtm = _uint16_le(data, offset)
+            xaav = m.get("xaav") if isinstance(m, dict) else None
+            yaav = m.get("yaav") if isinstance(m, dict) else None
+            zaav = m.get("zaav") if isinstance(m, dict) else None
+            if xaav is None or yaav is None or zaav is None:
+                xaav = int.from_bytes(data[offset + 2:offset + 4], 'little', signed=True) * 0.1
+                yaav = int.from_bytes(data[offset + 4:offset + 6], 'little', signed=True) * 0.1
+                zaav = int.from_bytes(data[offset + 6:offset + 8], 'little', signed=True) * 0.1
+            ad_fields.append(_make_field("RTM", offset, offset + 1, data[offset:offset + 2],
+                                         f"{rtm} ms"))
+            ad_fields.append(_make_field("XAAV", offset + 2, offset + 3, data[offset + 2:offset + 4],
+                                         f"{xaav:.1f} m/s²"))
+            ad_fields.append(_make_field("YAAV", offset + 4, offset + 5, data[offset + 4:offset + 6],
+                                         f"{yaav:.1f} m/s²"))
+            ad_fields.append(_make_field("ZAAV", offset + 6, offset + 7, data[offset + 6:offset + 8],
+                                         f"{zaav:.1f} m/s²"))
+            offset += 8
+            fields.append(_make_section(f"Measurement {i + 1}",
+                                        measurement_start, offset - 1, ad_fields,
+                                        f"[{rtm}ms] X={xaav:.1f} Y={yaav:.1f} Z={zaav:.1f}"))
+    else:
+        for i in range(sa):
+            if offset + 8 > len(data):
+                break
+            measurement_start = offset
+            ad_fields = []
+            rtm = _uint16_le(data, offset)
+            ad_fields.append(_make_field("RTM", offset, offset + 1, data[offset:offset + 2],
+                                         f"{rtm} ms"))
+            offset += 2
+            xaav = int.from_bytes(data[offset:offset + 2], 'little', signed=True) * 0.1
+            ad_fields.append(_make_field("XAAV", offset, offset + 1, data[offset:offset + 2],
+                                         f"{xaav:.1f} m/s²"))
+            offset += 2
+            yaav = int.from_bytes(data[offset:offset + 2], 'little', signed=True) * 0.1
+            ad_fields.append(_make_field("YAAV", offset, offset + 1, data[offset:offset + 2],
+                                         f"{yaav:.1f} m/s²"))
+            offset += 2
+            zaav = int.from_bytes(data[offset:offset + 2], 'little', signed=True) * 0.1
+            ad_fields.append(_make_field("ZAAV", offset, offset + 1, data[offset:offset + 2],
+                                         f"{zaav:.1f} m/s²"))
+            offset += 2
+            fields.append(_make_section(f"Measurement {i + 1}",
+                                        measurement_start, offset - 1, ad_fields,
+                                        f"[{rtm}ms] X={xaav:.1f} Y={yaav:.1f} Z={zaav:.1f}"))
     return fields
 
 
-def _parse_srt_33(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_33(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 8:
         return fields
-    sid = _uint16_le(data, offset)
+    sid = parsed_data["id"] if parsed_data and "id" in parsed_data else _uint16_le(data, offset)
     fields.append(_make_field("ID", offset, offset + 1, data[offset:offset + 2],
                               f"0x{sid:04X} ({sid})"))
     offset += 2
-    pn = _uint16_le(data, offset)
+    pn = parsed_data["pn"] if parsed_data and "pn" in parsed_data else _uint16_le(data, offset)
     fields.append(_make_field("PN", offset, offset + 1, data[offset:offset + 2], f"{pn}"))
     offset += 2
-    epq = _uint16_le(data, offset)
+    epq = parsed_data["epq"] if parsed_data and "epq" in parsed_data else _uint16_le(data, offset)
     fields.append(_make_field("EPQ", offset, offset + 1, data[offset:offset + 2], f"{epq}"))
     offset += 2
-    remaining = _len - 6
-    if pn == 1 and remaining > 0:
+
+    # FIX Б-01: when parsed_data has `odh`, use its length instead of re-walking bytes.
+    odh_raw = parsed_data.get("odh") if parsed_data else None
+    if isinstance(odh_raw, (bytes, bytearray)) and len(odh_raw) > 0 and pn == 1:
+        odh_data = bytes(odh_raw)
+        odh_fields, _ = _parse_odh(data, offset, len(odh_data))
+        fields.append(_make_section("ODH", offset, offset + len(odh_data) - 1, odh_fields,
+                                    f"({len(odh_data)} bytes)"))
+        offset += len(odh_data)
+    elif pn == 1 and offset < len(data):
+        # Fallback: walk bytes to find null-terminated ODH
         odh_end = offset
         while odh_end < len(data) and data[odh_end] != 0:
             odh_end += 1
@@ -873,31 +989,64 @@ def _parse_srt_33(data: bytes, offset: int, _len: int) -> list[ByteField]:
             fields.append(_make_section("ODH", offset, odh_end - 1, odh_fields,
                                         f"({len(odh_data)} bytes)"))
             offset = odh_end
-    remaining = _len - (offset - (offset - _len + 6))
-    if remaining > 0:
-        fields.append(_make_field("OD", offset, offset + remaining - 1,
-                                  data[offset:offset + remaining] if remaining > 0 else b"",
-                                  f"({remaining} bytes)", field_type="subrecord_data"))
+
+    # FIX Б-01: use parsed_data["od"] length, not the broken `remaining = _len - 6` formula.
+    od_raw = parsed_data.get("od") if parsed_data else None
+    if isinstance(od_raw, (bytes, bytearray)):
+        od_data = bytes(od_raw)
+        if len(od_data) > 0:
+            fields.append(_make_field("OD", offset, offset + len(od_data) - 1,
+                                      od_data, f"({len(od_data)} bytes)",
+                                      field_type="subrecord_data"))
+    elif offset < len(data):
+        # Fallback: take all remaining bytes
+        rest = data[offset:]
+        if rest:
+            fields.append(_make_field("OD", offset, offset + len(rest) - 1,
+                                      rest, f"({len(rest)} bytes)",
+                                      field_type="subrecord_data"))
     return fields
 
 
-def _parse_srt_34(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_34(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
-    odh_end = offset
-    while odh_end < len(data) and data[odh_end] != 0:
-        odh_end += 1
-    if odh_end < len(data):
-        odh_end += 1
-    odh_data = data[offset:odh_end]
-    if odh_data:
-        odh_fields, offset = _parse_odh(data, offset, len(odh_data))
-        fields.append(_make_section("ODH", offset - len(odh_data), offset - 1, odh_fields,
+    # FIX Б-02: use parsed_data["odh"] length when available, not the broken formula.
+    odh_raw = parsed_data.get("odh") if parsed_data else None
+    if isinstance(odh_raw, (bytes, bytearray)) and len(odh_raw) > 0:
+        odh_data = bytes(odh_raw)
+        odh_fields, _ = _parse_odh(data, offset, len(odh_data))
+        fields.append(_make_section("ODH", offset, offset + len(odh_data) - 1, odh_fields,
                                     f"({len(odh_data)} bytes)"))
-    remaining = _len - (odh_end - (odh_end - _len))
-    if remaining > 0:
-        fields.append(_make_field("OD", offset, offset + remaining - 1,
-                                  data[offset:offset + remaining] if remaining > 0 else b"",
-                                  f"({remaining} bytes)", field_type="subrecord_data"))
+        offset += len(odh_data)
+    else:
+        # Fallback: walk bytes to find null-terminated ODH
+        odh_end = offset
+        while odh_end < len(data) and data[odh_end] != 0:
+            odh_end += 1
+        if odh_end < len(data):
+            odh_end += 1
+        odh_data = data[offset:odh_end]
+        if odh_data:
+            odh_fields, new_offset = _parse_odh(data, offset, len(odh_data))
+            fields.append(_make_section("ODH", offset, new_offset - 1, odh_fields,
+                                        f"({len(odh_data)} bytes)"))
+            offset = new_offset
+
+    # FIX Б-02: OD length comes from parsed_data["od"], not from the always-zero formula.
+    od_raw = parsed_data.get("od") if parsed_data else None
+    if isinstance(od_raw, (bytes, bytearray)):
+        od_data = bytes(od_raw)
+        if len(od_data) > 0:
+            fields.append(_make_field("OD", offset, offset + len(od_data) - 1,
+                                      od_data, f"({len(od_data)} bytes)",
+                                      field_type="subrecord_data"))
+    elif offset < len(data):
+        rest = data[offset:]
+        if rest:
+            fields.append(_make_field("OD", offset, offset + len(rest) - 1,
+                                      rest, f"({len(rest)} bytes)",
+                                      field_type="subrecord_data"))
     return fields
 
 
@@ -945,15 +1094,22 @@ def _parse_odh(data: bytes, offset: int, _len: int) -> tuple[list[ByteField], in
     return fields, offset
 
 
-def _parse_srt_51(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_51(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 10:
         return fields
-    ct_cct = _int8(data, offset)
-    ct = (ct_cct >> 4) & 0x0F
-    cct = ct_cct & 0x0F
-    ct_name = COMMAND_TYPE_NAMES.get(ct, f"UNKNOWN_CT_{ct}")
-    cct_name = CONFIRMATION_TYPE_NAMES.get(cct, f"UNKNOWN_CCT_{cct}")
+    if parsed_data and "ct" in parsed_data:
+        ct = parsed_data["ct"]
+        cct = parsed_data["cct"]
+        ct_name = parsed_data.get("ct_text") or COMMAND_TYPE_NAMES.get(ct, f"UNKNOWN_CT_{ct}")
+        cct_name = parsed_data.get("cct_text") or CONFIRMATION_TYPE_NAMES.get(cct, f"UNKNOWN_CCT_{cct}")
+    else:
+        ct_cct = _int8(data, offset)
+        ct = (ct_cct >> 4) & 0x0F
+        cct = ct_cct & 0x0F
+        ct_name = COMMAND_TYPE_NAMES.get(ct, f"UNKNOWN_CT_{ct}")
+        cct_name = CONFIRMATION_TYPE_NAMES.get(cct, f"UNKNOWN_CCT_{cct}")
     ctcct_bits = []
     ct_label = f"CT ({ct_name})"
     cct_label = f"CCT ({cct_name})"
@@ -965,37 +1121,45 @@ def _parse_srt_51(data: bytes, offset: int, _len: int) -> list[ByteField]:
                               f"CT={ct_name} ({ct}), CCT={cct_name} ({cct})",
                               children=ctcct_bits))
     offset += 1
-    cid = _uint32_le(data, offset)
+    cid = parsed_data["cid"] if parsed_data and "cid" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("CID", offset, offset + 3, data[offset:offset + 4],
                               f"0x{cid:08X}"))
     offset += 4
-    sid = _uint32_le(data, offset)
+    sid = parsed_data["sid"] if parsed_data and "sid" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("SID", offset, offset + 3, data[offset:offset + 4],
                               f"0x{sid:08X}"))
     offset += 4
-    ac_chs_flags = _int8(data, offset)
-    acfe = bool(ac_chs_flags & 0x80)
-    chsfe = bool(ac_chs_flags & 0x40)
+    if parsed_data and "acfe" in parsed_data:
+        acfe = bool(parsed_data["acfe"])
+        chsfe = bool(parsed_data["chsfe"])
+    else:
+        ac_chs_flags = _int8(data, offset)
+        acfe = bool(ac_chs_flags & 0x80)
+        chsfe = bool(ac_chs_flags & 0x40)
     flag_bits = []
     flag_bits.append(_make_field("ACFE", offset, offset, data[offset:offset + 1],
                                  f"{int(acfe)}", field_type="bitfield"))
     flag_bits.append(_make_field("CHSFE", offset, offset, data[offset:offset + 1],
                                  f"{int(chsfe)}", field_type="bitfield"))
     fields.append(_make_field("ACL", offset, offset, data[offset:offset + 1],
-                              f"0x{ac_chs_flags:02X}", children=flag_bits))
+                              f"0x{(_int8(data, offset)):02X}", children=flag_bits))
     offset += 1
     acl_len = 0
     if chsfe and offset < len(data):
-        chs = _int8(data, offset)
-        chs_name = CHARSET_NAMES.get(chs, f"UNKNOWN_{chs}")
+        if parsed_data and "chs" in parsed_data and parsed_data["chs"] is not None:
+            chs = parsed_data["chs"]
+            chs_name = parsed_data.get("chs_text") or CHARSET_NAMES.get(chs, f"UNKNOWN_{chs}")
+        else:
+            chs = _int8(data, offset)
+            chs_name = CHARSET_NAMES.get(chs, f"UNKNOWN_{chs}")
         fields.append(_make_field("CHS", offset, offset, data[offset:offset + 1],
                                   f"{chs_name} ({chs})"))
         offset += 1
     if acfe and offset < len(data):
-        acl_val = _int8(data, offset)
+        acl_val = parsed_data["acl"] if parsed_data and "acl" in parsed_data else _int8(data, offset)
         fields.append(_make_field("ACL", offset, offset, data[offset:offset + 1], f"{acl_val}"))
         offset += 1
-        if acl_val > 0 and offset + acl_val <= len(data):
+        if acl_val is not None and acl_val > 0 and offset + acl_val <= len(data):
             ac_data = data[offset:offset + acl_val]
             fields.append(_make_field("AC", offset, offset + acl_val - 1,
                                       ac_data, f"({acl_val} bytes)"))
@@ -1081,26 +1245,128 @@ def _parse_cd_comconf(data: bytes, offset: int, _len: int) -> list[ByteField]:
     return fields
 
 
-def _parse_srt_62(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_62(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 1:
         return fields
-    fm = _int8(data, offset)
+    fm = parsed_data["fm"] if parsed_data and "fm" in parsed_data else _int8(data, offset)
     fields.append(_make_field("FM", offset, offset, data[offset:offset + 1],
                               f"0x{fm:02X} ({fm})"))
     offset += 1
     if _len > 1:
-        msd_data = data[offset:offset + _len - 1]
-        fields.append(_make_field("MSD", offset, offset + len(msd_data) - 1,
-                                  msd_data, f"({len(msd_data)} bytes)",
-                                  field_type="subrecord_data"))
+        # When parsed_data is available, prefer the canonical parser's MSD bytes
+        # (guaranteed to match what the server sent, even if SRL is malformed).
+        if parsed_data and "msd" in parsed_data and isinstance(parsed_data["msd"], (bytes, bytearray)):
+            msd_data = bytes(parsed_data["msd"])
+        else:
+            msd_data = data[offset:offset + _len - 1]
+        if msd_data:
+            fields.append(_make_field("MSD", offset, offset + len(msd_data) - 1,
+                                      msd_data, f"({len(msd_data)} bytes)",
+                                      field_type="subrecord_data"))
     return fields
 
 
-def _parse_srt_63(data: bytes, offset: int, _len: int) -> list[ByteField]:
+def _parse_srt_63(data: bytes, offset: int, _len: int,
+                parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
     if _len < 5:
         return fields
+    sa = parsed_data["sa"] if parsed_data and "sa" in parsed_data else _int8(data, offset)
+    fields.append(_make_field("SA", offset, offset, data[offset:offset + 1], f"{sa}"))
+    offset += 1
+    atm = parsed_data["atm"] if parsed_data and "atm" in parsed_data else _uint32_le(data, offset)
+    fields.append(_make_field("ATM", offset, offset + 3, data[offset:offset + 4],
+                              f"{atm} sec from 2010-01-01"))
+    offset += 4
+
+    # FIX Б-05: iterate `track_points` from canonical parser (correct count) and
+    # track each point's byte range via `point_start` (was `offset - 1 - len(data[offset-1:offset])`).
+    track_points = parsed_data.get("track_points") if parsed_data else None
+    if isinstance(track_points, list):
+        point_iter = track_points
+    else:
+        point_iter = range(sa)
+
+    for i, _ in enumerate(point_iter):
+        if offset >= len(data):
+            break
+        # FIX Б-05: save the start of the point section before advancing offset.
+        point_start = offset
+        hdr = _int8(data, offset)
+        tnde = bool(hdr & 0x80)
+        lohs = bool(hdr & 0x40)
+        lahs = bool(hdr & 0x20)
+        sdfe = bool(hdr & 0x10)
+        spfe = bool(hdr & 0x08)
+        rtm = hdr & 0x07
+
+        tp_bits = [
+            _make_field("TNDE", offset, offset, data[offset:offset + 1],
+                        f"{int(tnde)}", field_type="bitfield"),
+            _make_field("LOHS", offset, offset, data[offset:offset + 1],
+                        f"{int(lohs)}", field_type="bitfield"),
+            _make_field("LAHS", offset, offset, data[offset:offset + 1],
+                        f"{int(lahs)}", field_type="bitfield"),
+            _make_field("SDFE", offset, offset, data[offset:offset + 1],
+                        f"{int(sdfe)}", field_type="bitfield"),
+            _make_field("SPFE", offset, offset, data[offset:offset + 1],
+                        f"{int(spfe)}", field_type="bitfield"),
+            _make_field("RTM", offset, offset, data[offset:offset + 1],
+                        f"{rtm} ({rtm * 0.1}s)", field_type="bitfield"),
+        ]
+        tp_fields = [_make_field("FLG", offset, offset, data[offset:offset + 1],
+                                 f"0x{hdr:02X}", children=tp_bits)]
+        offset += 1
+
+        if tnde and offset + 11 <= len(data):
+            lat_raw = _uint32_le(data, offset)
+            tp_fields.append(_make_field("LAT", offset, offset + 3, data[offset:offset + 4],
+                                         f"{lat_raw} (degrees: {lat_raw / 0xFFFFFFFF * 180:.6f})"))
+            offset += 4
+            if offset + 4 > len(data):
+                break
+            lon_raw = _uint32_le(data, offset)
+            tp_fields.append(_make_field("LONG", offset, offset + 3, data[offset:offset + 4],
+                                         f"{lon_raw} (degrees: {lon_raw / 0xFFFFFFFF * 360:.6f})"))
+            offset += 4
+            if spfe and offset + 2 <= len(data):
+                spd_low = _uint16_le(data, offset)
+                offset += 2
+                if offset < len(data):
+                    dirh_spdh = _int8(data, offset)
+                    spd_high = (dirh_spdh >> 1) & 0x01
+                    dir_high = dirh_spdh & 0x01
+                    speed = ((spd_high << 14) | spd_low) * 0.01
+                    tp_fields.append(_make_field("SPD", offset - 2, offset,
+                                                  data[offset - 2:offset + 1],
+                                                  f"{speed:.2f} km/h"))
+                    offset += 1
+        elif tnde and spfe and offset + 3 <= len(data):
+            spd_low = _uint16_le(data, offset)
+            offset += 2
+            if offset < len(data):
+                dirh_spdh = _int8(data, offset)
+                spd_high = (dirh_spdh >> 1) & 0x01
+                dir_high = dirh_spdh & 0x01
+                speed = ((spd_high << 14) | spd_low) * 0.01
+                tp_fields.append(_make_field("SPD", offset - 2, offset,
+                                              data[offset - 2:offset + 1],
+                                              f"{speed:.2f} km/h"))
+                offset += 1
+
+        if sdfe and offset < len(data):
+            direc = _int8(data, offset)
+            tp_fields.append(_make_field("DIR", offset, offset, data[offset:offset + 1],
+                                         f"{direc}°"))
+            offset += 1
+
+        summary = f"Point {i + 1} [RTM={rtm * 0.1}s]"
+        # FIX Б-05: use point_start (correct) instead of `offset - 1 - len(data[offset-1:offset])` (= offset - 2).
+        fields.append(_make_section(f"Point {i + 1}",
+                                    point_start, offset - 1, tp_fields, summary))
+    return fields
     sa = _int8(data, offset)
     fields.append(_make_field("SA", offset, offset, data[offset:offset + 1], f"{sa}"))
     offset += 1
@@ -1185,12 +1451,17 @@ def _parse_srt_63(data: bytes, offset: int, _len: int) -> list[ByteField]:
     return fields
 
 
-def compute_layout(hex_str: str, parsed: dict) -> list[ByteField]:
+def compute_layout(hex_str: str, parsed: dict,
+                  parsed_records: list[dict] | None = None) -> list[ByteField]:
     """Build complete byte-level layout tree for an EGTS packet.
 
     Args:
         hex_str: Hex-encoded packet data
-        parsed: Parsed dict from live_packets (may be empty)
+        parsed: Parsed dict from live_packets (may be empty) — metadata only
+        parsed_records: Optional list of {subrecords: [{srt, data, raw_bytes}, ...]}
+            from the canonical parser. When provided, subrecord field values are
+            pulled from the canonical parser (single source of truth), eliminating
+            the offset/size bugs in the byte-walking layout functions.
 
     Returns:
         List of root-level ByteField items (sections + fields)
@@ -1223,13 +1494,18 @@ def compute_layout(hex_str: str, parsed: dict) -> list[ByteField]:
     sfrd_offset = hl
     sfrd_end = hl + fdl - 1
 
+    def _record_subs(idx: int) -> list[dict] | None:
+        if not parsed_records or idx >= len(parsed_records):
+            return None
+        return parsed_records[idx].get("subrecords") if isinstance(parsed_records[idx], dict) else None
+
     if pt == 0:
         # RESPONSE
         sfrd_fields = []
         resp_fields, resp_end = _build_response_sfrd(raw, sfrd_offset)
         sfrd_fields.extend(resp_fields)
         if resp_end + 6 < len(raw):
-            rec_fields, rec_start, rec_end = _build_record_layout(raw, resp_end)
+            rec_fields, rec_start, rec_end = _build_record_layout(raw, resp_end, _record_subs(0))
             sfrd_fields.append(_make_section(f"Record 1 [{rec_start}-{rec_end}]",
                                               rec_start, rec_end, rec_fields))
         root.append(_make_section(f"Service Frame Data (RESPONSE) [{sfrd_offset}-{sfrd_end}]",
@@ -1250,7 +1526,7 @@ def compute_layout(hex_str: str, parsed: dict) -> list[ByteField]:
                                                 f"({sigl} bytes)"))
             record_offset = sigd_end + 1
             if record_offset <= sfrd_end:
-                rec_fields, rec_start, rec_end = _build_record_layout(raw, record_offset)
+                rec_fields, rec_start, rec_end = _build_record_layout(raw, record_offset, _record_subs(0))
                 sfrd_fields.append(_make_section(f"Record 1 [{rec_start}-{rec_end}]",
                                                   rec_start, rec_end, rec_fields))
         root.append(_make_section(f"Service Frame Data (SIGNED) [{sfrd_offset}-{sfrd_end}]",
@@ -1265,9 +1541,10 @@ def compute_layout(hex_str: str, parsed: dict) -> list[ByteField]:
             if record_offset + 2 > len(raw):
                 break
             rl_candidate = _uint16_le(raw, record_offset)
-            if rl_candidate == 0 or record_offset + 4 + rl_candidate > len(raw):
+            # FIX Б-04: record header is 7 bytes (RL+RN+RFL+SST+RST), not 4.
+            if rl_candidate == 0 or record_offset + 7 + rl_candidate > len(raw):
                 break
-            rec_fields, rec_start, rec_end = _build_record_layout(raw, record_offset)
+            rec_fields, rec_start, rec_end = _build_record_layout(raw, record_offset, _record_subs(rec_idx))
             rec_idx += 1
             sfrd_fields.append(_make_section(
                 f"Record {rec_idx} [{rec_start}-{rec_end}]",

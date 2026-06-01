@@ -205,21 +205,16 @@ class LivePacketsCard(BaseCard):
         content = "_".join(sig_parts)
         packet_id = "pkt_" + hashlib.md5(content.encode()).hexdigest()[:16]
 
-        # If already open - raise it and return
-        if packet_id in self._open_detail_cards:
+        # If already open - raise it (the Qt C++ wrapper may be deleted if the
+        # user closed the window via the title bar before `closed` signal fired)
+        card = self._open_detail_cards.get(packet_id)
+        if card is not None:
             try:
-                card = self._open_detail_cards[packet_id]
-                if card and not card.isHidden():
+                if not card.isHidden():
                     card.raise_()
                     return
-            except:
-                if packet_id in self._open_detail_cards:
-                    del self._open_detail_cards[packet_id]
-
-        # If already open - raise it
-        if packet_id in self._open_detail_cards:
-            self._open_detail_cards[packet_id].raise_()
-            return
+            except (RuntimeError, ReferenceError):
+                self._open_detail_cards.pop(packet_id, None)
 
         # Check limit
         if len(self._open_detail_cards) >= self.MAX_DETAIL_CARDS:
@@ -239,7 +234,7 @@ class LivePacketsCard(BaseCard):
         card.toggle_floating()  # Switch to floating (pinned) mode
 
     def _position_floating_card(self, card: PacketDetailCard):
-        """Position floating card with cascade offset."""
+        """Position floating card with cascade offset that wraps within main window."""
         main_window = self.window()
         if not main_window:
             return
@@ -247,16 +242,15 @@ class LivePacketsCard(BaseCard):
         main_geo = main_window.geometry()
         base_x = main_geo.x() + main_geo.width() // 4
         base_y = main_geo.y() + main_geo.height() // 4
-
-        # Cascade: 30px offset per existing card
-        offset = len(self._open_detail_cards) * 30
+        # Assumed card width for the bounds check (matches the actual minimum).
+        card_w = 500
+        # Cascade: 30px offset per existing card, wrapping every (main_w - card_w) px
+        # to keep cards visible inside the main window.
+        stride = 30
+        wrap_step = max(1, (main_geo.width() - card_w) // stride)
+        offset = (len(self._open_detail_cards) % wrap_step) * stride
         x = base_x + offset
         y = base_y + offset
-
-        # Bounds check - don't go beyond main window
-        if x + 500 > main_geo.right():
-            x = base_x
-            y = base_y  # Reset cascade
 
         card.set_floating_position(x, y)
 
@@ -273,39 +267,30 @@ class LivePacketsCard(BaseCard):
         self._open_detail_cards.clear()
         # Close all cards (disconnect signals first)
         for card in cards_to_close:
-            try:
-                card.closed.disconnect()
-            except:
-                pass
+            closed_signal = getattr(card, "closed", None)
+            if closed_signal is not None:
+                try:
+                    closed_signal.disconnect()
+                except (RuntimeError, TypeError):
+                    pass
             card.close()
 
     def _close_detail_card(self, card_id: str):
         """Close a specific detail card."""
         if card_id in self._open_detail_cards:
             card = self._open_detail_cards.pop(card_id)
-            try:
-                card.closed.disconnect()
-            except:
-                pass
+            closed_signal = getattr(card, "closed", None)
+            if closed_signal is not None:
+                try:
+                    closed_signal.disconnect()
+                except (RuntimeError, TypeError):
+                    pass
             card.close()
 
     def hideEvent(self, event):
         """Close all detail cards when LivePacketsCard is hidden."""
         self._close_all_detail_cards()
         super().hideEvent(event)
-
-    def _format_hex_dump(self, hex_str: str, bytes_per_line: int = 16) -> str:
-        if not hex_str:
-            return "(empty)"
-        lines = []
-        for i in range(0, len(hex_str), bytes_per_line * 2):
-            chunk = hex_str[i:i + bytes_per_line * 2]
-            ascii_repr = "".join(
-                chr(int(chunk[j:j+2], 16)) if 32 <= int(chunk[j:j+2], 16) < 127 else "."
-                for j in range(0, len(chunk), 2)
-            )
-            lines.append(f"  {chunk}  {ascii_repr}")
-        return "\n".join(lines)
 
     def update_content_visibility(self, state: DisplayState):
         super().update_content_visibility(state)
@@ -340,8 +325,10 @@ class LivePacketsCard(BaseCard):
                     if subrecords:
                         rec["subrecords"] = [
                             {
-                                "subrecord_type": sr.subrecord_type,
-                                **sr.data
+                                "srt": sr.subrecord_type,
+                                "data": sr.data,
+                                "raw_bytes": bytes(sr.raw_bytes)
+                                if getattr(sr, "raw_bytes", None) else None,
                             }
                             for sr in subrecords
                         ]
@@ -361,6 +348,10 @@ class LivePacketsCard(BaseCard):
                     }
                     if records:
                         parsed_dict["records"] = records
+            else:
+                # No parsed object — leave parsed_dict empty so the layout
+                # engine falls back to byte-decoding (backward compat).
+                pass
 
         crc_valid = data.get("crc_valid", False)
         is_dup = data.get("is_duplicate", False)
@@ -417,8 +408,10 @@ class LivePacketsCard(BaseCard):
                         if r.subrecords:
                             rec["subrecords"] = [
                                 {
-                                    "subrecord_type": sr.subrecord_type,
-                                    **sr.data
+                                    "srt": sr.subrecord_type,
+                                    "data": sr.data,
+                                    "raw_bytes": bytes(sr.raw_bytes)
+                                    if getattr(sr, "raw_bytes", None) else None,
                                 }
                                 for sr in r.subrecords
                             ]
