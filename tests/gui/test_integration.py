@@ -112,12 +112,12 @@ class TestLivePacketsToDetailIntegration:
 class TestPacketDetailCardWorkflow:
     """Integration tests for PacketDetailCard workflow."""
 
-    def test_card_shows_compact_view_first(self, qtbot, sample_packet):
-        """Test that card shows compact view by default."""
+    def test_card_shows_expanded_view_first(self, qtbot, sample_packet):
+        """Test that card shows expanded view by default."""
         card = PacketDetailCard(sample_packet, card_id="test_pkt")
         qtbot.addWidget(card)
         card.show()
-        assert card._stack.currentIndex() == 0  # Compact view
+        assert card._stack.currentIndex() == 1  # Expanded view
 
     def test_expand_shows_tabs(self, qtbot, sample_packet):
         """Test that expanded view shows tab widget."""
@@ -128,7 +128,7 @@ class TestPacketDetailCardWorkflow:
         card.expand()
         assert card._stack.currentIndex() == 1  # Expanded view
         assert hasattr(card, '_tabs')
-        assert card._tabs.count() == 4
+        assert card._tabs.count() == 2
 
     def test_toggle_floating_mode(self, qtbot, sample_packet):
         """Test toggling floating mode."""

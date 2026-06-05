@@ -1105,6 +1105,107 @@ print(config.timeouts.tl_response_to)  # 5.0
 
 ---
 
+### Byte-level visual layout engine (GUI)
+
+**Файлы:** `gui/utils/byte_layout.py`, `gui/dashboard/cards/packet_detail.py`, `gui/dashboard/cards/live_packets.py` | **Статус:** ✅ Реализован (итерация 15.0, коммит `5af37e2`)
+
+Визуальный движок раскладки пакетов по байтам — используется в `PacketDetailCard` для подсветки полей в hex-вьюере и отображения значений полей в табличной форме.
+
+#### Dual-parser архитектура
+
+```
+┌──────────────────────┐
+│ Canonical parser     │  libs/egts/_gost2015/
+│ (Single Source of    │  ├─ protocol.py
+│  Truth для значений) │  └─ subrecords.py (14 SRT-классов)
+└──────────┬───────────┘
+           │ Subrecord.data (dict)
+           │ + Subrecord.raw_bytes
+           ▼
+┌──────────────────────┐         ┌────────────────────────┐
+│ compute_layout()     │ ──────► │ HexView (QPlainTextEdit)│
+│ gui/utils/byte_layout│ values  │ + field name table      │
+└──────────────────────┘ offsets └────────────────────────┘
+           ▲
+           │ byte walk для offsets/длин
+           │
+┌──────────────────────┐
+│ _parse_srt_N()       │  FALLBACK (только offsets,
+│ (byte-decode)        │  если parsed_data=None)
+└──────────────────────┘
+```
+
+**Ключевые принципы:**
+
+1. **Значения полей** читаются ИСКЛЮЧИТЕЛЬНО из `Subrecord.data` (canonical-парсер, 14 классов с декоратором `@register_subrecord`).
+2. **Offsets и длины** секций обходятся byte-декодером — нужен маппинг байт → поле для подсветки в hex-вьюере.
+3. **Legacy fallback** — если `parsed_records=None` (старые тесты, replay без pipeline), `_parse_srt_N` сам декодирует байты. Backward compat сохранён.
+
+#### Сигнатура
+
+```python
+def compute_layout(
+    hex_str: str,
+    parsed: dict[str, Any],
+    parsed_records: list[dict[str, Any]] | None = None,
+) -> list[LayoutBlock]:
+    """Построить layout пакета.
+
+    Args:
+        hex_str: HEX-строка пакета (без пробелов).
+        parsed: Dict с полями packet header (PRV, PRF, HL, PID, etc.)
+        parsed_records: Опциональный список записей от canonical-парсера.
+                       Каждый record: {"srt": int, "data": dict, "raw_bytes": bytes}.
+                       Если None — fallback на byte-decode.
+    """
+```
+
+#### Subrecord dicts (live_packets.py)
+
+Subrecord dicts в GUI имеют унифицированную структуру, согласующуюся с моделью `Subrecord` в canonical-парсере:
+
+```python
+{
+    "srt": 33,                          # SubrecordType (int)
+    "data": {"od": 5, "odh": {...}},    # parsed fields (от Subrecord.parse())
+    "raw_bytes": bytes(b"..."),         # original bytes (для byte-walk)
+}
+```
+
+#### Покрытие по SRT
+
+| SRT | Имя | Layout offset | Значения из parser |
+|-----|-----|----------------|---------------------|
+| 0 | RECORD_RESPONSE | ✓ | ✓ |
+| 1 | TERM_IDENTITY | ✓ | ✓ |
+| 2 | MODULE_DATA | ✓ | ✓ |
+| 3 | VEHICLE_DATA | ✓ | ✓ |
+| 6 | AUTH_PARAMS | ✓ | ✓ |
+| 7 | AUTH_INFO | ✓ | ✓ |
+| 8 | SERVICE_INFO | ✓ | ✓ |
+| 9 | RESULT_CODE | ✓ | ✓ |
+| 20 | ACCEL_DATA | ✓ (R-107) | ✓ |
+| 33 | SERVICE_PART_DATA | ✓ (R-105) | ✓ |
+| 34 | SERVICE_FULL_DATA | ✓ (R-106) | ✓ |
+| 51 | COMMAND_DATA | ✓ | ✓ |
+| 62 | RAW_MSD_DATA | ✓ | ✓ |
+| 63 | TRACK_DATA | ✓ (R-109) | ✓ |
+
+#### Решённые баги (коммит `5af37e2`)
+
+| ID | Файл | Описание | R-entry |
+|----|------|----------|---------|
+| Б-01 | `byte_layout.py:876` | `_parse_srt_33` всегда ставил `remaining = 6` | R-105 |
+| Б-02 | `byte_layout.py:896` | `_parse_srt_34` ставил `remaining = 0` | R-106 |
+| Б-03 | `byte_layout.py:816,824` | `_parse_srt_20` тавтологические bounds | R-107 |
+| Б-04 | `byte_layout.py:1268` | `compute_layout` смещал на `+4` (вместо `+7`) | R-108 |
+| Б-05 | `byte_layout.py:1183` | `_parse_srt_63` section start = `point_start` | R-109 |
+| Б-07–11 | `live_packets.py` | Дублирование, голые `except:`, мёртвый код, cascade reset | R-110 |
+
+См. детальный аудит: `docs/PACKET_INSPECTOR_AUDIT.md`.
+
+---
+
 ## Пакет EGTS — структура
 
 ### Транспортный уровень (TL)

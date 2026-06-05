@@ -4,6 +4,50 @@
 
 ---
 
+### KI-077: Рефакторинг пакетного инспектора — dual-parser архитектура (R-105..R-110)
+
+**Дата:** 01.06.2026
+**Ветка:** `feat/protocol-inspector` | **Коммит:** `5af37e2`
+
+#### Changed
+- **`gui/utils/byte_layout.py` — гибридный парсинг** — каждый `_parse_srt_N(data, offset, _len)` теперь принимает опциональный `parsed_data=None` от canonical-парсера. Layout walkers обходят байты ТОЛЬКО для offset'ов (подсветка в hex viewer), значения полей берутся из `libs/egts/_gost2015/subrecords.py` (источник истины).
+- **`compute_layout(hex_str, parsed, parsed_records=None)`** — новая сигнатура с опциональным `parsed_records`; legacy 2-arg вызов продолжает работать (fallback на byte-decode).
+- **`gui/dashboard/cards/packet_detail.py`** — пробрасывает `parsed.get("records")` в `compute_layout(hex_str, parsed, parsed_records)`.
+- **`gui/dashboard/cards/live_packets.py`** — subrecord dicts теперь имеют структуру `{srt, data, raw_bytes}` (раньше `raw_bytes` терялся). Согласовано с моделью `Subrecord` в canonical-парсере.
+
+#### Fixed
+- **Б-01**: `_parse_srt_33` всегда устанавливал `remaining = 6` → OD length отображался как "всегда 6" вместо значения из парсера.
+- **Б-02**: `_parse_srt_34` устанавливал `remaining = 0` → OD поле исчезало из layout.
+- **Б-03**: `_parse_srt_20` имел тавтологические bounds-check'и → `len(data)` вместо реального измерения.
+- **Б-04**: `compute_layout` смещал record bounds на `+4` вместо `+7` (длина заголовка записи RECORD, не PACKET).
+- **Б-05**: `_parse_srt_63` (TRACK_DATA) — секция точек стартовала не с `point_start`, а с offset+0 → 12-байтовые точки урезались до 2 байт.
+- **Б-08**: Дублирование "if already open" guard в `_open_card()` — удалено, единая точка входа.
+- **Б-09**: Голые `except:` в `_open_card`, `_close_all_detail_cards`, `_close_detail_card` — заменены на `except (RuntimeError, ReferenceError)` (Qt-объекты могут быть удалены между проверкой и действием).
+- **Б-11**: Cascade positioning в floating mode сбрасывал карточку к базовой позиции при выходе за границы → wrap modulo: `wrap_step = max(1, (main_w - card_w) // stride)`.
+
+#### Removed
+- **Б-10**: Мёртвый код `_format_hex_dump` в `live_packets.py` (заменён на `HexView` в `packet_detail.py`).
+
+#### Tests
+- **6 регрессионных тестов** в `tests/gui/utils/test_byte_layout.py`:
+  - `TestSrt33Regression` (2 теста): OD length = parsed value, offset_end covers full payload
+  - `TestSrt34Regression`: OD field отображается
+  - `TestSrt20Regression`: количество измерений соответствует parsed
+  - `TestSrt63Regression`: Point section = 12 байт (не 2)
+  - `TestTruncatedRecordRegression`: APPDATA запись с truncated data
+- **2 теста** в `tests/gui/cards/test_live_packets.py`: `TestPositionFloatingCard` — cascade wrap + no-window fallback
+- **809 тестов PASS**, 5 skipped (GUI без display)
+- Покрытие `byte_layout.py`: было ~75%, после рефакторинга — стабильное (SRT 20/33/34/63 теперь покрыты)
+
+#### Technical Details
+- **Single Source of Truth**: значения полей читаются ИСКЛЮЧИТЕЛЬНО из `Subrecord.data` (canonical-парсер). `_parse_srt_N` используется только для offset-маппинга.
+- **Backward compat**: legacy byte-decode fallback сохранён — старые тесты с `parsed={}` продолжают работать.
+- **Cascade wrap** — если карточка выходит за правую границу, она переносится в начало колонки (multi-column layout) вместо перемещения к базовой точке.
+
+См. детальный аудит: `docs/PACKET_INSPECTOR_AUDIT.md`.
+
+---
+
 ### KI-076: ScenarioResult с captured-данными (R-104)
 
 **Дата:** 28.05.2026

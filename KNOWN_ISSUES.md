@@ -2,7 +2,7 @@
 
 Известные проблемы, ограничения и плановые задачи.
 
-**Обновлено:** 28.05.2026 | **ТЗ:** v7.0 | **Итерации 1–16:** 1000+ тестов | **Аудит + исправления:** R-001–R-104
+**Обновлено:** 01.06.2026 | **ТЗ:** v7.0 | **Итерации 1–16:** 800+ тестов | **Аудит + исправления:** R-001–R-110
 
 ---
 
@@ -171,6 +171,12 @@ _Проект на стадии реализации. Ниже — архите�
 | R-098 | LogManager — утечка обработчика `packet.sent` | `stop()` теперь отписывается от `packet.sent` ( logger.py:113). Симметричность подписки/отписки соблюдена. Тест обновлён | 14.0 |
 | R-099 | Hardcoded `logging.basicConfig` в dispatcher.py | Удалён закомментированный `basicConfig(level=CRITICAL) #fixme` из dispatcher.py:38. Логирование управляется централизованно через python_logger | 14.0 |
 | R-100 | **Race condition в SMS-пути CommandDispatcher** — транзакция регистрировалась ПОСЛЕ `send_sms()`, TCP-путь регистрирует ДО `write()`. Несоответствие могло привести к потере транзакции при быстром ответе устройства. | `_send_sms()` теперь регистрирует ДО `send_sms()` (как TCP). Дополнительно: `ensure_sms_session()` вызывается один раз, устранено дублирование PID/RN extraction, registration и emit-событий через три helper-метода. +43 теста, 92% coverage. | 15.0 |
+| R-105 | **Б-01**: `_parse_srt_33` (SERVICE_PART_DATA) всегда устанавливал `remaining = 6` → OD length отображался некорректно | `compute_layout` принимает опциональный `parsed_records`. `_parse_srt_33` получает `parsed_data` от canonical-парсера, OD length = `parsed_data["od"]`. +2 регрессионных теста. | 15.0 |
+| R-106 | **Б-02**: `_parse_srt_34` (SERVICE_FULL_DATA) устанавливал `remaining = 0` → OD поле исчезало из layout | `parsed_data["od"]` пробрасывается, OD отображается в layout. +1 регрессионный тест. | 15.0 |
+| R-107 | **Б-03**: `_parse_srt_20` (ACCEL_DATA) тавтологические bounds-check'и: `offset_start < len(data) and offset_start >= 0 and offset_start < len(data)` | Удалены тавтологии, bounds = `len(data)`, count = `len(parsed_data["aad"])`. +1 регрессионный тест. | 15.0 |
+| R-108 | **Б-04**: `compute_layout` смещал record bounds на `+4` (длина заголовка PACKET) вместо `+7` (RECORD header) | Исправлено: `+7` для RECORD_HEADER (RL=2, RN=2, RFL=1, SST=1, SRT=1). Записи больше не перекрываются в hex viewer. | 15.0 |
+| R-109 | **Б-05**: `_parse_srt_63` (TRACK_DATA) — секция точек стартовала с offset+0 вместо `point_start` → 12-байтовые точки урезались до 2 байт | Section start = `point_start` (offset после TPCD), section length = `(point_count * 12)`. +1 регрессионный тест. | 15.0 |
+| R-110 | **Б-07/Б-09/Б-10/Б-11**: Дублирование кода, голые `except:`, мёртвый `_format_hex_dump`, cascade reset к base position | (Б-08) Удалено дублирование "if already open". (Б-09) `except (RuntimeError, ReferenceError)` для Qt-объектов. (Б-10) Удалён мёртвый `_format_hex_dump`. (Б-11) Cascade wrap modulo: `wrap_step = max(1, (main_w - card_w) // stride)`. +2 теста floating card positioning. | 15.0 |
 
 ---
 
