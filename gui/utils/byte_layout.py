@@ -107,7 +107,7 @@ ABBREVIATIONS: dict[str, tuple[str, str]] = {
     "ODH": ("Object Data Header", "Заголовок объекта (FW)"),
     "OD": ("Object Data", "Данные объекта (FW)"),
     "VIN": ("Vehicle ID Number", "Идентификационный номер ТС (VIN)"),
-    "VHT": ("Vehicle Hardware Type", "Тип аппаратной части ТС"),
+    "VHT": ("Vehicle Type", "Тип транспортного средства"),
     "VPST": ("Vehicle Propulsion Storage Type", "Тип энергоносителя ТС"),
     "FM": ("Format", "Формат данных MSD"),
     "MSD": ("Minimum Set of Data", "Минимальный набор данных (eCall MSD)"),
@@ -184,6 +184,22 @@ RESULT_CODES: dict[int, str] = {
 }
 CHARSET_NAMES = {0: "CP1251", 1: "ASCII", 2: "BINARY", 3: "LATIN1",
                  4: "BINARY2", 5: "JIS", 6: "CYRILLIC", 7: "LATIN_HEBREW", 8: "UCS2"}
+
+VHT_TYPE_NAMES = {
+    0x01: "Пассажирский (Class M1)",
+    0x02: "Автобус (Class M2)",
+    0x03: "Автобус (Class M3)",
+    0x04: "Легкая грузовая машина (Class N1)",
+    0x05: "Тяжелая грузовая машина (Class N2)",
+    0x06: "Тяжелая грузовая машина (Class N3)",
+    0x07: "Мотоцикл (Class L1e)",
+    0x08: "Мотоцикл (Class L2e)",
+    0x09: "Мотоцикл (Class L3e)",
+    0x0A: "Мотоцикл (Class L4e)",
+    0x0B: "Мотоцикл (Class L5e)",
+    0x0C: "Мотоцикл (Class L6e)",
+    0x0D: "Мотоцикл (Class L7e)",
+}
 
 
 def _abbr(abbr: str) -> tuple[str, str]:
@@ -572,22 +588,27 @@ def _parse_srt_0(data: bytes, offset: int, _len: int,
                                   f"{crn} (0x{crn:04X})"))
         offset += 2
     if _len >= 3:
-        rcs = parsed_data["rst"] if parsed_data and "rst" in parsed_data else _int8(data, offset)
-        rc_name = RESULT_CODES.get(rcs, f"UNKNOWN_{rcs}")
-        fields.append(_make_field("RCS", offset, offset, data[offset:offset + 1],
-                                  f"{rc_name} ({rcs})"))
+        rst = parsed_data["rst"] if parsed_data and "rst" in parsed_data else _int8(data, offset)
+        rst_name = RESULT_CODES.get(rst, f"UNKNOWN_{rst}")
+        fields.append(ByteField(
+            abbr="RST", full_name="Record Status", description="Статус записи",
+            offset_start=offset, offset_end=offset,
+            hex_display=_hex_spaced(data[offset:offset + 1]),
+            value_display=f"{rst_name} ({rst})",
+        ))
     return fields
 
 
 def _parse_srt_1(data: bytes, offset: int, _len: int,
                 parsed_data: dict | None = None) -> list[ByteField]:
     fields = []
+    rel = 0  # offset relative to subrecord data start
     if _len < 4:
         return fields
     tid = parsed_data["tid"] if parsed_data and "tid" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("TID", offset, offset + 3, data[offset:offset + 4],
                               f"{tid} (0x{tid:08X})"))
-    offset += 4
+    offset += 4; rel += 4
     if _len < 5:
         return fields
     flags = parsed_data["flags"] if parsed_data and "flags" in parsed_data else _int8(data, offset)
@@ -603,58 +624,58 @@ def _parse_srt_1(data: bytes, offset: int, _len: int,
                                      field_type="bitfield"))
     fields.append(_make_field("FLG", offset, offset, data[offset:offset + 1],
                               f"0x{flags:02X}", children=flag_bits))
-    offset += 1
+    offset += 1; rel += 1
 
-    if _len >= 7 and (flags & 0x01):
+    if _len >= rel + 2 and (flags & 0x01):
         hdid = parsed_data["hdid"] if parsed_data and "hdid" in parsed_data else _uint16_le(data, offset)
         fields.append(_make_field("HDID", offset, offset + 1, data[offset:offset + 2],
                                   f"0x{hdid:04X} ({hdid})"))
-        offset += 2
-    if _len >= 22 and (flags & 0x02):
+        offset += 2; rel += 2
+    if _len >= rel + 15 and (flags & 0x02):
         if parsed_data and "imei" in parsed_data:
             imei = str(parsed_data["imei"])
         else:
             imei = _decode_str(data, offset, 15)
         fields.append(_make_field("IMEI", offset, offset + 14, data[offset:offset + 15],
                                   imei))
-        offset += 15
-    if _len >= 38 and (flags & 0x04):
+        offset += 15; rel += 15
+    if _len >= rel + 16 and (flags & 0x04):
         if parsed_data and "imsi" in parsed_data:
             imsi = str(parsed_data["imsi"])
         else:
             imsi = _decode_str(data, offset, 16)
         fields.append(_make_field("IMSI", offset, offset + 15, data[offset:offset + 16],
                                   imsi))
-        offset += 16
-    if _len >= 41 and (flags & 0x08):
+        offset += 16; rel += 16
+    if _len >= rel + 3 and (flags & 0x08):
         if parsed_data and "lngc" in parsed_data:
             lngc = str(parsed_data["lngc"])
         else:
             lngc = _decode_str(data, offset, 3)
         fields.append(_make_field("LNGC", offset, offset + 2, data[offset:offset + 3],
                                   lngc))
-        offset += 3
-    if _len >= 44 and (flags & 0x20):
+        offset += 3; rel += 3
+    if _len >= rel + 3 and (flags & 0x20):
         if parsed_data and "nid" in parsed_data and isinstance(parsed_data["nid"], (bytes, bytearray)):
             nid = bytes(parsed_data["nid"])
         else:
             nid = data[offset:offset + 3]
         fields.append(_make_field("NID", offset, offset + 2, nid,
                                   nid.hex()))
-        offset += 3
-    if _len >= 46 and (flags & 0x40):
+        offset += 3; rel += 3
+    if _len >= rel + 2 and (flags & 0x40):
         bs = parsed_data["bs"] if parsed_data and "bs" in parsed_data else _uint16_le(data, offset)
         fields.append(_make_field("BS", offset, offset + 1, data[offset:offset + 2],
                                   f"{bs} (0x{bs:04X})"))
-        offset += 2
-    if _len >= 61 and (flags & 0x80):
+        offset += 2; rel += 2
+    if _len >= rel + 15 and (flags & 0x80):
         if parsed_data and "msisdn" in parsed_data:
             msisdn = str(parsed_data["msisdn"])
         else:
             msisdn = _decode_str(data, offset, 15)
         fields.append(_make_field("MSISDN", offset, offset + 14, data[offset:offset + 15],
                                   msisdn))
-        offset += 15
+        offset += 15; rel += 15
     return fields
 
 
@@ -719,8 +740,10 @@ def _parse_srt_3(data: bytes, offset: int, _len: int,
     fields.append(_make_field("VIN", offset, offset + 16, data[offset:offset + 17], vin))
     offset += 17
     vht = parsed_data["vht"] if parsed_data and "vht" in parsed_data else _uint32_le(data, offset)
+    vht_type = vht & 0x1F
+    vht_type_name = VHT_TYPE_NAMES.get(vht_type, f"Unknown (0x{vht_type:02X})")
     fields.append(_make_field("VHT", offset, offset + 3, data[offset:offset + 4],
-                              f"0x{vht:08X}"))
+                              f"0x{vht:08X} ({vht_type_name})"))
     offset += 4
     vpst = parsed_data["vpst"] if parsed_data and "vpst" in parsed_data else _uint32_le(data, offset)
     fields.append(_make_field("VPST", offset, offset + 3, data[offset:offset + 4],
@@ -1319,38 +1342,26 @@ def _parse_srt_63(data: bytes, offset: int, _len: int,
         tp_fields = [_make_field("FLG", offset, offset, data[offset:offset + 1],
                                  f"0x{hdr:02X}", children=tp_bits)]
         offset += 1
+        dirh = 0
 
-        if tnde and offset + 11 <= len(data):
-            lat_raw = _uint32_le(data, offset)
-            tp_fields.append(_make_field("LAT", offset, offset + 3, data[offset:offset + 4],
-                                         f"{lat_raw} (degrees: {lat_raw / 0xFFFFFFFF * 180:.6f})"))
-            offset += 4
-            if offset + 4 > len(data):
-                break
-            lon_raw = _uint32_le(data, offset)
-            tp_fields.append(_make_field("LONG", offset, offset + 3, data[offset:offset + 4],
-                                         f"{lon_raw} (degrees: {lon_raw / 0xFFFFFFFF * 360:.6f})"))
-            offset += 4
-            if spfe and offset + 2 <= len(data):
+        if tnde:
+            if offset + 4 <= len(data):
+                lat_raw = _uint32_le(data, offset)
+                tp_fields.append(_make_field("LAT", offset, offset + 3, data[offset:offset + 4],
+                                             f"{lat_raw} (degrees: {lat_raw / 0xFFFFFFFF * 180:.6f})"))
+                offset += 4
+            if offset + 4 <= len(data):
+                lon_raw = _uint32_le(data, offset)
+                tp_fields.append(_make_field("LONG", offset, offset + 3, data[offset:offset + 4],
+                                             f"{lon_raw} (degrees: {lon_raw / 0xFFFFFFFF * 360:.6f})"))
+                offset += 4
+            if spfe and offset + 3 <= len(data):
                 spd_low = _uint16_le(data, offset)
                 offset += 2
-                if offset < len(data):
-                    dirh_spdh = _int8(data, offset)
-                    spd_high = (dirh_spdh >> 1) & 0x01
-                    dir_high = dirh_spdh & 0x01
-                    speed = ((spd_high << 14) | spd_low) * 0.01
-                    tp_fields.append(_make_field("SPD", offset - 2, offset,
-                                                  data[offset - 2:offset + 1],
-                                                  f"{speed:.2f} km/h"))
-                    offset += 1
-        elif tnde and spfe and offset + 3 <= len(data):
-            spd_low = _uint16_le(data, offset)
-            offset += 2
-            if offset < len(data):
                 dirh_spdh = _int8(data, offset)
-                spd_high = (dirh_spdh >> 1) & 0x01
-                dir_high = dirh_spdh & 0x01
-                speed = ((spd_high << 14) | spd_low) * 0.01
+                spdh = dirh_spdh & 0x01
+                dirh = (dirh_spdh >> 1) & 0x01
+                speed = ((spdh << 14) | spd_low) * 0.01
                 tp_fields.append(_make_field("SPD", offset - 2, offset,
                                               data[offset - 2:offset + 1],
                                               f"{speed:.2f} km/h"))
@@ -1358,96 +1369,14 @@ def _parse_srt_63(data: bytes, offset: int, _len: int,
 
         if sdfe and offset < len(data):
             direc = _int8(data, offset)
+            dir_full = (dirh << 8) | direc
             tp_fields.append(_make_field("DIR", offset, offset, data[offset:offset + 1],
-                                         f"{direc}°"))
+                                         f"{dir_full}°"))
             offset += 1
 
         summary = f"Point {i + 1} [RTM={rtm * 0.1}s]"
-        # FIX Б-05: use point_start (correct) instead of `offset - 1 - len(data[offset-1:offset])` (= offset - 2).
         fields.append(_make_section(f"Point {i + 1}",
                                     point_start, offset - 1, tp_fields, summary))
-    return fields
-    sa = _int8(data, offset)
-    fields.append(_make_field("SA", offset, offset, data[offset:offset + 1], f"{sa}"))
-    offset += 1
-    atm = _uint32_le(data, offset)
-    fields.append(_make_field("ATM", offset, offset + 3, data[offset:offset + 4],
-                              f"{atm} sec from 2010-01-01"))
-    offset += 4
-
-    for i in range(sa):
-        if offset >= len(data):
-            break
-        hdr = _int8(data, offset)
-        tnde = bool(hdr & 0x80)
-        lohs = bool(hdr & 0x40)
-        lahs = bool(hdr & 0x20)
-        sdfe = bool(hdr & 0x10)
-        spfe = bool(hdr & 0x08)
-        rtm = hdr & 0x07
-
-        tp_bits = [
-            _make_field("TNDE", offset, offset, data[offset:offset + 1],
-                        f"{int(tnde)}", field_type="bitfield"),
-            _make_field("LOHS", offset, offset, data[offset:offset + 1],
-                        f"{int(lohs)}", field_type="bitfield"),
-            _make_field("LAHS", offset, offset, data[offset:offset + 1],
-                        f"{int(lahs)}", field_type="bitfield"),
-            _make_field("SDFE", offset, offset, data[offset:offset + 1],
-                        f"{int(sdfe)}", field_type="bitfield"),
-            _make_field("SPFE", offset, offset, data[offset:offset + 1],
-                        f"{int(spfe)}", field_type="bitfield"),
-            _make_field("RTM", offset, offset, data[offset:offset + 1],
-                        f"{rtm} ({rtm * 0.1}s)", field_type="bitfield"),
-        ]
-        tp_fields = [_make_field("FLG", offset, offset, data[offset:offset + 1],
-                                 f"0x{hdr:02X}", children=tp_bits)]
-        offset += 1
-
-        if tnde and offset + 11 <= len(data):
-            lat_raw = _uint32_le(data, offset)
-            tp_fields.append(_make_field("LAT", offset, offset + 3, data[offset:offset + 4],
-                                         f"{lat_raw} (degrees: {lat_raw / 0xFFFFFFFF * 180:.6f})"))
-            offset += 4
-            if offset + 4 > len(data):
-                break
-            lon_raw = _uint32_le(data, offset)
-            tp_fields.append(_make_field("LONG", offset, offset + 3, data[offset:offset + 4],
-                                         f"{lon_raw} (degrees: {lon_raw / 0xFFFFFFFF * 360:.6f})"))
-            offset += 4
-            if spfe and offset + 2 <= len(data):
-                spd_low = _uint16_le(data, offset)
-                offset += 2
-                if offset < len(data):
-                    dirh_spdh = _int8(data, offset)
-                    spd_high = (dirh_spdh >> 1) & 0x01
-                    dir_high = dirh_spdh & 0x01
-                    speed = ((spd_high << 14) | spd_low) * 0.01
-                    tp_fields.append(_make_field("SPD", offset - 2, offset,
-                                                  data[offset - 2:offset + 1],
-                                                  f"{speed:.2f} km/h"))
-                    offset += 1
-        elif tnde and spfe and offset + 3 <= len(data):
-            spd_low = _uint16_le(data, offset)
-            offset += 2
-            if offset < len(data):
-                dirh_spdh = _int8(data, offset)
-                spd_high = (dirh_spdh >> 1) & 0x01
-                speed = ((spd_high << 14) | spd_low) * 0.01
-                tp_fields.append(_make_field("SPD", offset - 2, offset,
-                                              data[offset - 2:offset + 1],
-                                              f"{speed:.2f} km/h"))
-                offset += 1
-
-        if sdfe and offset < len(data):
-            direc = _int8(data, offset)
-            tp_fields.append(_make_field("DIR", offset, offset, data[offset:offset + 1],
-                                         f"{direc}°"))
-            offset += 1
-
-        summary = f"Point {i + 1} [RTM={rtm * 0.1}s]"
-        fields.append(_make_section(f"Point {i + 1}", offset - 1 - len(data[offset-1:offset]),
-                                    offset - 1, tp_fields, summary))
     return fields
 
 
