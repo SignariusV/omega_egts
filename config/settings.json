@@ -10,8 +10,8 @@
     "sms_send_timeout": 10.0,
     "status_poll_interval": 2.0,
     "mcc": 250,
-    "mnc": 60,
-    "rf_level_tch": -40.0,
+    "mnc": 77,
+    "rf_level_tch": -33,
     "sms_dcoding": "BIT8",
     "sms_pidentifier": 1
   },

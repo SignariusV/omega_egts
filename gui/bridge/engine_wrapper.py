@@ -40,6 +40,24 @@ class EngineWrapper:
 
         await self.engine.start()
 
+    def reload_config(self) -> None:
+        """Перезагрузить конфиг из settings.json и применить к engine."""
+        from core.config import Config
+        config_path = Path(__file__).resolve().parent.parent.parent / "config" / "settings.json"
+        if config_path.exists():
+            try:
+                new_config = Config.from_file(str(config_path))
+                self.engine.config = new_config
+                logger.info("Config reloaded from %s", config_path)
+            except Exception as e:
+                logger.warning("Could not reload config: %s", e)
+
+    async def restart(self) -> None:
+        """Остановить и перезапустить engine с новым конфигом."""
+        await self.stop()
+        self.reload_config()
+        await self.start()
+
     async def stop(self) -> None:
         await self.engine.stop()
 

@@ -278,15 +278,16 @@ class MainWindow(QMainWindow):
             logger.warning("Could not stop scenario: %s", e)
 
     def _on_settings_changed(self, data: dict):
-        """Handle settings save. Notify user that restart is required."""
-        logger.info("Settings saved. New config: %s", data.get("gost_version"))
-        self._status_bar.showMessage(
-            "Настройки сохранены. Перезапустите программу для применения.", 5000
-        )
-        # Опционально: обновляем self._config, если сервер не запущен,
-        # чтобы при следующем старте использовались новые настройки без перезапуска программы.
-        # Но так как EngineWrapper уже создан со старым конфигом, это сложнее.
-        # Пока просто уведомляем.
+        """Handle settings save. Reload config into engine wrapper."""
+        logger.info("Settings saved. Reloading config...")
+        self._engine_wrapper.reload_config()
+        self._config = self._engine_wrapper.engine.config
+        if self._engine_wrapper.engine.is_running:
+            self._status_bar.showMessage(
+                "Настройки сохранены. Перезапустите сервер (Ctrl+R) для применения.", 5000,
+            )
+        else:
+            self._status_bar.showMessage("Настройки сохранены.", 3000)
 
     def closeEvent(self, event):
         """Handle window close - save state and stop engine gracefully."""

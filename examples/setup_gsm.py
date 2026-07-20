@@ -22,8 +22,17 @@ async def main() -> None:
         await controller.connect()
         print(f"Подключено к CMW-500 по адресу {config.cmw500.ip}")
 
-        # Выполнение настройки GSM сигнализации с параметрами по умолчанию
-        await controller.configure_gsm_signaling()
+        # Выполнение настройки GSM сигнализации
+        await controller.configure_gsm_signaling(
+            mcc=config.cmw500.mcc,
+            mnc=config.cmw500.mnc,
+            rf_level_dbm=config.cmw500.rf_level_tch,
+            ps_service=config.cmw500.ps_service,
+            ps_tlevel=config.cmw500.ps_tlevel,
+            ps_cscheme_ul=config.cmw500.ps_cscheme_ul,
+            ps_dl_carrier=",".join(config.cmw500.ps_dl_carrier),
+            ps_dl_cscheme=",".join(config.cmw500.ps_dl_cscheme),
+        )
         print("Настройка GSM сигнализации выполнена успешно")
 
     except Exception as e:

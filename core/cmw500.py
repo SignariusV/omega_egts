@@ -182,16 +182,17 @@ class VisaCmw500Driver:
 
     def configure_gsm_signaling(
         self,
-        mcc: int = 250,
-        mnc: int = 60,
-        rf_level_dbm: float = -40.0,
-        ps_service: str = "TMA",
-        ps_tlevel: str = "EGPRS",
-        ps_cscheme_ul: str = "MC9",
-        ps_dl_carrier: str = "OFF,OFF,OFF,ON,ON,OFF,OFF,OFF",
-        ps_dl_cscheme: str = "MC9,MC9,MC9,MC9,MC9,MC9,MC9,MC9",
+        mcc: int,
+        mnc: int,
+        rf_level_dbm: float,
+        ps_service: str,
+        ps_tlevel: str,
+        ps_cscheme_ul: str,
+        ps_dl_carrier: str,
+        ps_dl_cscheme: str,
     ) -> None:
         """Конфигурация GSM сигналинга."""
+        logger.debug("configure_gsm_signaling: MCC=%s MNC=%s RF_LEVEL_TCH=%s", mcc, mnc, rf_level_dbm)
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:CELL:MCC {mcc}")
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:CELL:MNC {mnc}")
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN1:RFSettings:LEVel:TCH {rf_level_dbm}")
@@ -641,6 +642,7 @@ class Cmw500Controller:
     async def configure_gsm_signaling(self, **kwargs: Any) -> None:
         if self._driver is None:
             raise ConnectionError("CMW-500 driver not connected")
+        logger.debug("Cmw500Controller.configure_gsm_signaling kwargs=%s", kwargs)
         await self._execute_with_retry(
             CmwCommand(
                 name="configure_gsm_signaling",
