@@ -18,6 +18,20 @@ from core.event_bus import EventBus
 logger = logging.getLogger(__name__)
 
 
+def _resolve_server_address(config: Config) -> str:
+    """Сформировать строку server_address для сценариев автоконфигурации.
+
+    Выбирает лучший локальный IP через :func:`get_best_server_ip`,
+    исключая интерфейс, ведущий к CMW-500.
+    """
+    from core.network import get_best_server_ip
+
+    ip = get_best_server_ip(exclude_ip=config.cmw500.ip) or "127.0.0.1"
+    addr = f"{ip}:{config.tcp_port}"
+    logger.debug("server_address resolved: %s (exclude_ip=%s)", addr, config.cmw500.ip)
+    return addr
+
+
 @dataclass
 class CoreEngine:
     """Главный координатор системы.
@@ -112,10 +126,9 @@ class CoreEngine:
             self.scenario_mgr = _ScenarioManager(parser_factory=parser_factory)
 
             # Регистрируем резолвер для server_address
-            from core.network import get_wifi_ip
             self.scenario_mgr.register_resolver(
                 "server_address",
-                lambda: f"{get_wifi_ip() or '127.0.0.1'}:{self.config.tcp_port}",
+                lambda: _resolve_server_address(self.config),
             )
 
             # Создаём диспетчер пакетов (подписывается на raw.packet.received)
