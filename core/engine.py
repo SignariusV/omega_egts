@@ -184,7 +184,12 @@ class CoreEngine:
                     dcoding=cmw_cfg.sms_dcoding,
                     pid=cmw_cfg.sms_pidentifier,
                 )
-                await self.cmw500.configure_dau()
+                await self.cmw500.configure_dau(
+                    dau_ip=cmw_cfg.dau_ip,
+                    dau_mask=cmw_cfg.dau_mask,
+                    dau_gateway=cmw_cfg.dau_gateway,
+                    dau_mobile_ips=cmw_cfg.dau_mobile_ips,
+                )
 
                 # Запускаем poll_loop после конфигурации
                 self.cmw500.start_poll()

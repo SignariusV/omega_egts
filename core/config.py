@@ -49,6 +49,11 @@ class CmwConfig:
     sms_dcoding: str = "BIT8"
     sms_pidentifier: int = 1
 
+    dau_ip: str = "192.168.168.180"
+    dau_mask: str = "255.255.255.0"
+    dau_gateway: str = "192.168.168.1"
+    dau_mobile_ips: list[str] = field(default_factory=lambda: ["192.168.168.22"])
+
 
 @dataclass(frozen=True)
 class TimeoutsConfig:
@@ -171,6 +176,10 @@ class Config:
                 ps_dl_cscheme=cmw_data.get("ps_dl_cscheme", ["MC9"] * 8),
                 sms_dcoding=cmw_data.get("sms_dcoding", CmwConfig.sms_dcoding),
                 sms_pidentifier=cmw_data.get("sms_pidentifier", CmwConfig.sms_pidentifier),
+                dau_ip=cmw_data.get("dau_ip", CmwConfig.dau_ip),
+                dau_mask=cmw_data.get("dau_mask", CmwConfig.dau_mask),
+                dau_gateway=cmw_data.get("dau_gateway", CmwConfig.dau_gateway),
+                dau_mobile_ips=cmw_data.get("dau_mobile_ips", ["192.168.168.22"]),
             ),
             timeouts=TimeoutsConfig(
                 tl_response_to=_get_key(timeouts_data, "tl_response_to", TimeoutsConfig.tl_response_to),

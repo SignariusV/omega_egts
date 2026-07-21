@@ -23,8 +23,13 @@ async def main() -> None:
         print(f"Подключено к CMW-500 по адресу {config.cmw500.ip}")
 
         # Выполнение настройки DAU
-        await controller.configure_dau()
-        print("Настройка DAU выполнена успешно")
+        await controller.configure_dau(
+            dau_ip=config.cmw500.dau_ip,
+            dau_mask=config.cmw500.dau_mask,
+            dau_gateway=config.cmw500.dau_gateway,
+            dau_mobile_ips=config.cmw500.dau_mobile_ips,
+        )
+        print(f"Настройка DAU выполнена успешно: IP={config.cmw500.dau_ip}")
 
     except Exception as e:
         print(f"Ошибка при работе с CMW-500: {e}")

@@ -211,6 +211,33 @@ class VisaCmw500Driver:
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:DCODing {dcoding}")
         self._drv.utilities.write_str(f"CONFigure:GSM:SIGN:SMS:OUTGoing:PIDentifier #H{pid}")
 
+    def configure_dau(
+        self,
+        dau_ip: str,
+        dau_mask: str,
+        dau_gateway: str,
+        dau_mobile_ips: list[str],
+    ) -> None:
+        """Настройка DAU (Data Application Unit).
+
+        Устанавливает статический IPv4, маску, шлюз и пул мобильных адресов.
+        """
+        logger.debug(
+            "configure_dau: IP=%s MASK=%s GATEWAY=%s MOBILE=%s",
+            dau_ip, dau_mask, dau_gateway, dau_mobile_ips,
+        )
+        self._drv.utilities.write_str("CONFigure:DATA:CONTrol:IPVFour:ADDRess:TYPE STATic")
+        self._drv.utilities.write_str(f"CONFigure:DATA:CONTrol:IPVFour:STATic:SMASk '{dau_mask}'")
+        self._drv.utilities.write_str(f"CONFigure:DATA:CONTrol:IPVFour:STATic:IPADdress '{dau_ip}'")
+        self._drv.utilities.write_str(f"CONFigure:DATA:CONTrol:IPVFour:STATic:GIP '{dau_gateway}'")
+
+        # Удаляем старый пул и добавляем новые адреса
+        self._drv.utilities.write_str("CONFigure:DATA:CONTrol:IPVFour:STATic:ADDResses:DELete 0")
+        for addr in dau_mobile_ips:
+            self._drv.utilities.write_str(
+                f"CONFigure:DATA:CONTrol:IPVFour:STATic:ADDResses:ADD '{addr}'"
+            )
+
     def get_mcc(self) -> str:
         """Получить текущий MCC."""
         return self._drv.utilities.query_str_with_opc("CONFigure:GSM:SIGN:CELL:MCC?").strip()
@@ -666,8 +693,31 @@ class Cmw500Controller:
             ),
         )
 
-    async def configure_dau(self) -> None:
-        logger.debug("configure_dau: DAU configuration not required in GSM Signaling mode")
+    async def configure_dau(
+        self,
+        dau_ip: str = "192.168.168.180",
+        dau_mask: str = "255.255.255.0",
+        dau_gateway: str = "192.168.168.1",
+        dau_mobile_ips: list[str] | None = None,
+    ) -> None:
+        if self._driver is None:
+            raise ConnectionError("CMW-500 driver not connected")
+        logger.debug("Cmw500Controller.configure_dau: IP=%s MASK=%s GATEWAY=%s MOBILE=%s",
+                     dau_ip, dau_mask, dau_gateway, dau_mobile_ips)
+        await self._execute_with_retry(
+            CmwCommand(
+                name="configure_dau",
+                func=lambda: self._driver.configure_dau(
+                    dau_ip=dau_ip,
+                    dau_mask=dau_mask,
+                    dau_gateway=dau_gateway,
+                    dau_mobile_ips=dau_mobile_ips or ["192.168.168.22"],
+                ),
+                timeout=30.0,
+                retry_count=2,
+                retry_delay=2.0,
+            ),
+        )
 
     async def start_signaling(self) -> None:
         if self._driver is None:
@@ -769,6 +819,15 @@ class MockDriver:
         pass
 
     def configure_sms(self, dcoding: str = "BIT8", pid: int = 1) -> None:
+        pass
+
+    def configure_dau(
+        self,
+        dau_ip: str,
+        dau_mask: str,
+        dau_gateway: str,
+        dau_mobile_ips: list[str],
+    ) -> None:
         pass
 
     def send_sms_raw(self, hex_data: str) -> bool:
