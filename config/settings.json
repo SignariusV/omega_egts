@@ -14,10 +14,10 @@
     "rf_level_tch": -33.0,
     "sms_dcoding": "BIT8",
     "sms_pidentifier": 1,
-    "dau_ip": "192.168.168.180",
+    "dau_ip": "200.20.2.180",
     "dau_mask": "255.255.255.0",
-    "dau_gateway": "192.168.168.1",
-    "dau_mobile_ips": ["192.168.168.22"]
+    "dau_gateway": "200.20.2.1",
+    "dau_mobile_ips": ["200.20.2.22"]
   },
   "timeouts": {
     "tl_response_to": 5.0,
