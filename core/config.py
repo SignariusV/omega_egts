@@ -4,11 +4,64 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def _strip_json_comments(text: str) -> str:
+    """Удалить // и /* */ комментарии из JSON, не трогая строки."""
+    in_string = False
+    in_block = False
+    escape = False
+    out: list[str] = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+
+        if in_block:
+            if ch == "*" and i + 1 < len(text) and text[i + 1] == "/":
+                in_block = False
+                i += 2
+            else:
+                i += 1
+            continue
+
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            out.append(ch)
+            i += 1
+            continue
+
+        if ch == '"':
+            in_string = True
+            out.append(ch)
+            i += 1
+            continue
+
+        if ch == "/" and i + 1 < len(text):
+            nxt = text[i + 1]
+            if nxt == "/":
+                while i < len(text) and text[i] != "\n":
+                    i += 1
+                continue
+            if nxt == "*":
+                in_block = True
+                i += 2
+                continue
+
+        out.append(ch)
+        i += 1
+
+    return "".join(out)
 
 
 def _get_key(data: dict[str, Any], key: str, default: Any) -> Any:
@@ -137,12 +190,12 @@ class Config:
 
     @classmethod
     def from_file(cls, path: str) -> Config:
-        """Загрузить конфигурацию из JSON-файла."""
+        """Загрузить конфигурацию из JSON-файла (с поддержкой // и /* */ комментариев)."""
         file = Path(path)
         if not file.exists():
             raise FileNotFoundError(f"Файл конфигурации не найден: {path}")
 
-        raw = json.loads(file.read_text(encoding="utf-8"))
+        raw = json.loads(_strip_json_comments(file.read_text(encoding="utf-8")))
         return cls._from_dict(raw)
 
     @classmethod

@@ -1,34 +1,59 @@
 {
+  // Версия ГОСТ 33465-2015 (только "2015")
   "gost_version": "2015",
+
+  // Адрес и порт TCP-сервера EGTS
+  // server_address для устройства формируется как tcp_host:tcp_port
+  // tcp_host=0.0.0.0 слушает на всех интерфейсах
   "tcp_host": "0.0.0.0",
   "tcp_port": 8054,
+
+  // Настройки CMW-500
   "cmw500": {
+    // IP-адрес Ethernet-интерфейса CMW-500 (управление)
+    // Исключается из выбора server_address для EGTS-устройства
     "ip": "192.168.2.2",
+
+    // true — эмуляция (без реального прибора), false — реальный CMW-500
     "simulate": true,
     "timeout": 0.1,
     "retries": 3,
     "sms_send_timeout": 10.0,
     "status_poll_interval": 2.0,
-    "mcc": 250,
-    "mnc": 77,
-    "rf_level_tch": -33.0,
+
+    // Параметры GSM-сигналинга (ячейка)
+    "mcc": 250,       // Mobile Country Code (250 = Россия)
+    "mnc": 77,        // Mobile Network Code
+    "rf_level_tch": -33.0,  // Уровень RF TCH, dBm
+
+    // Параметры SMS на CMW-500
     "sms_dcoding": "BIT8",
     "sms_pidentifier": 1,
-    "dau_ip": "200.20.2.180",
-    "dau_mask": "255.255.255.0",
-    "dau_gateway": "200.20.2.1",
-    "dau_mobile_ips": ["200.20.2.22"]
+
+    // === DAU (Data Application Unit) ===
+    // Настройка DATA-подсистемы CMW-500 для IP-связи с EGTS-устройством
+    //
+    // Устройство подключается через USB-Ethernet компьютера (200.20.2.1)
+    // CMW-500 DAU и устройство получают адреса из той же сети 200.20.2.0/24
+    "dau_ip": "200.20.2.180",       // IP самого DAU на CMW-500
+    "dau_mask": "255.255.255.0",     // Маска подсети
+    "dau_gateway": "200.20.2.1",     // Шлюз — компьютер с EGTS-сервером
+    "dau_mobile_ips": ["200.20.2.22"] // Пул IP для EGTS-устройства
   },
+
+  // Таймауты транспортного уровня EGTS
   "timeouts": {
-    "tl_response_to": 5.0,
-    "tl_resend_attempts": 3,
-    "tl_reconnect_to": 30.0,
-    "egts_sl_not_auth_to": 6.0
+    "tl_response_to": 5.0,       // Ожидание ответа от устройства, сек
+    "tl_resend_attempts": 3,     // Попыток переотправки
+    "tl_reconnect_to": 30.0,     // Таймаут переподключения, сек
+    "egts_sl_not_auth_to": 6.0  // Ожидание авторизации, сек
   },
+
+  // Логирование
   "logging": {
-    "level": "INFO",
-    "dir": "logs",
-    "max_size_mb": 100,
-    "retention_days": 30
+    "level": "INFO",       // Уровень: DEBUG, INFO, WARNING, ERROR
+    "dir": "logs",         // Папка для лог-файлов
+    "max_size_mb": 100,    // Максимальный размер одного файла, MB
+    "retention_days": 30   // Хранить логи N дней
   }
 }
